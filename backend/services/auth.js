@@ -3,7 +3,7 @@
 // Registro con email + clave → código de 6 dígitos por correo (Gmail SMTP
 // con clave de aplicación). Login con clave. Recuperación por código.
 // Códigos: 30 min de vida, 5 intentos, cooldown de reenvío 60 s, bloqueo
-// 15 min si se abusa. Mismo espíritu que Buddy pero self-contained.
+// 15 min si se abusa. Flujo self-contained, sin dependencias externas de auth.
 
 const cnf = require('../config');
 const FsUser = require('../models/fsUserModel');

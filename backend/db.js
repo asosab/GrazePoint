@@ -5,7 +5,7 @@
 // el mismo servidor Contabo en producción. Se conecta con
 // mongoose.createConnection y reintenta con backoff, mismo espíritu que
 // config/mongo.js pero aislado: si la BD principal se cae, el servicio
-// sigue sirviendo (la identidad Buddy se resuelve con el caché fsUser).
+// sigue sirviendo (los usuarios viven en fsUser, dentro de esa BD).
 
 const mongoose = require('mongoose');
 const cnf = require('./config');

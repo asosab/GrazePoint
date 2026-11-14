@@ -73,7 +73,7 @@ const parcelaSchema = new mongoose.Schema(
 
 const predioSchema = new mongoose.Schema(
 	{
-		owner: { type: String, required: true, index: true }, // buddyUserId (JWT sub)
+		owner: { type: String, required: true, index: true }, // id fsUser (JWT sub)
 		nombre: { type: String, required: true, trim: true, maxlength: 160 },
 		descripcion: { type: String, default: null, maxlength: 1000 },
 		centro: { type: puntoSchema, default: undefined },

@@ -1,9 +1,9 @@
 // servicios/fieldShift/config.js — configuración del servicio Field Shift.
 //
 // PRIAS digital + recomendador de rotación + ventana de siembra forrajera.
-// Autenticación: JWT de Buddy (mismo secreto que servicios/buddy). La
-// identidad se resuelve con el BuddyUser de la BD principal; el email se
-// cachea en fsUser (BD propia) para no depender de ella en cada request.
+// Autenticación propia: registro con email + clave, verificación por
+// código de 6 dígitos enviado por Gmail SMTP (clave de aplicación), JWT
+// propio. Los usuarios viven en fsUser, dentro de la BD del proyecto.
 
 module.exports = {
 	name: 'FieldShift',
