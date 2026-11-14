@@ -1,0 +1,14 @@
+{%- assign lsw_lang = page.lang | default: "en" -%}
+{%- assign lsw_t = site.data.i18n[lsw_lang] -%}
+{%- if lsw_lang == "es" -%}
+  {%- assign lsw_url = page.url | remove_first: "/es" -%}
+{%- else -%}
+  {%- assign lsw_url = "/es" | append: page.url -%}
+{%- endif -%}
+<span class="langs" aria-label="{{ lsw_t.lang_aria }}">
+  {%- if lsw_lang == "en" -%}
+    <a href="{{ lsw_url | relative_url }}" hreflang="es" lang="es">ES</a><span class="langs__sep">/</span><span class="langs__cur" aria-current="true">EN</span>
+  {%- else -%}
+    <span class="langs__cur" aria-current="true">ES</span><span class="langs__sep">/</span><a href="{{ lsw_url | relative_url }}" hreflang="en" lang="en">EN</a>
+  {%- endif -%}
+</span>

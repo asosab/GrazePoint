@@ -35,7 +35,7 @@ function usuarioPublico(u) {
 	};
 }
 
-async function _emitirCodigo(user, tipo) {
+async function _emitirCodigo(user, tipo, lang) {
 	const ahora = Date.now();
 	if (user.codigoEnviadoEn && ahora - user.codigoEnviadoEn.getTime() < COOLDOWN_MS) {
 		return { ok: false, error: 'espera_unos_segundos', cooldown: true };
@@ -47,13 +47,13 @@ async function _emitirCodigo(user, tipo) {
 	user.codigoTipo = tipo;
 	user.codigoEnviadoEn = new Date(ahora);
 	await user.save();
-	if (tipo === 'verificacion') await mail.enviarVerificacion(user.email, codigo, user.nombre);
-	else await mail.enviarReset(user.email, codigo, user.nombre);
+	if (tipo === 'verificacion') await mail.enviarVerificacion(user.email, codigo, user.nombre, lang);
+	else await mail.enviarReset(user.email, codigo, user.nombre, lang);
 	return { ok: true };
 }
 
-// POST /auth/registro {email, clave, nombre}
-async function registro({ email, clave, nombre }) {
+// POST /auth/registro {email, clave, nombre, lang}
+async function registro({ email, clave, nombre, lang }) {
 	const e = normalizarEmail(email);
 	if (!emailValido(e)) return { ok: false, status: 400, error: 'email_invalido' };
 	if (!clave || String(clave).length < 8) return { ok: false, status: 400, error: 'clave_minima_8' };
@@ -68,7 +68,7 @@ async function registro({ email, clave, nombre }) {
 	user.rol = rolParaEmail(e);
 	user.verificado = false;
 	await user.save();
-	const envio = await _emitirCodigo(user, 'verificacion');
+	const envio = await _emitirCodigo(user, 'verificacion', lang);
 	if (!envio.ok) return { ok: false, status: 429, error: envio.error };
 	return { ok: true, status: 202, requiereVerificacion: true };
 }
@@ -95,15 +95,15 @@ async function verificar({ email, codigo }) {
 	return { ok: true, token: firmarToken(user._id), usuario: usuarioPublico(user) };
 }
 
-// POST /auth/login {email, clave} → token
-async function login({ email, clave }) {
+// POST /auth/login {email, clave, lang} → token
+async function login({ email, clave, lang }) {
 	const e = normalizarEmail(email);
 	const user = await FsUser.findOne({ email: e, activo: true });
 	if (!user || !verificarClave(clave, user.claveHash)) {
 		return { ok: false, status: 401, error: 'credenciales_invalidas' };
 	}
 	if (!user.verificado) {
-		await _emitirCodigo(user, 'verificacion').catch(() => {});
+		await _emitirCodigo(user, 'verificacion', lang).catch(() => {});
 		return { ok: false, status: 403, error: 'email_sin_verificar', requiereVerificacion: true };
 	}
 	user.rol = rolParaEmail(user.email);
@@ -112,11 +112,11 @@ async function login({ email, clave }) {
 	return { ok: true, token: firmarToken(user._id), usuario: usuarioPublico(user) };
 }
 
-// POST /auth/recuperar {email} → siempre 202 (no revelar si existe)
-async function recuperar({ email }) {
+// POST /auth/recuperar {email, lang} → siempre 202 (no revelar si existe)
+async function recuperar({ email, lang }) {
 	const e = normalizarEmail(email);
 	const user = await FsUser.findOne({ email: e, activo: true });
-	if (user) await _emitirCodigo(user, 'reset').catch(() => {});
+	if (user) await _emitirCodigo(user, 'reset', lang).catch(() => {});
 	return { ok: true, status: 202 };
 }
 
@@ -144,12 +144,12 @@ async function restablecer({ email, codigo, clave }) {
 	return { ok: true, token: firmarToken(user._id), usuario: usuarioPublico(user) };
 }
 
-// POST /auth/reenviar {email} — reenvío de código de verificación
-async function reenviar({ email }) {
+// POST /auth/reenviar {email, lang} — reenvío de código de verificación
+async function reenviar({ email, lang }) {
 	const e = normalizarEmail(email);
 	const user = await FsUser.findOne({ email: e, activo: true });
 	if (!user || user.verificado) return { ok: true, status: 202 };
-	const envio = await _emitirCodigo(user, 'verificacion');
+	const envio = await _emitirCodigo(user, 'verificacion', lang);
 	if (!envio.ok) return { ok: false, status: 429, error: envio.error };
 	return { ok: true, status: 202 };
 }

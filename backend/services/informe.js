@@ -4,15 +4,15 @@
 // ficha, suelo (último PRIAS), siembra actual e historial, aforos,
 // recomendación de rotación (top-3) y ventana de siembra forrajera.
 // El PDF es la salida que el técnico reenvía por WhatsApp al agricultor.
+// `lang` ('es'|'en') decide el idioma de todo el documento.
 
 const PDFDocument = require('pdfkit');
 const rotacion = require('./rotacion');
 const ventana = require('./ventana');
 const power = require('./power');
+const { INFORME, grupoDe, tipoDe, langOk } = require('./i18n');
 
-const MESES = ventana.MESES;
-
-function _f(d) { return d ? new Date(d).toLocaleDateString('es-BO') : '—'; }
+function _f(d, lang) { return d ? new Date(d).toLocaleDateString(langOk(lang) === 'es' ? 'es-BO' : 'en-US') : '—'; }
 function _n(v, u) { return v == null ? '—' : v + (u || ''); }
 
 function _titulo(doc, texto) {
@@ -25,7 +25,10 @@ function _fila(doc, etiqueta, valor) {
 	doc.font('Helvetica-Bold').text(etiqueta + ': ', { continued: true }).font('Helvetica').text(String(valor == null ? '—' : valor));
 }
 
-async function generar({ predio, parcela, solicitadoPor }) {
+async function generar({ predio, parcela, solicitadoPor, lang }) {
+	const L = langOk(lang);
+	const T = INFORME[L];
+	const f = (d) => _f(d, L);
 	const centro = parcela && parcela.geometry && parcela.geometry.coordinates && parcela.geometry.coordinates[0] && parcela.geometry.coordinates[0][0]
 		? { lon: parcela.geometry.coordinates[0][0][0], lat: parcela.geometry.coordinates[0][0][1] }
 		: (predio.centro && predio.centro.coordinates ? { lon: predio.centro.coordinates[0], lat: predio.centro.coordinates[1] } : null);
@@ -34,66 +37,65 @@ async function generar({ predio, parcela, solicitadoPor }) {
 	if (centro) {
 		const [clim, dia] = await Promise.all([power.climatologia(centro.lat, centro.lon), power.diario(centro.lat, centro.lon, 120)]);
 		climaMeta = power.resumen(dia, clim);
-		const rec = await rotacion.recomendar({ parcela, clima: climaMeta });
-		const ven = ventana.evaluar({ clima: clim, resumenPower: climaMeta, especie: parcela ? parcela.especieActual : null });
+		const ven = ventana.evaluar({ clima: clim, resumenPower: climaMeta, especie: parcela ? parcela.especieActual : null, lang: L });
 
-		const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 50, left: 50, right: 50 }, info: { Title: 'Informe ' + predio.nombre, Author: 'Field Shift' } });
+		const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 50, left: 50, right: 50 }, info: { Title: T.titulo + ' · ' + predio.nombre, Author: 'Field Shift' } });
 		const chunks = [];
 		doc.on('data', (c) => chunks.push(c));
 		const fin = new Promise((resolve) => doc.on('end', () => resolve(Buffer.concat(chunks))));
 
-		doc.font('Helvetica-Bold').fontSize(20).fillColor('#1c1c1c').text('Field Shift — informe de predio');
-		doc.font('Helvetica').fontSize(10).fillColor('#555').text('Generado el ' + _f(new Date()) + (solicitadoPor ? ' para ' + solicitadoPor : ''));
+		doc.font('Helvetica-Bold').fontSize(20).fillColor('#1c1c1c').text(T.titulo);
+		doc.font('Helvetica').fontSize(10).fillColor('#555').text(T.generado + f(new Date()) + (solicitadoPor ? T.para + solicitadoPor : ''));
 		doc.moveDown(0.5);
-		doc.fontSize(9).fillColor('#777').text('Datos climáticos: NASA POWER (serie diaria y climatología multianual). Recomendaciones orientadas a pasturas y cultivos de servicio.');
+		doc.fontSize(9).fillColor('#777').text(T.nota_clima);
 
-		_titulo(doc, 'Predio: ' + predio.nombre);
-		if (predio.descripcion) _fila(doc, 'Descripción', predio.descripcion);
-		_fila(doc, 'Parcelas registradas', predio.parcelas.length);
-		if (centro) _fila(doc, 'Ubicación', 'lat ' + centro.lat.toFixed(5) + ', lon ' + centro.lon.toFixed(5));
+		_titulo(doc, T.predio + predio.nombre);
+		if (predio.descripcion) _fila(doc, T.descripcion, predio.descripcion);
+		_fila(doc, T.parcelas_registradas, predio.parcelas.length);
+		if (centro) _fila(doc, T.ubicacion, 'lat ' + centro.lat.toFixed(5) + ', lon ' + centro.lon.toFixed(5));
 
 		if (climaMeta) {
-			_titulo(doc, 'Clima del predio (NASA POWER)');
-			_fila(doc, 'Lluvia anual media', _n(climaMeta.lluviaAnualMedia, ' mm'));
-			_fila(doc, 'Lluvia último mes', _n(climaMeta.lluviaUltimoMes, ' mm'));
-			_fila(doc, 'Humedad de suelo reciente (raíz)', climaMeta.humedadSueloReciente != null ? climaMeta.humedadSueloReciente + ' (0–1)' : '—');
-			if (climaMeta.anomaliaLluvia != null) _fila(doc, 'Anomalía de lluvia del último mes', climaMeta.anomaliaLluvia + ' %');
+			_titulo(doc, T.clima_h);
+			_fila(doc, T.lluvia_anual, _n(climaMeta.lluviaAnualMedia, ' mm'));
+			_fila(doc, T.lluvia_mes, _n(climaMeta.lluviaUltimoMes, ' mm'));
+			_fila(doc, T.humedad_suelo, climaMeta.humedadSueloReciente != null ? climaMeta.humedadSueloReciente + ' (0–1)' : '—');
+			if (climaMeta.anomaliaLluvia != null) _fila(doc, T.anomalia, climaMeta.anomaliaLluvia + ' %');
 		}
 
 		const parcelas = parcela ? [parcela] : predio.parcelas;
 		for (const p of parcelas) {
 			doc.addPage();
-			_titulo(doc, (p.tipo === 'potrero' ? 'Potrero' : 'Parcela') + ': ' + p.nombre);
-			_fila(doc, 'Siembra actual', p.especieActual || '—');
-			if (p.fechaSiembraActual) _fila(doc, 'Sembrado el', _f(p.fechaSiembraActual));
+			_titulo(doc, tipoDe(p.tipo, L) + ': ' + p.nombre);
+			_fila(doc, T.siembra_actual, p.especieActual || '—');
+			if (p.fechaSiembraActual) _fila(doc, T.sembrado_el, f(p.fechaSiembraActual));
 
 			const suelo = (p.suelos || []).slice().sort((a, b) => new Date(b.fecha) - new Date(a.fecha))[0];
 			if (suelo) {
-				_titulo(doc, 'Último análisis de suelo (' + _f(suelo.fecha) + ', ' + (suelo.fuente || 'laboratorio') + ')');
+				_titulo(doc, T.ultimo_suelo(f(suelo.fecha), suelo.fuente || 'laboratorio'));
 				_fila(doc, 'pH', _n(suelo.ph));
-				_fila(doc, 'Materia orgánica', _n(suelo.materiaOrganica, ' %'));
-				_fila(doc, 'Nitrógeno', _n(suelo.nitrogeno, ' %'));
-				_fila(doc, 'Textura', suelo.textura || '—');
+				_fila(doc, T.mo, _n(suelo.materiaOrganica, ' %'));
+				_fila(doc, T.nitrogeno, _n(suelo.nitrogeno, ' %'));
+				_fila(doc, T.textura, suelo.textura || '—');
 			}
 
 			if (p.historial && p.historial.length) {
-				_titulo(doc, 'Historial de siembras');
+				_titulo(doc, T.historial_h);
 				p.historial.slice().sort((a, b) => new Date(b.inicio || 0) - new Date(a.inicio || 0)).slice(0, 8).forEach((s) => {
-					doc.text('• ' + s.especie + '  (' + _f(s.inicio) + ' → ' + (s.fin ? _f(s.fin) : 'vigente') + ')' + (s.rendimiento ? ' · ' + s.rendimiento + ' kg MS/ha' : ''));
+					doc.text('• ' + s.especie + '  (' + f(s.inicio) + ' → ' + (s.fin ? f(s.fin) : T.vigente) + ')' + (s.rendimiento ? ' · ' + s.rendimiento + ' ' + (s.rendimientoUnidad || 'kg MS/ha') : ''));
 				});
 			}
 
 			if (p.aforos && p.aforos.length) {
-				_titulo(doc, 'Aforos');
+				_titulo(doc, T.aforos_h);
 				p.aforos.slice().sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 5).forEach((a) => {
-					doc.text('• ' + _f(a.fecha) + ': ' + _n(a.kgMSHa, ' kg MS/ha') + (a.metodo ? ' (' + a.metodo + ')' : ''));
+					doc.text('• ' + f(a.fecha) + ': ' + _n(a.kgMSHa, L === 'es' ? ' kg MS/ha' : ' kg DM/ha') + (a.metodo ? ' (' + a.metodo + ')' : ''));
 				});
 			}
 
-			const r = await rotacion.recomendar({ parcela: p, clima: climaMeta });
-			_titulo(doc, 'Rotación sugerida tras ' + (p.especieActual || 'la siembra actual'));
+			const r = await rotacion.recomendar({ parcela: p, clima: climaMeta, lang: L });
+			_titulo(doc, T.rotacion_h(p.especieActual || T.siembra_vacia));
 			r.recomendaciones.forEach((c, i) => {
-				doc.font('Helvetica-Bold').text((i + 1) + '. ' + c.especie + '  (' + c.puntaje + '/100, ' + (c.grupo || '') + ')');
+				doc.font('Helvetica-Bold').text((i + 1) + '. ' + c.especie + '  (' + c.puntaje + '/100, ' + grupoDe(c.grupo, L) + ')');
 				doc.font('Helvetica');
 				c.razones.slice(0, 3).forEach((z) => doc.text('   – ' + z));
 				if (c.notas) doc.text('   ' + c.notas, { oblique: true });
@@ -103,18 +105,18 @@ async function generar({ predio, parcela, solicitadoPor }) {
 
 		if (ven && ven.ok) {
 			doc.addPage();
-			_titulo(doc, 'Ventana de siembra forrajera');
-			const v = { favorable_ahora: 'Favorable ahora', ventana_pero_seco: 'En ventana, pero seco', esperar: 'Esperar' }[ven.veredicto] || ven.veredicto;
-			_fila(doc, 'Veredicto', v);
-			_fila(doc, 'Mes actual', ven.estado.mes);
-			ven.ventanas.forEach((w) => doc.text('• Ventana: ' + w.desde + ' a ' + w.hasta + ' (' + w.lluviaMinMes + '–' + w.lluviaMaxMes + ' mm/mes)'));
-			if (!ven.ventanas.length) doc.text('Sin meses por encima de ' + ven.umbralLluviaMes + ' mm/mes en la climatología del punto.');
-			_titulo(doc, 'Riesgos');
+			_titulo(doc, T.ventana_h);
+			const v = { favorable_ahora: T.v_favorable, ventana_pero_seco: T.v_seco, esperar: T.v_esperar }[ven.veredicto] || ven.veredicto;
+			_fila(doc, T.veredicto, v);
+			_fila(doc, T.mes_actual, ven.estado.mes);
+			ven.ventanas.forEach((w) => doc.text(T.ventana_item(w.desde, w.hasta, w.lluviaMinMes, w.lluviaMaxMes)));
+			if (!ven.ventanas.length) doc.text(T.sin_ventana(ven.umbralLluviaMes));
+			_titulo(doc, T.riesgos_h);
 			ven.riesgos.forEach((r) => doc.text('• ' + r));
 		}
 
 		doc.moveDown(1);
-		doc.fontSize(8).fillColor('#999').text('Field Shift · PRIAS digital · Recomendaciones de apoyo a la decisión: contrastar siempre con el técnico de campo.', { align: 'center' });
+		doc.fontSize(8).fillColor('#999').text(T.pie, { align: 'center' });
 		doc.end();
 		return fin;
 	}
@@ -124,9 +126,9 @@ async function generar({ predio, parcela, solicitadoPor }) {
 	const chunks = [];
 	doc.on('data', (c) => chunks.push(c));
 	const fin = new Promise((resolve) => doc.on('end', () => resolve(Buffer.concat(chunks))));
-	doc.font('Helvetica-Bold').fontSize(20).text('Field Shift — informe de predio');
-	doc.font('Helvetica').fontSize(10).text('Predio: ' + predio.nombre + ' · ' + predio.parcelas.length + ' parcela(s)');
-	doc.text('Sin coordenadas: agrega el polígono de al menos una parcela para incluir clima y análisis.');
+	doc.font('Helvetica-Bold').fontSize(20).text(T.titulo);
+	doc.font('Helvetica').fontSize(10).text(T.predio + predio.nombre + ' · ' + T.parcelas_n(predio.parcelas.length));
+	doc.text(T.sin_coords);
 	doc.end();
 	return fin;
 }

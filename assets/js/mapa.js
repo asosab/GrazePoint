@@ -6,6 +6,8 @@ window.FS = window.FS || {};
 (function () {
   var mapa = null;
   var capaParcelas = null;
+  var capaImportados = null;
+  var capaPlano = null;
   var dibujo = null; // {puntos:[], polyline, vertices[], alCerrar}
   var parcelaSeleccionada = null;
 
@@ -15,6 +17,7 @@ window.FS = window.FS || {};
       maxZoom: 19, attribution: 'Esri, Maxar, Earthstar Geographics'
     }).addTo(mapa);
     capaParcelas = L.layerGroup().addTo(mapa);
+    capaImportados = L.layerGroup().addTo(mapa);
     mapa.setView([-17.72, -63.10], 13); // Lomas de Arena, Santa Cruz
 
     mapa.on('click', function (e) {
@@ -33,7 +36,7 @@ window.FS = window.FS || {};
       if (!p.geometry || !p.geometry.coordinates) return;
       var latlngs = p.geometry.coordinates[0].map(function (c) { return [c[1], c[0]]; });
       var poly = L.polygon(latlngs, _estilo(p));
-      poly.bindTooltip(p.nombre || 'parcela', { sticky: true });
+      poly.bindTooltip(p.nombre || (FS.t ? FS.t('parcela_generico') : 'plot'), { sticky: true });
       if (alTocar) poly.on('click', function (e) { if (!dibujo) { L.DomEvent.stop(e); alTocar(p, poly); } });
       poly.addTo(capaParcelas);
       p._capa = poly;
@@ -105,6 +108,37 @@ window.FS = window.FS || {};
   function dibujando() { return !!dibujo; }
   function vertices() { return dibujo ? dibujo.puntos.length : 0; }
 
+  // ── Importados: candidatos y plano georreferenciado ─────
+  function pintarCandidatos(cands) {
+    capaImportados.clearLayers();
+    (cands || []).forEach(function (c) {
+      if (!c.geometry || !c.geometry.coordinates) return;
+      var latlngs = c.geometry.coordinates[0].map(function (p) { return [p[1], p[0]]; });
+      var poly = L.polygon(latlngs, { color: '#4cb8e8', weight: 2, dashArray: '6 4', fillColor: '#4cb8e8', fillOpacity: .18 });
+      poly.bindTooltip(c.nombre || 'candidato', { sticky: true });
+      poly.addTo(capaImportados);
+      c._capa = poly;
+    });
+  }
+
+  function encuadrarCandidatos() {
+    var b = capaImportados.getBounds();
+    if (b.isValid()) mapa.fitBounds(b, { padding: [30, 30], maxZoom: 17 });
+  }
+
+  function limpiarCandidatos() { capaImportados.clearLayers(); }
+
+  function ponerPlano(dataUrl, bounds) {
+    quitarPlano();
+    capaPlano = L.imageOverlay(dataUrl, bounds, { opacity: .72 }).addTo(mapa);
+  }
+
+  function quitarPlano() {
+    if (capaPlano) { mapa.removeLayer(capaPlano); capaPlano = null; }
+  }
+
+  function hayPlano() { return !!capaPlano; }
+
   function centrarEnUsuario() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(function (pos) {
@@ -123,6 +157,12 @@ window.FS = window.FS || {};
     cancelarDibujo: cancelarDibujo,
     dibujando: dibujando,
     vertices: vertices,
+    pintarCandidatos: pintarCandidatos,
+    encuadrarCandidatos: encuadrarCandidatos,
+    limpiarCandidatos: limpiarCandidatos,
+    ponerPlano: ponerPlano,
+    quitarPlano: quitarPlano,
+    hayPlano: hayPlano,
     centrarEnUsuario: centrarEnUsuario,
     leaflet: function () { return mapa; }
   };

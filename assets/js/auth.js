@@ -33,11 +33,11 @@ window.FS = window.FS || {};
     alCambiar: alCambiar,
     listo: null,
 
-    registro: function (email, clave, nombre) { return FS.api.post('/auth/registro', { email: email, clave: clave, nombre: nombre }); },
+    registro: function (email, clave, nombre) { return FS.api.post('/auth/registro', { email: email, clave: clave, nombre: nombre, lang: FS.lang }); },
     verificar: async function (email, codigo) { return _guardar(await FS.api.post('/auth/verificar', { email: email, codigo: codigo })); },
-    reenviar: function (email) { return FS.api.post('/auth/reenviar', { email: email }); },
-    login: async function (email, clave) { return _guardar(await FS.api.post('/auth/login', { email: email, clave: clave })); },
-    recuperar: function (email) { return FS.api.post('/auth/recuperar', { email: email }); },
+    reenviar: function (email) { return FS.api.post('/auth/reenviar', { email: email, lang: FS.lang }); },
+    login: async function (email, clave) { return _guardar(await FS.api.post('/auth/login', { email: email, clave: clave, lang: FS.lang })); },
+    recuperar: function (email) { return FS.api.post('/auth/recuperar', { email: email, lang: FS.lang }); },
     restablecer: async function (email, codigo, clave) { return _guardar(await FS.api.post('/auth/restablecer', { email: email, codigo: codigo, clave: clave })); },
 
     salir: function () { FS.api.setToken(null); usuario = null; emitir(); }

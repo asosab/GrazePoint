@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Mi campo
-description: "Mapa de tu predio: parcelas sobre imagen satelital, suelo, rotación sugerida y ventana de siembra forrajera."
+title: My farm
+description: "Map of your farm: plots over satellite imagery, soil, suggested rotation and forage planting window."
 leaflet: true
 body_class: app
 robots: noindex
@@ -9,25 +9,32 @@ robots: noindex
 
 <div id="mapa" class="mapa-app"></div>
 
-<!-- Barra superior -->
+<!-- Top bar -->
 <header class="barra-top">
   <a class="marca" href="{{ '/' | relative_url }}">Field Shift</a>
-  <button id="btn-cuenta" class="btn-texto">Entrar</button>
+  <div class="barra-der">
+    {% include langswitch.html %}
+    <button id="btn-cuenta" class="btn-texto">Sign in</button>
+  </div>
 </header>
 
-<!-- Botones flotantes del mapa -->
+<!-- Floating map buttons -->
 <div class="fab-col">
-  <button id="fab-predios" class="fab" title="Mis predios" aria-label="Mis predios">☰</button>
-  <button id="fab-dibujar" class="fab oculto" title="Dibujar parcela" aria-label="Dibujar parcela">✎</button>
+  <button id="fab-predios" class="fab" title="My farms" aria-label="My farms">☰</button>
+  <button id="fab-importar" class="fab oculto" title="Import map file" aria-label="Import map file">⤓</button>
+  <button id="fab-dibujar" class="fab oculto" title="Draw plot" aria-label="Draw plot">✎</button>
 </div>
+<input id="imp-archivo" class="oculto" type="file" multiple
+  accept=".kml,.kmz,.zip,.shp,.dbf,.prj,.shx,.cpg,.sbn,.sbx,.geojson,.json,.gpx,.csv,.txt,.wkt,.pdf">
+<button id="capa-quitar" class="btn-mini plano-quitar oculto">✕ layer</button>
 <div id="dibujo-barra" class="dibujo-barra oculto">
-  <span id="dibujo-aviso">Toca el mapa para marcar vértices</span>
-  <button id="dibujo-deshacer" class="btn-mini">deshacer</button>
-  <button id="dibujo-cerrar" class="btn-mini">cerrar</button>
-  <button id="dibujo-listo" class="btn-mini principal">listo</button>
+  <span id="dibujo-aviso">Tap the map to mark vertices</span>
+  <button id="dibujo-deshacer" class="btn-mini">undo</button>
+  <button id="dibujo-cerrar" class="btn-mini">close</button>
+  <button id="dibujo-listo" class="btn-mini principal">done</button>
 </div>
 
-<!-- Sábana inferior -->
+<!-- Bottom sheet -->
 <section id="hoja" class="hoja oculto">
   <div class="hoja-asa" id="hoja-asa"></div>
   <div class="hoja-cuerpo" id="hoja-cuerpo"></div>
@@ -35,7 +42,9 @@ robots: noindex
 
 <div id="toast" class="toast oculto"></div>
 
+<script src="{{ '/assets/js/i18n.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/api.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/auth.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/mapa.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/importar.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/app.js' | relative_url }}"></script>

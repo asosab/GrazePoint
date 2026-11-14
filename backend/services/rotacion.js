@@ -11,6 +11,7 @@
 
 const Cultivo = require('../models/cultivoModel');
 const { CATALGO_EMBEBIDO } = require('./catalogo');
+const { RAZONES, langOk } = require('./i18n');
 
 async function catalogo() {
 	try {
@@ -31,40 +32,40 @@ function _familiaDe(especieNombre, catalogoArr) {
 }
 
 // Puntaje 0–100 por cultivo candidato.
-function _puntaje(c, ctx) {
+function _puntaje(c, ctx, T) {
 	let puntos = 50;
 	const razones = [];
 
 	// Lluvia anual vs requerimiento
 	if (c.lluviaMin != null && ctx.lluviaAnual != null) {
 		if (ctx.lluviaAnual >= c.lluviaMin) { puntos += 10; }
-		else { puntos -= 20; razones.push('pide más lluvia de la que cae aquí (' + ctx.lluviaAnual + ' mm/año)'); }
+		else { puntos -= 20; razones.push(T.mas_lluvia(ctx.lluviaAnual)); }
 	}
 
 	// pH medido vs rango de la especie
 	if (ctx.ph != null && c.phMin != null && c.phMax != null) {
 		if (ctx.ph >= c.phMin && ctx.ph <= c.phMax) { puntos += 10; }
-		else { puntos -= 15; razones.push('tu pH ' + ctx.ph + ' sale de su rango (' + c.phMin + '–' + c.phMax + ')'); }
+		else { puntos -= 15; razones.push(T.ph_fuera(ctx.ph, c.phMin, c.phMax)); }
 	}
 
 	// Textura arenosa
 	if (ctx.arenoso) {
-		if (c.toleraArenosos) { puntos += 10; razones.push('tolera tus suelos arenosos'); }
+		if (c.toleraArenosos) { puntos += 10; razones.push(T.arenosos); }
 		else { puntos -= 10; }
 	}
 
 	// Rotación: familia y aporte de nitrógeno
 	if (ctx.familiaAnterior && c.familia === ctx.familiaAnterior) {
-		puntos -= 15; razones.push('misma familia que lo anterior');
+		puntos -= 15; razones.push(T.misma_familia);
 	}
 	if (ctx.familiaAnterior === 'Poaceae' && c.fijaN) {
-		puntos += 15; razones.push('leguminosa tras gramínea: aporta N al suelo');
+		puntos += 15; razones.push(T.leg_tras_gram);
 	}
 	if (c.fijaN && ctx.familiaAnterior === 'Fabaceae') {
-		puntos -= 5; razones.push('leguminosa tras leguminosa suma poco');
+		puntos -= 5; razones.push(T.leg_tras_leg);
 	}
 	if (ctx.especieAnterior && c.especie.toLowerCase() === ctx.especieAnterior.toLowerCase()) {
-		puntos -= 30; razones.push('repetir la misma especie');
+		puntos -= 30; razones.push(T.misma_especie);
 	}
 	if (ctx.grupoAnterior === 'pastura' && c.grupo === 'pastura') {
 		puntos -= 5; // resiembra directa: posible pero no aporta rotación
@@ -72,14 +73,15 @@ function _puntaje(c, ctx) {
 
 	// MO baja: preferir cultivos de servicio que la levanten
 	if (ctx.moBaja && (c.grupo === 'cultivo-servicio' || c.fijaN)) {
-		puntos += 8; razones.push('ayuda a levantar la materia orgánica');
+		puntos += 8; razones.push(T.levanta_mo);
 	}
 
 	return { puntos, razones };
 }
 
 // contexto: { ph, mo, textura, lluviaAnual, especieAnterior, familiaAnterior, grupoAnterior }
-async function recomendar({ parcela, clima, limite = 3 }) {
+async function recomendar({ parcela, clima, limite = 3, lang }) {
+	const T = RAZONES[langOk(lang)];
 	const catalogoArr = await catalogo();
 	const suelo = _ultimoSuelo(parcela);
 	const textura = suelo && suelo.textura ? String(suelo.textura).toLowerCase() : '';
@@ -99,7 +101,7 @@ async function recomendar({ parcela, clima, limite = 3 }) {
 
 	const rankeados = catalogoArr
 		.map((c) => {
-			const { puntos, razones } = _puntaje(c, ctx);
+			const { puntos, razones } = _puntaje(c, ctx, T);
 			return {
 				especie: c.especie,
 				grupo: c.grupo,
@@ -108,7 +110,7 @@ async function recomendar({ parcela, clima, limite = 3 }) {
 				fijaN: !!c.fijaN,
 				puntaje: Math.max(0, Math.min(100, puntos)),
 				razones,
-				notas: c.notas || null
+				notas: (langOk(lang) === 'en' ? c.notas_en : null) || c.notas || null
 			};
 		})
 		.sort((a, b) => b.puntaje - a.puntaje)

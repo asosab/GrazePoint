@@ -51,6 +51,12 @@ const wrap = (fn) => async (req, res) => {
 
 const sinDb = (res) => res.status(503).json({ ok: false, error: 'bd_no_disponible' });
 
+// 'es' solo si el cliente lo pide; el inglés es el idioma por defecto.
+const langDe = (req) => {
+	const l = (req.query && req.query.lang) || (req.body && req.body.lang);
+	return l === 'es' ? 'es' : 'en';
+};
+
 // ── Salud / meta ────────────────────────────────────────────────────────────
 
 router.get('/salud', (req, res) => {
@@ -210,6 +216,11 @@ router.put('/predios/:id/parcelas/:pid', authenticate, wrap(async (req, res) => 
 		p.especieActual = b.especieActual;
 	}
 	if (b.fechaSiembraActual !== undefined) p.fechaSiembraActual = b.fechaSiembraActual || null;
+	['riego', 'fuenteAgua', 'pendiente', 'drenaje'].forEach((c) => {
+		if (b[c] !== undefined) p[c] = b[c] ? String(b[c]).trim() : null;
+	});
+	if (b.aniosUso !== undefined) p.aniosUso = b.aniosUso != null ? Number(b.aniosUso) : null;
+	if (b.problemasLote !== undefined) p.problemasLote = Array.isArray(b.problemasLote) ? b.problemasLote.map(String).slice(0, 12) : [];
 	if (b.notas !== undefined) p.notas = b.notas;
 	await predio.save();
 	res.json({ ok: true, data: p });
@@ -243,7 +254,21 @@ function _append(campo, armar) {
 
 router.post('/predios/:id/parcelas/:pid/siembras', authenticate, _append('historial', (b, res) => {
 	if (!b.especie) { res.status(400).json({ ok: false, error: 'especie_requerida' }); return null; }
-	return { especie: String(b.especie).trim(), inicio: b.inicio || null, fin: b.fin || null, rendimiento: b.rendimiento != null ? Number(b.rendimiento) : null, notas: b.notas || null };
+	return {
+		especie: String(b.especie).trim(),
+		variedad: b.variedad || null,
+		campania: b.campania || null,
+		superficieHa: b.superficieHa != null ? Number(b.superficieHa) : null,
+		inicio: b.inicio || null,
+		fin: b.fin || null,
+		preparacion: b.preparacion || null,
+		fertilizantes: b.fertilizantes || null,
+		aplicaciones: b.aplicaciones || null,
+		problemas: Array.isArray(b.problemas) ? b.problemas.map(String).slice(0, 12) : [],
+		rendimiento: b.rendimiento != null ? Number(b.rendimiento) : null,
+		rendimientoUnidad: b.rendimientoUnidad || null,
+		notas: b.notas || null
+	};
 }));
 
 router.post('/predios/:id/parcelas/:pid/suelos', authenticate, _append('suelos', (b, res) => {
@@ -278,9 +303,10 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 		power.diario(centro.lat, centro.lon, 120)
 	]);
 	const resumenPower = power.resumen(dia, clim);
+	const lang = langDe(req);
 	const [rec, ven] = await Promise.all([
-		parcela ? rotacion.recomendar({ parcela, clima: resumenPower }) : Promise.resolve(null),
-		Promise.resolve(ventana.evaluar({ clima: clim, resumenPower, especie: parcela ? parcela.especieActual : null }))
+		parcela ? rotacion.recomendar({ parcela, clima: resumenPower, lang }) : Promise.resolve(null),
+		Promise.resolve(ventana.evaluar({ clima: clim, resumenPower, especie: parcela ? parcela.especieActual : null, lang }))
 	]);
 
 	res.json({
@@ -291,7 +317,7 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 			lluviaPorMes: ven && ven.ok ? ven.lluviaPorMes : null,
 			rotacion: rec,
 			ventana: ven,
-			fuentes: ['NASA POWER daily + climatology']
+			fuentes: [lang === 'es' ? 'NASA POWER (serie diaria + climatología)' : 'NASA POWER daily + climatology']
 		}
 	});
 }));
@@ -302,7 +328,7 @@ router.get('/predios/:id/informe.pdf', authenticate, wrap(async (req, res) => {
 	const predio = await _cargarPredio(req, res);
 	if (!predio) return;
 	const parcela = req.query.parcela ? predio.parcelas.id(req.query.parcela) : null;
-	const pdf = await informe.generar({ predio, parcela, solicitadoPor: req.fsUser.nombre || req.fsUser.email });
+	const pdf = await informe.generar({ predio, parcela, solicitadoPor: req.fsUser.nombre || req.fsUser.email, lang: langDe(req) });
 	res.setHeader('Content-Type', 'application/pdf');
 	res.setHeader('Content-Disposition', 'inline; filename="fieldshift-' + predio._id + '.pdf"');
 	res.send(pdf);

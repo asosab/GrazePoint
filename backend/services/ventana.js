@@ -7,11 +7,11 @@
 // la lluvia mensual esperada supera el umbral de establecimiento de la
 // especie (~60 mm/mes por defecto).
 //
-// La respuesta llega en español llano para el técnico: meses buenos,
-// estado de hoy y el riesgo declarado por Sueleen (lluvia tardía o
-// cortada → pérdida de germinación).
+// La respuesta llega en español o inglés llano para el técnico (lang):
+// meses buenos, estado de hoy y el riesgo declarado por Sueleen (lluvia
+// tardía o cortada → pérdida de germinación).
 
-const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const { MESES, VENTANA, langOk } = require('./i18n');
 const MESES_KEY = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 function _lluviaMensual(clima) {
@@ -49,17 +49,19 @@ function _ventanas(mmPorMes, umbral) {
 	});
 }
 
-function evaluar({ clima, resumenPower, especie }) {
+function evaluar({ clima, resumenPower, especie, lang }) {
 	const mmPorMes = _lluviaMensual(clima);
 	if (!mmPorMes) return { ok: false, error: 'sin_climatologia' };
 
+	const meses = MESES[langOk(lang)];
+	const T = VENTANA[langOk(lang)];
 	const umbral = 60; // mm/mes mínimo para establecer forraje en secano
 	const tramos = _ventanas(mmPorMes, umbral);
 	const mesActual = new Date().getUTCMonth();
 
 	const ventanas = tramos.map(([a, b]) => ({
-		desde: MESES[a],
-		hasta: MESES[b],
+		desde: meses[a],
+		hasta: meses[b],
 		lluviaMinMes: Math.min(...rango(a, b).map((m) => mmPorMes[m])),
 		lluviaMaxMes: Math.max(...rango(a, b).map((m) => mmPorMes[m]))
 	}));
@@ -72,7 +74,7 @@ function evaluar({ clima, resumenPower, especie }) {
 
 	const dentro = tramos.some(([a, b]) => rango(a, b).includes(mesActual));
 	const estado = {
-		mes: MESES[mesActual],
+		mes: meses[mesActual],
 		dentroDeVentana: dentro,
 		lluviaUltimoMes: resumenPower ? resumenPower.lluviaUltimoMes : null,
 		humedadSuelo: resumenPower ? resumenPower.humedadSueloReciente : null,
@@ -90,20 +92,20 @@ function evaluar({ clima, resumenPower, especie }) {
 
 	const riesgos = [];
 	if (estado.anomaliaLluvia != null && estado.anomaliaLluvia < -25) {
-		riesgos.push('El último mes llovió ' + Math.abs(estado.anomaliaLluvia) + '% menos que la media: siembra solo si el suelo llega húmedo o espera al primer aguacero firme.');
+		riesgos.push(T.lluvia_baja(Math.abs(estado.anomaliaLluvia)));
 	}
-	riesgos.push('Si la lluvia se corta en los primeros 15 días, la germinación queda expuesta (riesgo declarado por la Hacienda).');
+	riesgos.push(T.corte_germinacion);
 
 	return {
 		ok: true,
 		especie: especie || null,
 		umbralLluviaMes: umbral,
-		lluviaPorMes: mmPorMes.map((v, i) => ({ mes: MESES[i], mm: v })),
+		lluviaPorMes: mmPorMes.map((v, i) => ({ mes: meses[i], mm: v })),
 		ventanas,
 		estado,
 		veredicto,
 		riesgos,
-		fuente: 'NASA POWER (climatología multianual + serie diaria)'
+		fuente: T.fuente
 	};
 }
 

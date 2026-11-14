@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Qué sembrar, cuándo rotar
-description: "Ficha digital de tu predio con suelo, clima de la NASA y recomendación de rotación y ventana de siembra forrajera. Gratis y de código abierto."
+title: What to plant, when to rotate
+description: "A digital record for your farm: soil tests, NASA climate, rotation picks and the forage planting window. Free and open source."
 leaflet: true
 body_class: landing
 ---
@@ -10,34 +10,35 @@ body_class: landing
 <div class="velo"></div>
 
 <main class="landing-contenido">
+  {% include langswitch.html %}
   <header class="landing-cabecera">
     <h1>Field&nbsp;Shift</h1>
-    <p class="bajada">El PRIAS digital de tu predio: qué sembrar después de lo que cosechaste y en qué ventana de lluvia.</p>
-    <a class="boton-grande" href="{{ '/app/' | relative_url }}">Abrir el mapa</a>
+    <p class="bajada">The digital PRIAS for your farm: what to plant after your last crop, and in which rain window.</p>
+    <a class="boton-grande" href="{{ '/app/' | relative_url }}">Open the map</a>
   </header>
 
   <section class="tarjeta">
-    <h2>Qué hace</h2>
+    <h2>What it does</h2>
     <ul class="lista-sencilla">
-      <li><strong>Recomendador de rotación.</strong> Tres opciones rankeadas según tu último análisis de suelo, la especie anterior y la lluvia de tu zona.</li>
-      <li><strong>Ventana de siembra forrajera.</strong> Los meses en que la lluvia alcanza para establecer pasturas, con el estado actual de tu suelo.</li>
-      <li><strong>Ficha de parcela.</strong> Polígonos dibujados sobre el satélite, historial de siembras, análisis PRIAS y aforos en un solo lugar — en vez de papel y Excel.</li>
-      <li><strong>Informe PDF.</strong> Un documento listo para mandar por WhatsApp al productor.</li>
+      <li><strong>Rotation picks.</strong> Three ranked options from your last soil test, the previous crop and your local rainfall.</li>
+      <li><strong>Forage planting window.</strong> The months when rain is enough to establish pasture, checked against your soil's current state.</li>
+      <li><strong>Plot record.</strong> Polygons drawn on the satellite image, planting history, PRIAS soil tests and forage estimates in one place, instead of paper and Excel.</li>
+      <li><strong>PDF report.</strong> Ready to forward to the producer on WhatsApp.</li>
     </ul>
   </section>
 
   <section class="tarjeta">
-    <h2>De dónde salen los datos</h2>
+    <h2>Where the data comes from</h2>
     <ul class="lista-sencilla">
-      <li><strong>NASA POWER</strong> — lluvia, temperatura y humedad de suelo de tu coordenada, serie diaria y climatología.</li>
-      <li><strong>Tu predio</strong> — tus análisis de suelo, tus siembras, tus aforos. Sin tus datos no hay recomendación seria.</li>
+      <li><strong>NASA POWER</strong>: rain, temperature and soil moisture at your coordinates, daily series and climatology.</li>
+      <li><strong>Your farm</strong>: your soil tests, your plantings, your forage estimates. Without your data there is no recommendation worth trusting.</li>
     </ul>
-    <p class="fino">Pensado con la Hacienda Patiño (Santa Cruz, Bolivia) para suelos arenosos y ganadería regenerativa, pero sirve para cualquier predio.</p>
+    <p class="fino">Built with Hacienda Patiño (Santa Cruz, Bolivia) for sandy soils and regenerative ranching, but it works for any farm.</p>
   </section>
 
   <footer class="landing-pie">
-    <p>Código abierto · <a href="https://github.com/asosab/fieldShift">github.com/asosab/fieldShift</a></p>
-    <p>Nacido en el NASA Space Apps Challenge 2026, Santa Cruz de la Sierra.</p>
+    <p>Open source · <a href="https://github.com/asosab/fieldShift">github.com/asosab/fieldShift</a></p>
+    <p>Born at the NASA Space Apps Challenge 2026, Santa Cruz de la Sierra.</p>
   </footer>
 </main>
 

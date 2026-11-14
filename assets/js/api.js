@@ -33,7 +33,8 @@ window.FS = window.FS || {};
     put: function (r, b) { return req('PUT', r, b || {}); },
     del: function (r) { return req('DELETE', r); },
     informeUrl: function (predioId, parcelaId) {
-      return API + '/predios/' + predioId + '/informe.pdf' + (parcelaId ? '?parcela=' + parcelaId : '');
+      var q = 'lang=' + (FS.lang || 'en');
+      return API + '/predios/' + predioId + '/informe.pdf?' + q + (parcelaId ? '&parcela=' + parcelaId : '');
     }
   };
 })();

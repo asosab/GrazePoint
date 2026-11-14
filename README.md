@@ -1,5 +1,15 @@
 # Field Shift
 
+**Digital PRIAS + rotation advisor + forage planting window.**
+An open web app for deciding what to plant and when, crossing your
+farm's measured soil with NASA Earth observation (POWER: rain,
+temperature and soil moisture). Built with Hacienda Patiño (Fundación
+Simón I. Patiño, Santa Cruz, Bolivia). Born at the NASA Space Apps
+Challenge 2026. The site runs in English (default) and Spanish:
+`asosab.github.io/fieldShift` and `asosab.github.io/fieldShift/es/`.
+
+---
+
 **PRIAS digital + recomendador de rotación + ventana de siembra forrajera.**
 App web abierta para decidir qué sembrar y cuándo, cruzando el suelo
 medido de tu predio con observación de la Tierra de la NASA (POWER:
@@ -13,11 +23,11 @@ Nacido en el NASA Space Apps Challenge 2026.
 
 | Carpeta | Contenido |
 |---|---|
-| `/` (raíz) | Frontend Jekyll (GitHub Pages), mobile-first, mapa satelital de fondo |
+| `/` (raíz) | Frontend Jekyll (GitHub Pages), mobile-first, mapa satelital de fondo. **Inglés** en la raíz, **español** bajo `es/` |
 | `app/` | La aplicación: predios, parcelas dibujadas sobre el satélite, análisis y PDF |
 | `backend/` | Servicio standalone Express+MongoDB (mismo código que `servicios/fieldShift` de nodeLab) |
 | `docs/` | Vault Obsidian del proyecto (plan maestro, decisiones, notas) |
-| `assets/` | CSS/JS vanilla sin build: `api.js`, `auth.js`, `mapa.js`, `app.js` |
+| `assets/` | CSS/JS vanilla sin build: `api.js`, `auth.js`, `mapa.js`, `importar.js`, `app.js`, `i18n.js`, `lang.js` |
 
 ## Cómo funciona
 

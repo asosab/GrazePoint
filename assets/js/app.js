@@ -1,22 +1,45 @@
 /* app.js — orquestación de la vista: mapa satelital + sábana inferior.
- * Flujo: entrar → crear predio → dibujar parcela → análisis → PDF. */
+ * Flujo: entrar → crear predio → dibujar parcela → análisis → PDF.
+ * Las cadenas visibles salen de FS.t (assets/js/i18n.js). */
 (function () {
   var el = function (id) { return document.getElementById(id); };
+  var t = FS.t;
   var hoja = el('hoja'), cuerpo = el('hoja-cuerpo');
   var predios = [], predioActual = null, parcelaActual = null;
   var modoDibujo = null; // {uso:'nueva'|'editar'}
 
   // ── utilidades ──────────────────────────────────────────
   function toast(msg, ms) {
-    var t = el('toast');
-    t.textContent = msg; t.classList.remove('oculto');
-    clearTimeout(t._t); t._t = setTimeout(function () { t.classList.add('oculto'); }, ms || 2800);
+    var t2 = el('toast');
+    t2.textContent = msg; t2.classList.remove('oculto');
+    clearTimeout(t2._t); t2._t = setTimeout(function () { t2.classList.add('oculto'); }, ms || 2800);
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function mostrarHoja(html) { cuerpo.innerHTML = html; hoja.classList.remove('oculto'); }
   function ocultarHoja() { hoja.classList.add('oculto'); }
   function valor(id) { var n = document.getElementById(id); return n ? n.value.trim() : ''; }
   function num(id) { var v = valor(id); return v === '' ? null : Number(v); }
+  function mes(id) { var v = valor(id); return v ? v + '-02' : null; }
+  function marcados(clase) {
+    var out = [];
+    document.querySelectorAll('.' + clase + ':checked').forEach(function (c) { out.push(c.value); });
+    return out;
+  }
+  function traducirError(e) {
+    var k = 'err_' + e;
+    var v = t(k);
+    return v !== k ? v : t('err_fallo', { e: e || t('sin_conexion') });
+  }
+  function tipoNombre(tipo) {
+    var v = t('tipo_' + tipo);
+    return v !== 'tipo_' + tipo ? v : (tipo || '');
+  }
+  function grupoNombre(g) {
+    var k = 'grupo_' + String(g || '').replace(/-/g, '_');
+    var v = t(k);
+    return v !== k ? v : (g || '');
+  }
+  function fecha(d) { return new Date(d).toLocaleDateString(FS.dateLocale); }
 
   el('hoja-asa').addEventListener('click', ocultarHoja);
 
@@ -27,17 +50,17 @@
     modo = modo || 'login';
     if (modo === 'login') {
       mostrarHoja(
-        '<h2>Entrar</h2>' +
-        '<label class="campo"><span>Correo</span><input id="a-email" type="email" autocomplete="email" inputmode="email"></label>' +
-        '<label class="campo"><span>Clave</span><input id="a-clave" type="password" autocomplete="current-password"></label>' +
-        '<button class="boton" id="a-entrar">Entrar</button>' +
-        '<button class="enlace" id="a-olvide">Olvidé mi clave</button>' +
-        '<button class="enlace" id="a-registro">Crear cuenta nueva</button>'
+        '<h2>' + t('entrar') + '</h2>' +
+        '<label class="campo"><span>' + t('correo') + '</span><input id="a-email" type="email" autocomplete="email" inputmode="email"></label>' +
+        '<label class="campo"><span>' + t('clave') + '</span><input id="a-clave" type="password" autocomplete="current-password"></label>' +
+        '<button class="boton" id="a-entrar">' + t('entrar') + '</button>' +
+        '<button class="enlace" id="a-olvide">' + t('olvide') + '</button>' +
+        '<button class="enlace" id="a-registro">' + t('crear_cta') + '</button>'
       );
       el('a-entrar').onclick = async function () {
         var r = await FS.auth.login(valor('a-email'), valor('a-clave'));
-        if (!r.data) return toast('Sin conexión');
-        if (r.data.ok) { ocultarHoja(); toast('Hola de nuevo'); return; }
+        if (!r.data) return toast(t('sin_conexion'));
+        if (r.data.ok) { ocultarHoja(); toast(t('hola')); return; }
         if (r.data.requiereVerificacion) { emailPendiente = valor('a-email'); return hojaCodigo('verificar'); }
         toast(traducirError(r.data.error));
       };
@@ -45,12 +68,12 @@
       el('a-registro').onclick = function () { hojaEntrar('registro'); };
     } else {
       mostrarHoja(
-        '<h2>Crear cuenta</h2>' +
-        '<label class="campo"><span>Nombre</span><input id="a-nombre" type="text" autocomplete="name"></label>' +
-        '<label class="campo"><span>Correo</span><input id="a-email" type="email" autocomplete="email" inputmode="email"></label>' +
-        '<label class="campo"><span>Clave (mínimo 8)</span><input id="a-clave" type="password" autocomplete="new-password"></label>' +
-        '<button class="boton" id="a-crear">Registrarme</button>' +
-        '<button class="enlace" id="a-login">Ya tengo cuenta</button>'
+        '<h2>' + t('crear_cta_h') + '</h2>' +
+        '<label class="campo"><span>' + t('nombre') + '</span><input id="a-nombre" type="text" autocomplete="name"></label>' +
+        '<label class="campo"><span>' + t('correo') + '</span><input id="a-email" type="email" autocomplete="email" inputmode="email"></label>' +
+        '<label class="campo"><span>' + t('clave_min') + '</span><input id="a-clave" type="password" autocomplete="new-password"></label>' +
+        '<button class="boton" id="a-crear">' + t('registrarme') + '</button>' +
+        '<button class="enlace" id="a-login">' + t('ya_cuenta') + '</button>'
       );
       el('a-crear').onclick = async function () {
         var r = await FS.auth.registro(valor('a-email'), valor('a-clave'), valor('a-nombre'));
@@ -63,33 +86,33 @@
 
   function hojaCodigo(tipo, claveNueva) {
     mostrarHoja(
-      '<h2>' + (tipo === 'reset' ? 'Restablecer clave' : 'Verifica tu correo') + '</h2>' +
-      '<p class="aviso">Te mandamos un código de 6 dígitos a <b>' + esc(emailPendiente) + '</b>. Revisa también spam.</p>' +
-      '<label class="campo"><span>Código</span><input id="a-codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:1.3rem"></label>' +
-      (tipo === 'reset' ? '<label class="campo"><span>Clave nueva (mínimo 8)</span><input id="a-clave2" type="password" autocomplete="new-password"></label>' : '') +
-      '<button class="boton" id="a-ok">Continuar</button>' +
-      '<button class="enlace" id="a-reenviar">Reenviar código</button>'
+      '<h2>' + (tipo === 'reset' ? t('reset_h') : t('verifica_h')) + '</h2>' +
+      '<p class="aviso">' + t('codigo_aviso', { e: esc(emailPendiente) }) + '</p>' +
+      '<label class="campo"><span>' + t('codigo') + '</span><input id="a-codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:1.3rem"></label>' +
+      (tipo === 'reset' ? '<label class="campo"><span>' + t('clave_nueva_min') + '</span><input id="a-clave2" type="password" autocomplete="new-password"></label>' : '') +
+      '<button class="boton" id="a-ok">' + t('continuar') + '</button>' +
+      '<button class="enlace" id="a-reenviar">' + t('reenviar') + '</button>'
     );
     el('a-ok').onclick = async function () {
       var ok;
       if (tipo === 'reset') ok = await FS.auth.restablecer(emailPendiente, valor('a-codigo'), valor('a-clave2'));
       else ok = await FS.auth.verificar(emailPendiente, valor('a-codigo'));
-      if (ok) { ocultarHoja(); toast('Listo, ya estás dentro'); }
-      else toast('Código incorrecto o vencido');
+      if (ok) { ocultarHoja(); toast(t('listo_dentro')); }
+      else toast(t('codigo_malo'));
     };
     el('a-reenviar').onclick = async function () {
       if (tipo === 'reset') await FS.auth.recuperar(emailPendiente);
       else await FS.auth.reenviar(emailPendiente);
-      toast('Código reenviado');
+      toast(t('codigo_reenviado'));
     };
   }
 
   function hojaRecuperar() {
     mostrarHoja(
-      '<h2>Recuperar clave</h2>' +
-      '<label class="campo"><span>Correo</span><input id="a-email" type="email" inputmode="email"></label>' +
-      '<button class="boton" id="a-mandar">Mandarme un código</button>' +
-      '<button class="enlace" id="a-login">Volver</button>'
+      '<h2>' + t('recuperar_h') + '</h2>' +
+      '<label class="campo"><span>' + t('correo') + '</span><input id="a-email" type="email" inputmode="email"></label>' +
+      '<button class="boton" id="a-mandar">' + t('mandar_codigo') + '</button>' +
+      '<button class="enlace" id="a-login">' + t('volver') + '</button>'
     );
     el('a-mandar').onclick = async function () {
       emailPendiente = valor('a-email');
@@ -99,26 +122,15 @@
     el('a-login').onclick = function () { hojaEntrar('login'); };
   }
 
-  function traducirError(e) {
-    return {
-      credenciales_invalidas: 'Correo o clave incorrectos',
-      email_ya_registrado: 'Ese correo ya tiene cuenta: entra directo',
-      clave_minima_8: 'La clave necesita al menos 8 caracteres',
-      email_invalido: 'Revisa el correo',
-      bloqueado_temporal: 'Demasiados intentos: espera unos minutos',
-      espera_unos_segundos: 'Espera unos segundos antes de reenviar'
-    }[e] || 'Algo falló: ' + (e || 'sin conexión');
-  }
-
   // ── cuenta ──────────────────────────────────────────────
   function hojaCuenta() {
     var u = FS.auth.get();
     mostrarHoja(
       '<h2>' + esc(u.nombre || u.email) + '</h2>' +
       '<p class="aviso"><span class="chip">' + esc(u.rol) + '</span> ' + esc(u.email) + '</p>' +
-      '<button class="boton secundario" id="c-salir">Cerrar sesión</button>'
+      '<button class="boton secundario" id="c-salir">' + t('cerrar_sesion') + '</button>'
     );
-    el('c-salir').onclick = function () { FS.auth.salir(); ocultarHoja(); toast('Sesión cerrada'); };
+    el('c-salir').onclick = function () { FS.auth.salir(); ocultarHoja(); toast(t('sesion_cerrada')); };
   }
 
   el('btn-cuenta').onclick = function () {
@@ -126,7 +138,7 @@
   };
 
   FS.auth.alCambiar(function (u) {
-    el('btn-cuenta').textContent = u ? (u.nombre || u.email).split(' ')[0] : 'Entrar';
+    el('btn-cuenta').textContent = u ? (u.nombre || u.email).split(' ')[0] : t('entrar');
     if (u) cargarPredios();
     else { predios = []; predioActual = null; FS.mapa.pintarParcelas([]); ocultarHoja(); }
   });
@@ -144,14 +156,14 @@
   }
 
   function hojaPredios() {
-    var html = '<h2>Mis predios</h2>';
+    var html = '<h2>' + t('mis_predios') + '</h2>';
     predios.forEach(function (p) {
       html += '<button class="item-lista" data-p="' + p._id + '"><span class="titulo">' + esc(p.nombre) +
-        '<span class="detalle">' + (p.parcelas || []).length + ' parcela(s)</span></span>' +
-        (predioActual && p._id === predioActual._id ? '<span class="chip">activo</span>' : '') + '</button>';
+        '<span class="detalle">' + t('parcelas_n', { n: (p.parcelas || []).length }) + '</span></span>' +
+        (predioActual && p._id === predioActual._id ? '<span class="chip">' + t('activo') + '</span>' : '') + '</button>';
     });
-    html += '<button class="boton" id="p-nuevo">+ Registrar predio</button>';
-    if (!predios.length) html += '<p class="aviso">Todavía no tienes predios. Registra el primero y dibuja sus parcelas sobre el mapa.</p>';
+    html += '<button class="boton" id="p-nuevo">' + t('registrar_predio') + '</button>';
+    if (!predios.length) html += '<p class="aviso">' + t('sin_predios') + '</p>';
     mostrarHoja(html);
     document.querySelectorAll('[data-p]').forEach(function (b) {
       b.onclick = function () { seleccionarPredio(b.dataset.p); ocultarHoja(); };
@@ -161,35 +173,38 @@
 
   function hojaNuevoPredio() {
     mostrarHoja(
-      '<h2>Nuevo predio</h2>' +
-      '<label class="campo"><span>Nombre</span><input id="np-nombre" placeholder="Ej. La Esperanza"></label>' +
-      '<label class="campo"><span>Descripción (opcional)</span><textarea id="np-desc" rows="2"></textarea></label>' +
-      '<button class="boton" id="np-ok">Crear predio</button>' +
-      '<button class="enlace" id="np-ubicar">Usar mi ubicación para centrar el mapa</button>'
+      '<h2>' + t('nuevo_predio') + '</h2>' +
+      '<label class="campo"><span>' + t('nombre') + '</span><input id="np-nombre" placeholder="' + t('ph_nombre') + '"></label>' +
+      '<label class="campo"><span>' + t('desc_opcional') + '</span><textarea id="np-desc" rows="2"></textarea></label>' +
+      '<button class="boton" id="np-ok">' + t('crear_predio') + '</button>' +
+      '<button class="enlace" id="np-ubicar">' + t('usar_ubicacion') + '</button>'
     );
-    el('np-ubicar').onclick = function () { FS.mapa.centrarEnUsuario(); toast('Centrando en tu GPS…'); };
+    el('np-ubicar').onclick = function () { FS.mapa.centrarEnUsuario(); toast(t('centrando')); };
     el('np-ok').onclick = async function () {
-      if (!valor('np-nombre')) return toast('Ponle un nombre');
+      if (!valor('np-nombre')) return toast(t('ponle_nombre'));
       var r = await FS.api.post('/predios', { nombre: valor('np-nombre'), descripcion: valor('np-desc') || null });
       if (r.data && r.data.ok) {
         predioActual = r.data.data;
         await cargarPredios();
+        el('fab-dibujar').classList.remove('oculto');
+        el('fab-importar').classList.remove('oculto');
         ocultarHoja();
-        toast('Predio creado. Ahora dibuja tu primera parcela.');
+        toast(t('predio_creado'));
         empezarDibujoParcela();
-      } else toast('No se pudo crear');
+      } else toast(t('no_crear'));
     };
   }
 
   async function seleccionarPredio(id) {
     var r = await FS.api.get('/predios/' + id);
-    if (!(r.data && r.data.ok)) return toast('No pude cargar el predio');
+    if (!(r.data && r.data.ok)) return toast(t('no_cargar_predio'));
     predioActual = r.data.data;
     parcelaActual = null;
     refrescarParcelas();
     FS.mapa.encuadrarParcelas(predioActual.parcelas);
     el('fab-dibujar').classList.remove('oculto');
-    if (!predioActual.parcelas.length) toast('Sin parcelas aún: toca ✎ para dibujar la primera');
+    el('fab-importar').classList.remove('oculto');
+    if (!predioActual.parcelas.length) toast(t('sin_parcelas'));
   }
 
   function refrescarParcelas() {
@@ -203,16 +218,16 @@
 
   // ── dibujo de parcela ───────────────────────────────────
   function empezarDibujoParcela() {
-    if (!predioActual) return toast('Primero elige o crea un predio');
+    if (!predioActual) return toast(t('elige_predio'));
     modoDibujo = { uso: 'nueva' };
     FS.mapa.empezarDibujo(async function (geo) {
-      var nombre = prompt('Nombre de la parcela o potrero', 'Parcela ' + ((predioActual.parcelas.length || 0) + 1));
-      if (!nombre) { toast('Dibujo descartado'); return; }
+      var nombre = prompt(t('prompt_parcela'), t('parcela_n', { n: (predioActual.parcelas.length || 0) + 1 }));
+      if (!nombre) { toast(t('dibujo_descartado')); return; }
       var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas', {
         nombre: nombre, tipo: 'potrero', geometry: geo
       });
-      if (r.data && r.data.ok) { toast('Parcela guardada'); seleccionarPredio(predioActual._id); }
-      else toast('No se pudo guardar');
+      if (r.data && r.data.ok) { toast(t('parcela_guardada')); seleccionarPredio(predioActual._id); }
+      else toast(t('no_guardar'));
     });
     el('dibujo-barra').classList.remove('oculto');
   }
@@ -229,40 +244,192 @@
   el('dibujo-deshacer').onclick = function () { FS.mapa.deshacerVertice(); };
   el('dibujo-cerrar').onclick = function () { FS.mapa.cancelarDibujo(); terminarDibujoUI(); };
   el('dibujo-listo').onclick = function () {
-    if (FS.mapa.vertices() < 3) return toast('Marca al menos 3 vértices');
+    if (FS.mapa.vertices() < 3) return toast(t('min_vertices'));
     FS.mapa.cerrarDibujo();
     terminarDibujoUI();
+  };
+
+  // ── importar parcelas desde archivo ─────────────────────
+  var importados = [];
+
+  function hojaImportar(res) {
+    importados = res.cands;
+    FS.mapa.pintarCandidatos(importados);
+    if (importados.length) FS.mapa.encuadrarCandidatos();
+    else if (res.plano) FS.mapa.leaflet().fitBounds(res.plano.bounds, { padding: [30, 30], maxZoom: 17 });
+
+    var html = '<h2>' + t('imp_h') + '</h2>' +
+      '<p class="aviso">' + t('imp_formatos') + '</p>';
+    res.notas.forEach(function (n) { html += '<p class="aviso">• ' + esc(n) + '</p>'; });
+    if (!importados.length && !res.plano) html += '<p class="aviso">' + t('imp_sin_parcelas') + '</p>';
+    if (res.plano) {
+      html += '<label class="check"><input type="checkbox" id="imp-plano"' + (importados.length ? '' : ' checked') + '>' + t('imp_plano_chk') + '</label>';
+    }
+    importados.forEach(function (c, i) {
+      html += '<label class="item-lista imp-item" data-i="' + i + '"><input type="checkbox" class="imp-chk" data-i="' + i + '" checked>' +
+        '<span class="titulo">' + esc(c.nombre) + '<span class="detalle">' + c.ha + ' ha · ' + (c.geometry.coordinates[0].length - 1) + ' ' + t('imp_vertices') + '</span></span></label>';
+    });
+    if (importados.length) html += '<button class="boton" id="imp-ok"></button>';
+    html += '<button class="enlace" id="imp-cancel">' + t('volver') + '</button>';
+    mostrarHoja(html);
+
+    function refrescarBoton() {
+      var n = document.querySelectorAll('.imp-chk:checked').length;
+      el('imp-ok').textContent = t('imp_importar', { n: n });
+    }
+    if (res.plano) {
+      var aplicarPlano = function () {
+        if (el('imp-plano').checked) { FS.mapa.ponerPlano(res.plano.dataUrl, res.plano.bounds); el('capa-quitar').classList.remove('oculto'); }
+        else { FS.mapa.quitarPlano(); el('capa-quitar').classList.add('oculto'); }
+      };
+      el('imp-plano').onchange = aplicarPlano;
+      aplicarPlano();
+    }
+    document.querySelectorAll('.imp-item').forEach(function (row) {
+      row.addEventListener('click', function () {
+        var c = importados[+row.dataset.i];
+        if (c && c._capa) FS.mapa.leaflet().fitBounds(c._capa.getBounds(), { padding: [40, 40], maxZoom: 17 });
+      });
+    });
+    document.querySelectorAll('.imp-chk').forEach(function (c) { c.onchange = refrescarBoton; });
+    if (el('imp-ok')) {
+      refrescarBoton();
+      el('imp-ok').onclick = async function () {
+        var sel = [];
+        document.querySelectorAll('.imp-chk:checked').forEach(function (c) { sel.push(importados[+c.dataset.i]); });
+        if (!sel.length) return toast(t('imp_marcar_alguna'));
+        var okN = 0, malN = 0;
+        for (var i = 0; i < sel.length; i++) {
+          var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas', {
+            nombre: sel[i].nombre, tipo: 'parcela', geometry: sel[i].geometry
+          });
+          if (r.data && r.data.ok) okN++; else malN++;
+        }
+        FS.mapa.limpiarCandidatos();
+        importados = [];
+        ocultarHoja();
+        toast(malN ? t('imp_parcial', { ok: okN, mal: malN }) : t('imp_ok', { n: okN }));
+        seleccionarPredio(predioActual._id);
+      };
+    }
+    el('imp-cancel').onclick = function () {
+      FS.mapa.limpiarCandidatos();
+      importados = [];
+      ocultarHoja();
+    };
+  }
+
+  el('fab-importar').onclick = function () {
+    if (!predioActual) return toast(t('elige_predio'));
+    FS.mapa.cancelarDibujo();
+    terminarDibujoUI();
+    var inp = el('imp-archivo');
+    inp.value = '';
+    inp.click();
+  };
+
+  el('imp-archivo').onchange = async function (e) {
+    if (!e.target.files.length) return;
+    toast(t('imp_leyendo'));
+    try {
+      var res = await FS.importar.leerArchivos(e.target.files);
+      hojaImportar(res);
+    } catch (err) {
+      toast(t('imp_no_entendi', { f: e.target.files[0].name }));
+    }
+  };
+
+  el('capa-quitar').onclick = function () {
+    FS.mapa.quitarPlano();
+    el('capa-quitar').classList.add('oculto');
   };
 
   // ── ficha de parcela ────────────────────────────────────
   function hojaParcela() {
     var p = parcelaActual;
     var html = '<h2>' + esc(p.nombre) + '</h2>' +
-      '<p class="aviso"><span class="chip">' + esc(p.tipo) + '</span>' + (p.especieActual ? ' siembra actual: <b>' + esc(p.especieActual) + '</b>' : ' sin siembra registrada') + '</p>' +
-      '<button class="boton" id="pa-analisis">Analizar (rotación + ventana)</button>' +
-      '<button class="boton secundario" id="pa-pdf">Informe PDF</button>' +
-      '<h3>Siembra actual</h3>' +
-      '<label class="campo"><span>Especie</span><input id="pa-especie" value="' + esc(p.especieActual || '') + '" placeholder="Ej. Brachiaria decumbens"></label>' +
-      '<label class="campo"><span>Fecha de siembra</span><input id="pa-fecha" type="date"></label>' +
-      '<button class="boton secundario" id="pa-guardar">Guardar siembra</button>' +
-      '<h3>Suelo (PRIAS)</h3>' +
+      '<p class="aviso"><span class="chip">' + esc(tipoNombre(p.tipo)) + '</span>' + (p.especieActual ? t('siembra_actual_txt') + '<b>' + esc(p.especieActual) + '</b>' : t('sin_siembra')) + '</p>' +
+      '<button class="boton" id="pa-analisis">' + t('analizar') + '</button>' +
+      '<button class="boton secundario" id="pa-pdf">' + t('informe_pdf') + '</button>' +
+      '<h3>' + t('siembra_actual_h') + '</h3>' +
+      '<label class="campo"><span>' + t('especie') + '</span><input id="pa-especie" value="' + esc(p.especieActual || '') + '" placeholder="' + t('ph_especie') + '"></label>' +
+      '<label class="campo"><span>' + t('fecha_siembra') + '</span><input id="pa-fecha" type="date"></label>' +
+      '<button class="boton secundario" id="pa-guardar">' + t('guardar_siembra') + '</button>' +
+      '<details class="detalles"><summary>' + t('terreno_h') + '</summary>' +
+      '<div class="fila">' +
+      '<label class="campo"><span>' + t('riego') + '</span><select id="te-riego">' +
+      '<option value="">—</option><option value="no">' + t('sin_riego') + '</option><option value="gravedad">' + t('gravedad') + '</option><option value="aspersion">' + t('aspersion') + '</option><option value="goteo">' + t('goteo') + '</option><option value="otro">' + t('otro') + '</option></select></label>' +
+      '<label class="campo"><span>' + t('fuente_agua') + '</span><select id="te-agua">' +
+      '<option value="">—</option><option value="pozo">' + t('pozo') + '</option><option value="rio">' + t('rio') + '</option><option value="represa">' + t('represa') + '</option><option value="red">' + t('red') + '</option><option value="otra">' + t('otra') + '</option></select></label>' +
+      '</div><div class="fila">' +
+      '<label class="campo"><span>' + t('pendiente') + '</span><select id="te-pend">' +
+      '<option value="">—</option><option value="plano">' + t('plano') + '</option><option value="ondulado">' + t('ondulado') + '</option><option value="quebrado">' + t('quebrado') + '</option></select></label>' +
+      '<label class="campo"><span>' + t('drenaje') + '</span><select id="te-dren">' +
+      '<option value="">—</option><option value="bueno">' + t('bueno') + '</option><option value="regular">' + t('regular') + '</option><option value="encharca">' + t('encharca') + '</option></select></label>' +
+      '</div>' +
+      '<label class="campo"><span>' + t('anios_lote') + '</span><input id="te-anios" type="number" min="0" inputmode="numeric"></label>' +
+      '<p class="aviso">' + t('problemas_lote') + '</p>' +
+      '<div class="checks">' +
+      '<label class="check"><input type="checkbox" class="te-prob" value="compactacion">' + t('compacta') + '</label>' +
+      '<label class="check"><input type="checkbox" class="te-prob" value="salinidad">' + t('salino') + '</label>' +
+      '<label class="check"><input type="checkbox" class="te-prob" value="pedregoso">' + t('pedregoso') + '</label>' +
+      '<label class="check"><input type="checkbox" class="te-prob" value="erosion">' + t('erosion') + '</label>' +
+      '<label class="check"><input type="checkbox" class="te-prob" value="malezas">' + t('maleza') + '</label>' +
+      '<label class="check"><input type="checkbox" class="te-prob" value="otro">' + t('otro') + '</label>' +
+      '</div>' +
+      '<button class="boton secundario" id="te-guardar">' + t('guardar_terreno') + '</button>' +
+      '</details>' +
+      '<h3>' + t('campania_h') + '</h3>' +
+      '<p class="aviso">' + t('campania_aviso') + '</p>' +
+      '<label class="campo"><span>' + t('que_sembro') + '</span><input id="ca-especie" placeholder="' + t('ph_soya') + '"></label>' +
+      '<div class="fila">' +
+      '<label class="campo"><span>' + t('mes_siembra') + '</span><input id="ca-inicio" type="month"></label>' +
+      '<label class="campo"><span>' + t('mes_cosecha') + '</span><input id="ca-fin" type="month"></label>' +
+      '</div><div class="fila">' +
+      '<label class="campo"><span>' + t('rendimiento') + '</span><input id="ca-rend" type="number" step="0.1" inputmode="decimal"></label>' +
+      '<label class="campo"><span>' + t('unidad') + '</span><select id="ca-unidad"><option value="">—</option><option>kg/ha</option><option>qq/ha</option><option>t/ha</option><option>kg MS/ha</option></select></label>' +
+      '</div>' +
+      '<details class="detalles"><summary>' + t('mas_campania') + '</summary>' +
+      '<label class="campo"><span>' + t('campania_libre') + '</span><input id="ca-campania" placeholder="' + t('ph_campania') + '"></label>' +
+      '<label class="campo"><span>' + t('variedad') + '</span><input id="ca-variedad"></label>' +
+      '<label class="campo"><span>' + t('hectareas') + '</span><input id="ca-ha" type="number" step="0.1" inputmode="decimal"></label>' +
+      '<label class="campo"><span>' + t('preparacion') + '</span><select id="ca-prep">' +
+      '<option value="">—</option><option value="siembra-directa">' + t('siembra_directa') + '</option><option value="labranza-convencional">' + t('lab_convencional') + '</option><option value="labranza-minima">' + t('lab_minima') + '</option><option value="otra">' + t('otra') + '</option><option value="no-sabe">' + t('no_sabe') + '</option></select></label>' +
+      '<label class="campo"><span>' + t('fertilizantes') + '</span><input id="ca-fert" placeholder="' + t('ph_fert') + '"></label>' +
+      '<label class="campo"><span>' + t('aplico') + '</span><select id="ca-aplic">' +
+      '<option value="">—</option><option value="si">' + t('si') + '</option><option value="no">' + t('no') + '</option><option value="no-recuerda">' + t('no_recuerda') + '</option></select></label>' +
+      '<p class="aviso">' + t('problemas_cultivo') + '</p>' +
+      '<div class="checks">' +
+      '<label class="check"><input type="checkbox" class="ca-prob" value="sequia">' + t('sequia') + '</label>' +
+      '<label class="check"><input type="checkbox" class="ca-prob" value="exceso-lluvia">' + t('exceso_lluvia') + '</label>' +
+      '<label class="check"><input type="checkbox" class="ca-prob" value="malezas">' + t('malezas') + '</label>' +
+      '<label class="check"><input type="checkbox" class="ca-prob" value="plagas">' + t('plagas') + '</label>' +
+      '<label class="check"><input type="checkbox" class="ca-prob" value="enfermedades">' + t('enfermedades') + '</label>' +
+      '<label class="check"><input type="checkbox" class="ca-prob" value="deficiencias">' + t('deficiencias') + '</label>' +
+      '<label class="check"><input type="checkbox" class="ca-prob" value="otro">' + t('otro') + '</label>' +
+      '<label class="check"><input type="checkbox" class="ca-prob" value="ninguno" id="ca-ninguno">' + t('sin_problemas') + '</label>' +
+      '</div>' +
+      '<label class="campo"><span>' + t('notas') + '</span><input id="ca-notas"></label>' +
+      '</details>' +
+      '<button class="boton secundario" id="ca-guardar">' + t('guardar_campania') + '</button>' +
+      '<h3>' + t('suelo_h') + '</h3>' +
       '<div class="fila">' +
       '<label class="campo"><span>pH</span><input id="pa-ph" inputmode="decimal" type="number" step="0.1"></label>' +
-      '<label class="campo"><span>MO %</span><input id="pa-mo" inputmode="decimal" type="number" step="0.1"></label>' +
+      '<label class="campo"><span>' + t('mo') + '</span><input id="pa-mo" inputmode="decimal" type="number" step="0.1"></label>' +
       '</div><div class="fila">' +
       '<label class="campo"><span>N %</span><input id="pa-n" inputmode="decimal" type="number" step="0.01"></label>' +
-      '<label class="campo"><span>Textura</span><input id="pa-tex" placeholder="arenosa…"></label>' +
+      '<label class="campo"><span>' + t('textura') + '</span><input id="pa-tex" placeholder="' + t('ph_textura') + '"></label>' +
       '</div>' +
-      '<button class="boton secundario" id="pa-suelo">Guardar análisis</button>' +
-      '<h3>Aforo</h3>' +
+      '<button class="boton secundario" id="pa-suelo">' + t('guardar_analisis') + '</button>' +
+      '<h3>' + t('aforo_h') + '</h3>' +
       '<div class="fila">' +
-      '<label class="campo"><span>kg MS/ha</span><input id="pa-aforo" inputmode="decimal" type="number"></label>' +
-      '<label class="campo"><span>Método</span><input id="pa-metodo" placeholder="cuadrante…"></label>' +
+      '<label class="campo"><span>' + t('kgms') + '</span><input id="pa-aforo" inputmode="decimal" type="number"></label>' +
+      '<label class="campo"><span>' + t('metodo') + '</span><input id="pa-metodo" placeholder="' + t('ph_metodo') + '"></label>' +
       '</div>' +
-      '<button class="boton secundario" id="pa-aforo-ok">Guardar aforo</button>' +
+      '<button class="boton secundario" id="pa-aforo-ok">' + t('guardar_aforo') + '</button>' +
       _htmlHistorial(p) +
-      '<h3>Peligro</h3>' +
-      '<button class="boton peligro" id="pa-borrar">Eliminar parcela</button>';
+      '<h3>' + t('peligro_h') + '</h3>' +
+      '<button class="boton peligro" id="pa-borrar">' + t('eliminar_parcela') + '</button>';
     mostrarHoja(html);
 
     el('pa-guardar').onclick = async function () {
@@ -270,25 +437,71 @@
         especieActual: valor('pa-especie') || null,
         fechaSiembraActual: valor('pa-fecha') || null
       });
-      if (r.data && r.data.ok) { toast('Siembra guardada'); seleccionarPredio(predioActual._id); }
+      if (r.data && r.data.ok) { toast(t('siembra_guardada')); seleccionarPredio(predioActual._id); }
+    };
+    el('te-riego').value = p.riego || '';
+    el('te-agua').value = p.fuenteAgua || '';
+    el('te-pend').value = p.pendiente || '';
+    el('te-dren').value = p.drenaje || '';
+    el('te-anios').value = p.aniosUso != null ? p.aniosUso : '';
+    (p.problemasLote || []).forEach(function (v) {
+      var c = document.querySelector('.te-prob[value="' + v + '"]');
+      if (c) c.checked = true;
+    });
+    el('te-guardar').onclick = async function () {
+      var r = await FS.api.put('/predios/' + predioActual._id + '/parcelas/' + p._id, {
+        riego: valor('te-riego') || null,
+        fuenteAgua: valor('te-agua') || null,
+        pendiente: valor('te-pend') || null,
+        drenaje: valor('te-dren') || null,
+        aniosUso: num('te-anios'),
+        problemasLote: marcados('te-prob')
+      });
+      if (r.data && r.data.ok) { toast(t('terreno_guardado')); seleccionarPredio(predioActual._id); }
+    };
+    el('ca-ninguno').onchange = function () {
+      if (this.checked) document.querySelectorAll('.ca-prob').forEach(function (c) { if (c.value !== 'ninguno') c.checked = false; });
+    };
+    document.querySelectorAll('.ca-prob').forEach(function (c) {
+      if (c.value === 'ninguno') return;
+      c.onchange = function () { if (this.checked) el('ca-ninguno').checked = false; };
+    });
+    el('ca-guardar').onclick = async function () {
+      if (!valor('ca-especie')) return toast(t('campania_especie'));
+      var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/siembras', {
+        especie: valor('ca-especie'),
+        variedad: valor('ca-variedad') || null,
+        campania: valor('ca-campania') || null,
+        superficieHa: num('ca-ha'),
+        inicio: mes('ca-inicio'),
+        fin: mes('ca-fin'),
+        preparacion: valor('ca-prep') || null,
+        fertilizantes: valor('ca-fert') || null,
+        aplicaciones: valor('ca-aplic') || null,
+        problemas: marcados('ca-prob'),
+        rendimiento: num('ca-rend'),
+        rendimientoUnidad: valor('ca-unidad') || null,
+        notas: valor('ca-notas') || null
+      });
+      if (r.data && r.data.ok) { toast(t('campania_guardada')); seleccionarPredio(predioActual._id); }
     };
     el('pa-suelo').onclick = async function () {
       var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/suelos', {
         fecha: new Date().toISOString(), ph: num('pa-ph'), materiaOrganica: num('pa-mo'),
         nitrogeno: num('pa-n'), textura: valor('pa-tex') || null, fuente: 'laboratorio'
       });
-      if (r.data && r.data.ok) { toast('Análisis guardado'); seleccionarPredio(predioActual._id); }
+      if (r.data && r.data.ok) { toast(t('analisis_guardado')); seleccionarPredio(predioActual._id); }
     };
     el('pa-aforo-ok').onclick = async function () {
       var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/aforos', {
         fecha: new Date().toISOString(), kgMSHa: num('pa-aforo'), metodo: valor('pa-metodo') || null
       });
-      if (r.data && r.data.ok) { toast('Aforo guardado'); seleccionarPredio(predioActual._id); }
+      if (r.data && r.data.ok) { toast(t('aforo_guardado')); seleccionarPredio(predioActual._id); }
     };
     el('pa-analisis').onclick = function () { hojaAnalisis(p); };
     el('pa-pdf').onclick = function () { descargarPdf(p._id); };
     el('pa-borrar').onclick = async function () {
-      if (!confirm('¿Eliminar la parcela "' + p.nombre + '"?')) return;
+      if (!confirm(t('confirma_borrar', { n: p.nombre }))) return;
       await FS.api.del('/predios/' + predioActual._id + '/parcelas/' + p._id);
       parcelaActual = null; ocultarHoja(); seleccionarPredio(predioActual._id);
     };
@@ -297,15 +510,17 @@
   function _htmlHistorial(p) {
     var s = '';
     if (p.suelos && p.suelos.length) {
-      s += '<h3>Análisis de suelo registrados</h3>';
+      s += '<h3>' + t('suelos_h') + '</h3>';
       p.suelos.slice().reverse().forEach(function (x) {
-        s += '<p class="aviso">• ' + new Date(x.fecha).toLocaleDateString('es-BO') + ': pH ' + (x.ph || '—') + ', MO ' + (x.materiaOrganica || '—') + '%, ' + esc(x.textura || '') + '</p>';
+        s += '<p class="aviso">• ' + fecha(x.fecha) + ': pH ' + (x.ph || '—') + ', ' + t('mo').replace(' %', '') + ' ' + (x.materiaOrganica || '—') + '%, ' + esc(x.textura || '') + '</p>';
       });
     }
     if (p.historial && p.historial.length) {
-      s += '<h3>Historial</h3>';
+      s += '<h3>' + t('historial_h') + '</h3>';
       p.historial.slice().reverse().forEach(function (x) {
-        s += '<p class="aviso">• ' + esc(x.especie) + ' (' + (x.inicio ? new Date(x.inicio).toLocaleDateString('es-BO') : '—') + ' → ' + (x.fin ? new Date(x.fin).toLocaleDateString('es-BO') : 'vigente') + ')</p>';
+        s += '<p class="aviso">• ' + esc(x.especie) + (x.campania ? ' · ' + esc(x.campania) : '') +
+          ' (' + (x.inicio ? fecha(x.inicio) : '—') + ' → ' + (x.fin ? fecha(x.fin) : t('vigente')) + ')' +
+          (x.rendimiento ? ' · ' + x.rendimiento + ' ' + esc(x.rendimientoUnidad || '') : '') + '</p>';
       });
     }
     return s;
@@ -313,52 +528,52 @@
 
   // ── análisis ────────────────────────────────────────────
   async function hojaAnalisis(p) {
-    mostrarHoja('<h2>Analizando ' + esc(p.nombre) + '…</h2><p class="aviso">Consultando NASA POWER y cruzando con tu suelo.</p>');
-    var r = await FS.api.get('/predios/' + predioActual._id + '/analisis?parcela=' + p._id);
-    if (!(r.data && r.data.ok)) return mostrarHoja('<h2>Sin análisis</h2><p class="aviso">' + esc((r.data && r.data.error) || 'sin conexión') + '</p>');
+    mostrarHoja('<h2>' + t('analizando', { n: esc(p.nombre) }) + '</h2><p class="aviso">' + t('consultando') + '</p>');
+    var r = await FS.api.get('/predios/' + predioActual._id + '/analisis?parcela=' + p._id + '&lang=' + FS.lang);
+    if (!(r.data && r.data.ok)) return mostrarHoja('<h2>' + t('sin_analisis') + '</h2><p class="aviso">' + esc(traducirError(r.data && r.data.error)) + '</p>');
     var d = r.data.data;
-    var html = '<h2>' + esc(p.nombre) + ' — análisis</h2>';
+    var html = '<h2>' + esc(t('analisis_de', { n: p.nombre })) + '</h2>';
     if (d.clima) {
-      html += '<p class="aviso">Lluvia anual media: <b>' + d.clima.lluviaAnualMedia + ' mm</b> · último mes: <b>' + d.clima.lluviaUltimoMes + ' mm</b>' +
-        (d.clima.anomaliaLluvia != null ? ' (' + (d.clima.anomaliaLluvia > 0 ? '+' : '') + d.clima.anomaliaLluvia + '% vs media)' : '') +
-        (d.clima.humedadSueloReciente != null ? ' · humedad raíz: <b>' + d.clima.humedadSueloReciente + '</b>' : '') + '</p>';
+      html += '<p class="aviso">' + t('lluvia_anual') + '<b>' + d.clima.lluviaAnualMedia + ' mm</b> ·' + t('ultimo_mes') + '<b>' + d.clima.lluviaUltimoMes + ' mm</b>' +
+        (d.clima.anomaliaLluvia != null ? ' (' + (d.clima.anomaliaLluvia > 0 ? '+' : '') + d.clima.anomaliaLluvia + '%' + t('vs_media') + ')' : '') +
+        (d.clima.humedadSueloReciente != null ? t('humedad_raiz') + '<b>' + d.clima.humedadSueloReciente + '</b>' : '') + '</p>';
     }
     if (d.rotacion && d.rotacion.recomendaciones) {
-      html += '<h3>Qué sembrar después de ' + esc(p.especieActual || 'esto') + '</h3>';
+      html += '<h3>' + esc(t('que_sembrar', { n: p.especieActual || t('esto') })) + '</h3>';
       d.rotacion.recomendaciones.forEach(function (c, i) {
         html += '<div class="reco"><span class="puntaje">' + c.puntaje + '</span><h4>' + (i + 1) + '. ' + esc(c.especie) + '</h4>' +
-          '<span class="chip">' + esc(c.grupo) + '</span> <span class="chip">' + (c.fijaN ? 'fija N' : 'no fija N') + '</span>' +
+          '<span class="chip">' + esc(grupoNombre(c.grupo)) + '</span> <span class="chip">' + (c.fijaN ? t('fija_n') : t('no_fija_n')) + '</span>' +
           '<ul>' + c.razones.map(function (z) { return '<li>' + esc(z) + '</li>'; }).join('') + '</ul>' +
           (c.notas ? '<p class="aviso">' + esc(c.notas) + '</p>' : '') + '</div>';
       });
     }
     if (d.ventana && d.ventana.ok) {
-      var v = { favorable_ahora: 'Favorable para sembrar ahora', ventana_pero_seco: 'En ventana, pero viene seco', esperar: 'Mejor esperar' }[d.ventana.veredicto] || d.ventana.veredicto;
-      html += '<h3>Ventana de siembra forrajera</h3><div class="veredicto ' + d.ventana.veredicto + '">' + v + '</div>';
+      var v = { favorable_ahora: t('veredicto_favorable'), ventana_pero_seco: t('veredicto_seco'), esperar: t('veredicto_esperar') }[d.ventana.veredicto] || d.ventana.veredicto;
+      html += '<h3>' + t('ventana_h') + '</h3><div class="veredicto ' + d.ventana.veredicto + '">' + v + '</div>';
       d.ventana.ventanas.forEach(function (w) {
-        html += '<p class="aviso">• Ventana: <b>' + w.desde + ' a ' + w.hasta + '</b> (' + w.lluviaMinMes + '–' + w.lluviaMaxMes + ' mm/mes)</p>';
+        html += '<p class="aviso">• ' + t('ventana_item', { a: w.desde, b: w.hasta, min: w.lluviaMinMes, max: w.lluviaMaxMes }) + '</p>';
       });
       d.ventana.riesgos.forEach(function (x) { html += '<p class="aviso">⚠ ' + esc(x) + '</p>'; });
     }
-    html += '<p class="aviso">Fuente: ' + esc((d.fuentes || []).join(', ')) + '</p>';
-    html += '<button class="boton" id="an-pdf">Descargar informe PDF</button>';
+    html += '<p class="aviso">' + esc(t('fuente', { f: (d.fuentes || []).join(', ') })) + '</p>';
+    html += '<button class="boton" id="an-pdf">' + t('descargar_pdf') + '</button>';
     mostrarHoja(html);
     el('an-pdf').onclick = function () { descargarPdf(p._id); };
   }
 
   // ── PDF ─────────────────────────────────────────────────
   async function descargarPdf(parcelaId) {
-    toast('Generando informe…');
+    toast(t('generando_pdf'));
     try {
       var res = await fetch(FS.api.informeUrl(predioActual._id, parcelaId), { headers: { Authorization: 'Bearer ' + FS.api.token() } });
-      if (!res.ok) return toast('No se pudo generar');
+      if (!res.ok) return toast(t('no_pdf'));
       var blob = await res.blob();
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url; a.download = 'fieldshift-' + predioActual.nombre.replace(/\W+/g, '-').toLowerCase() + '.pdf';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-    } catch (e) { toast('No se pudo generar'); }
+    } catch (e) { toast(t('no_pdf')); }
   }
 
   // ── arranque ────────────────────────────────────────────

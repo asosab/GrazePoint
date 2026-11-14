@@ -12,6 +12,7 @@
 
 const nodemailer = require('nodemailer');
 const cnf = require('../config');
+const { MAIL, langOk } = require('./i18n');
 
 let transporter = null;
 
@@ -50,23 +51,25 @@ async function enviar({ para, asunto, texto, html }) {
 	}
 }
 
-function enviarVerificacion(para, codigo, nombre) {
-	const saludo = nombre ? 'Hola ' + nombre + ',' : 'Hola,';
+function enviarVerificacion(para, codigo, nombre, lang) {
+	const m = MAIL[langOk(lang)];
+	const saludo = m.saludo(nombre);
 	return enviar({
 		para,
-		asunto: 'Tu código de Field Shift: ' + codigo,
-		texto: saludo + '\n\nTu código de verificación es ' + codigo + '. Vale por 30 minutos.\n\nSi no pediste registrarte en Field Shift, ignora este correo.\n\n— Equipo Field Shift',
-		html: '<p>' + saludo + '</p><p>Tu código de verificación es <b style="font-size:1.4em;letter-spacing:2px">' + codigo + '</b>. Vale por 30 minutos.</p><p>Si no pediste registrarte en Field Shift, ignora este correo.</p><p>— Equipo Field Shift</p>'
+		asunto: m.verif_asunto(codigo),
+		texto: saludo + '\n\n' + m.verif_texto(codigo) + '\n\n' + m.firma,
+		html: '<p>' + saludo + '</p>' + m.verif_html(codigo) + '<p>' + m.firma + '</p>'
 	});
 }
 
-function enviarReset(para, codigo, nombre) {
-	const saludo = nombre ? 'Hola ' + nombre + ',' : 'Hola,';
+function enviarReset(para, codigo, nombre, lang) {
+	const m = MAIL[langOk(lang)];
+	const saludo = m.saludo(nombre);
 	return enviar({
 		para,
-		asunto: 'Restablecer tu clave de Field Shift',
-		texto: saludo + '\n\nPediste restablecer tu clave. Tu código es ' + codigo + '. Vale por 30 minutos.\n\nSi no fuiste tú, ignora este correo: tu clave sigue igual.\n\n— Equipo Field Shift',
-		html: '<p>' + saludo + '</p><p>Pediste restablecer tu clave. Tu código es <b style="font-size:1.4em;letter-spacing:2px">' + codigo + '</b>. Vale por 30 minutos.</p><p>Si no fuiste tú, ignora este correo: tu clave sigue igual.</p><p>— Equipo Field Shift</p>'
+		asunto: m.reset_asunto,
+		texto: saludo + '\n\n' + m.reset_texto(codigo) + '\n\n' + m.firma,
+		html: '<p>' + saludo + '</p>' + m.reset_html(codigo) + '<p>' + m.firma + '</p>'
 	});
 }
 
