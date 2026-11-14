@@ -1,0 +1,21 @@
+title: "Field Shift"
+description: "PRIAS digital: decide qué sembrar, cuándo rotar y en qué ventana, con datos de suelo de tu predio y observación de la Tierra de la NASA."
+baseurl: "/fieldShift"
+url: "https://asosab.github.io"
+lang: es
+timezone: America/La_Paz
+markdown: kramdown
+
+exclude:
+  - AGENTS.md
+  - README.md
+  - LICENSE
+  - docs
+  - backend
+  - .devin
+  - node_modules
+  - Gemfile
+  - Gemfile.lock
+
+plugins:
+  - jekyll-sitemap

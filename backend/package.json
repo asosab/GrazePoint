@@ -1,0 +1,25 @@
+{
+  "name": "fieldshift-backend",
+  "version": "0.1.0",
+  "description": "Backend de Field Shift: PRIAS digital, rotación y ventana de siembra forrajera (NASA POWER + MongoDB).",
+  "main": "index.js",
+  "private": false,
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "seed": "node seed.js --local"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^6.13.0",
+    "nodemailer": "^6.9.16",
+    "pdfkit": "^0.15.0"
+  }
+}
