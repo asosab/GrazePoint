@@ -17,5 +17,4 @@ exclude:
   - Gemfile
   - Gemfile.lock
 
-plugins:
-  - jekyll-sitemap
+# sitemap.xml se genera a mano (respeta robots: noindex por página)
