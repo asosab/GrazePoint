@@ -165,6 +165,8 @@ async function evaluar(parcela, { catalogo, lang, ligero }) {
 		areaHa: areaHa(parcela.geometry)
 	};
 	if (!esp || (!esp.rebrote && !esp.gddEnsilaje)) return out;
+	out.rebrote = esp.rebrote || null;
+	out.gddEnsilaje = esp.gddEnsilaje || null;
 	if (!centro) { out.estado = 'sin_dato'; out.texto = T.sin_dato; return out; }
 
 	const uso = _ultimoUso(parcela);
@@ -184,15 +186,19 @@ async function evaluar(parcela, { catalogo, lang, ligero }) {
 	if (!t0 && !ligero) {
 		// Sin registro: el satélite intenta adivinar cuándo se usó.
 		const serie = await gibs.serieNdvi(centro.lat, centro.lon, 96, 8);
+		out.ndviSerie = serie; // el informe la dibuja sin volver a pedirla
 		const detectado = detectarCorte(serie);
 		if (detectado) { t0 = new Date(detectado); t0Fuente = 'ndvi'; }
 	}
 	const z = ndviZona && ndviZona.zona;
 	out.ndvi = z ? z.media : null;
+	out.ndviMuestras = z ? z.muestras : null;
 	out.ndviRango = z && z.n > 1 ? { min: z.min, max: z.max, n: z.n } : null;
 	out.ndviFecha = ndviZona ? ndviZona.fecha : null;
 	out.ndviAnt = ndviZonaAnt && ndviZonaAnt.zona ? ndviZonaAnt.zona.media : null;
+	out.ndviAntFecha = ndviZonaAnt ? ndviZonaAnt.fecha : null;
 	out.smap = smapZona && smapZona.zona ? smapZona.zona.media : null;
+	out.smapFecha = smapZona ? smapZona.fecha : null;
 	if (!t0) { out.estado = 'sin_dato'; out.texto = T.sin_dato; return out; }
 
 	out.t0 = t0.toISOString().slice(0, 10);

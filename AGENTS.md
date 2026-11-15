@@ -151,9 +151,31 @@ entrar el lote o cortarse, en tres estados (`rebrote` / `punto_optimo` /
   grados-día base 10 °C desde `fechaSiembraActual` al grano pastoso.
 - Endpoints: `GET /predios/:id/forraje` (ranking: punto óptimo primero,
   luego forraje estimado, sábana «Estado de potreros») y `forraje`
-  dentro de `/analisis`. En el PDF la sección va en modo `ligero`
-  (sin serie NDVI ni calibración: el informe no puede esperar ~15
-  tiles por parcela).
+  dentro de `/analisis`. El PDF corre `forraje.evaluar` en modo
+  completo por parcela (NDVI de área, SMAP, `ev30`, serie NDVI): los
+  tiles GIBS se cachean por xyz así que la grilla de una parcela no
+  dispara fichas extra.
+
+## Informe PDF (`/predios/:id/informe.pdf`)
+
+`services/informe.js` arma un diagnóstico técnico completo, no un
+resumen: ficha del predio con hectáreas calculadas por polígono,
+diagnóstico por potrero (mapa vectorial de las parcelas coloreadas
+por prioridad + tabla `nombre | ha | especie | NDVI | vs año | estado
+| prioridad | acción` ordenada por prioridad de intervención), tabla
+de clases de cobertura NDVI (ha y % por clase, mediana de los píxeles
+muestreados), balance forrajero del hato, contexto de temporada
+(lluvia anual, anomalía, últimos 6 meses vs año anterior, meses
+secos) y una ficha por parcela con tres bloques —qué muestran los
+datos / qué significa / qué hacer— más suelo completo (PRIAS o
+SoilGrids con arena/arcilla/limo, CIC, densidad), sparkline de NDVI
+con cortes detectados marcados, barra del reloj de rebrote,
+historial de siembras/aforos/cortes, rotación sugerida con razones y
+la ventana de siembra con las barras de lluvia mensual vs umbral.
+Cierra con metodología y fuentes (fechas de tile NDVI/SMAP, n de
+píxeles). Todo el texto visible vive en `INFORME`/`FORRAJE` de
+`services/i18n.js` (en/es); PDFKit corre Helvetica WinAnsi: nada de
+glifos fuera de Latin-1 (`→`, `≥` rompen, usar `->`, `>=`).
 - **Alertas Telegram** (`services/alertas.js`): barrido diario; avisa
   al ENTRAR a una condición, no mientras siga. Tipos: `punto`
   (óptimo/ensilar), `revisar` (desacuerdo reloj-vs-NDVI), `estres`

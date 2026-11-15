@@ -176,7 +176,8 @@ async function valorZona(capa, geometry, ymd) {
 		min: vals[0],
 		max: vals[vals.length - 1],
 		n: vals.length,
-		nTotal: pts.length
+		nTotal: pts.length,
+		muestras: vals // serie ordenada: histogramas y clases por hectárea
 	};
 }
 
