@@ -552,7 +552,7 @@
   function hojaParcela() {
     var p = parcelaActual;
     var html = '<h2>' + esc(p.nombre) + '</h2>' +
-      '<p class="aviso"><span class="chip">' + esc(tipoNombre(p.tipo)) + '</span>' + (p.especieActual ? t('siembra_actual_txt') + '<b>' + esc(p.especieActual) + '</b>' : t('sin_siembra')) + '</p>' +
+      '<p class="aviso"><span class="chip">' + esc(tipoNombre(p.tipo)) + '</span>' + (p.especieActual ? t('siembra_actual_txt') + '<b>' + esc(p.especieActual) + '</b>' + (p.fechaSiembraActual ? ' · ' + fecha(p.fechaSiembraActual) : '') : t('sin_siembra')) + '</p>' +
       '<button class="boton" id="pa-analisis">' + t('analizar') + '</button>' +
       '<button class="boton secundario" id="pa-pdf">' + t('informe_pdf') + '</button>' +
       '<h3>' + t('siembra_actual_h') + '</h3>' +
@@ -652,6 +652,7 @@
       }, t('esp_siembra'));
       if (r.data && r.data.ok) { toast(t('siembra_guardada')); seleccionarPredio(predioActual._id); }
     };
+    el('pa-fecha').value = p.fechaSiembraActual ? new Date(p.fechaSiembraActual).toISOString().slice(0, 10) : '';
     el('te-riego').value = p.riego || '';
     el('te-agua').value = p.fuenteAgua || '';
     el('te-pend').value = p.pendiente || '';
