@@ -34,6 +34,7 @@ button { font: inherit; cursor: pointer; }
   display: flex; flex-direction: column; gap: 16px; min-height: 100%;
 }
 .landing-cabecera { padding: 12vh 0 2vh; }
+.landing-logo { width: 96px; height: 96px; margin-bottom: 14px; }
 .landing-cabecera h1 {
   margin: 0 0 8px; font-size: clamp(2.6rem, 12vw, 4.5rem);
   line-height: .95; letter-spacing: -0.03em; font-weight: 800;
@@ -70,7 +71,8 @@ button { font: inherit; cursor: pointer; }
   padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
   background: linear-gradient(180deg, rgba(16,21,16,.9), rgba(16,21,16,0));
 }
-.marca { font-weight: 800; text-decoration: none; color: var(--texto); font-size: 1.15rem; letter-spacing: -0.02em; }
+.marca { font-weight: 800; text-decoration: none; color: var(--texto); font-size: 1.15rem; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 8px; }
+.marca img { width: 30px; height: 30px; border-radius: 50%; }
 .btn-texto {
   background: var(--carbon-2); color: var(--texto); border: 1px solid rgba(198,212,197,.3);
   border-radius: 999px; padding: 8px 16px; font-size: .9rem;
