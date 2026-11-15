@@ -1,7 +1,9 @@
 # AGENTS.md — GrazePoint
 
-App web abierta para decidir qué sembrar y cuándo, cruzando el suelo
-medido del predio con observación de la Tierra de la NASA (POWER).
+App web abierta para decidir cuándo entra el lote a cada potrero y
+qué sembrar después: el punto óptimo de pastoreo/corte cruzando el
+suelo medido del predio con observación de la Tierra de la NASA
+(POWER, MODIS via GIBS, SMAP) y el balance forrajero del hato.
 Nacida en el NASA Space Apps Challenge 2026. Sitio Jekyll en GitHub
 Pages: **https://asosab.github.io/GrazePoint/**
 
