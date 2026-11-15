@@ -234,7 +234,7 @@ router.delete('/predios/:id/parcelas/:pid', authenticate, wrap(async (req, res) 
 	if (!predio) return;
 	const p = _parcela(predio, res);
 	if (!p) return;
-	p.deleteOne();
+	predio.parcelas.pull(p._id);
 	await predio.save();
 	res.json({ ok: true });
 }));
