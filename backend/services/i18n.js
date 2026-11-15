@@ -35,7 +35,14 @@ const RAZONES = {
 		leg_tras_gram: 'leguminosa tras gramínea: aporta N al suelo',
 		leg_tras_leg: 'leguminosa tras leguminosa suma poco',
 		misma_especie: 'repetir la misma especie',
-		levanta_mo: 'ayuda a levantar la materia orgánica'
+		levanta_mo: 'ayuda a levantar la materia orgánica',
+		seca_favor: 'la temporada viene seca y esta aguanta con poca agua',
+		seca_castiga: 'la temporada viene seca y esta pide bastante lluvia',
+		ndvi_bajo: 'la vegetación se ve débil en el satélite: le devuelve cobertura',
+		ndvi_cae: 'la vegetación viene cayendo frente al año pasado',
+		n_bajo: 'tu suelo anda corto de nitrógeno: esta lo repone sola',
+		cic_bajo: 'suelo de baja retención: su alta extracción de N la resiente',
+		denso: 'suelo compactado: sus raíces gruesas lo aflojan'
 	},
 	en: {
 		mas_lluvia: (mm) => 'needs more rain than falls here (' + mm + ' mm/year)',
@@ -45,7 +52,14 @@ const RAZONES = {
 		leg_tras_gram: 'legume after grass: adds N to the soil',
 		leg_tras_leg: 'legume after legume adds little',
 		misma_especie: 'repeats the same species',
-		levanta_mo: 'helps build organic matter back up'
+		levanta_mo: 'helps build organic matter back up',
+		seca_favor: 'the season is running dry and this one gets by on little water',
+		seca_castiga: 'the season is running dry and this one asks for plenty of rain',
+		ndvi_bajo: 'satellite shows weak vegetation: it brings the cover back',
+		ndvi_cae: 'vegetation keeps dropping versus last year',
+		n_bajo: 'your soil is short on nitrogen: this one rebuilds it on its own',
+		cic_bajo: 'low-retention soil: its heavy N uptake hits it hard',
+		denso: 'compacted soil: its thick roots loosen it'
 	}
 };
 

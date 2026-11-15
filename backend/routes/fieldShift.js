@@ -22,6 +22,8 @@ const rotacion = require('../services/rotacion');
 const ventana = require('../services/ventana');
 const power = require('../services/power');
 const sueloWeb = require('../services/sueloWeb');
+const gibs = require('../services/gibsValores');
+const tiempo = require('../services/tiempo');
 const informe = require('../services/informe');
 
 // Conexión propia al cargar el módulo (reintenta sola si mongo aún no está).
@@ -299,15 +301,31 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 	const centro = _centroDe(predio, parcela);
 	if (!centro) return res.status(400).json({ ok: false, error: 'sin_coordenadas' });
 
-	const [clim, dia, sueloW] = await Promise.all([
+	// Serie diaria de 400 días: cubre los últimos 6 meses y los mismos
+	// 6 meses del ciclo anterior, que es lo que `tiempo` compara.
+	// GIBS en paralelo: NDVI actual, NDVI de hace un año y humedad
+	// SMAP de raíz — valores reales decodificados del tile del punto.
+	const [clim, dia, sueloW, ndviHoy, ndviAnt, smap] = await Promise.all([
 		power.climatologia(centro.lat, centro.lon),
-		power.diario(centro.lat, centro.lon, 120),
-		sueloWeb.consultar(centro.lat, centro.lon)
+		power.diario(centro.lat, centro.lon, 400),
+		sueloWeb.consultar(centro.lat, centro.lon),
+		gibs.valorBuscando('ndvi', centro.lat, centro.lon, 10, 8, 4),
+		gibs.valorBuscando('ndvi', centro.lat, centro.lon, 365, 8, 6),
+		gibs.valorBuscando('smap', centro.lat, centro.lon, 3, 1, 6)
 	]);
 	const resumenPower = power.resumen(dia, clim);
+	const tendencia = tiempo.analizar(dia, clim);
+	const terreno = {
+		ndvi: ndviHoy ? ndviHoy.valor : null,
+		ndviFecha: ndviHoy ? ndviHoy.fecha : null,
+		ndviAnt: ndviAnt ? ndviAnt.valor : null,
+		ndviAntFecha: ndviAnt ? ndviAnt.fecha : null,
+		smap: smap ? smap.valor : null,
+		smapFecha: smap ? smap.fecha : null
+	};
 	const lang = langDe(req);
 	const [rec, ven] = await Promise.all([
-		parcela ? rotacion.recomendar({ parcela, clima: resumenPower, sueloWeb: sueloW, lang }) : Promise.resolve(null),
+		parcela ? rotacion.recomendar({ parcela, clima: resumenPower, sueloWeb: sueloW, terreno, tiempo: tendencia, lang }) : Promise.resolve(null),
 		Promise.resolve(ventana.evaluar({ clima: clim, resumenPower, especie: parcela ? parcela.especieActual : null, lang }))
 	]);
 
@@ -317,12 +335,15 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 			centro,
 			clima: resumenPower,
 			sueloWeb: sueloW,
+			terreno,
+			tiempo: tendencia,
 			lluviaPorMes: ven && ven.ok ? ven.lluviaPorMes : null,
 			rotacion: rec,
 			ventana: ven,
 			fuentes: [
 				lang === 'es' ? 'NASA POWER (serie diaria + climatología)' : 'NASA POWER daily + climatology',
-				'SoilGrids (ISRIC)'
+				'SoilGrids (ISRIC)',
+				lang === 'es' ? 'NASA GIBS (NDVI MODIS + SMAP, valor del píxel)' : 'NASA GIBS (MODIS NDVI + SMAP, pixel value)'
 			]
 		}
 	});

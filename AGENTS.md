@@ -17,6 +17,18 @@ Pages: **https://asosab.github.io/fieldShift/**
   vía `services/sueloWeb.js` — el WMS de ISRIC con
   `GetFeatureInfo`/`text/html` devuelve el valor crudo por punto
   (la REST v2.0 de rest.isric.org está caída y da nulls).
+- `services/gibsValores.js` convierte las capas visuales en números:
+  baja el tile GIBS del punto, decodifica el píxel y lo cruza con el
+  colormap oficial (`/colormaps/v1.3/<nombre>.xml`, rgb→rango de valor).
+  Así entran NDVI MODIS y humedad SMAP al análisis como valores reales.
+- `services/tiempo.js` agrega la serie POWER diaria (400 d) por mes y
+  la compara: últimos 6 meses vs el mismo período del año anterior y
+  vs la climatología (meses bajo el 75 % de su media → tendencia seca).
+- `rotacion.recomendar` suma señales nuevas al puntaje: temporada seca
+  (±por lluviaMin), NDVI bajo/cayendo (+cultivos de servicio y fijadoras),
+  N bajo (+fijaN), CIC baja (−alta extracción), suelo denso (+raíz
+  gruesa). La respuesta de `/analisis` trae `terreno` (ndvi, ndviAnt,
+  smap + fechas de tile) y `tiempo` (meses, pctVsAnio, mesesSecos).
 - El frontend apunta a `https://api.statetty.com/api/fieldShift`; con
   `?api=<url>` o `fs_api` en localStorage usa otro backend.
 

@@ -581,6 +581,20 @@
         cic: sw.cec != null ? sw.cec : '—'
       }) + '</p>';
     }
+    if (d.terreno && (d.terreno.ndvi != null || d.terreno.smap != null)) {
+      var tr = d.terreno;
+      var dif = tr.ndvi != null && tr.ndviAnt != null ? t('ndvi_dif', { v: ((tr.ndvi - tr.ndviAnt) >= 0 ? '+' : '') + (Math.round((tr.ndvi - tr.ndviAnt) * 100) / 100) }) : '';
+      html += '<p class="aviso">' + t('terreno_txt', {
+        ndvi: tr.ndvi != null ? tr.ndvi.toFixed(2) : '—', dif: dif,
+        smap: tr.smap != null ? tr.smap.toFixed(2) : '—'
+      }) + '</p>';
+    }
+    if (d.tiempo && (d.tiempo.mesesSecos != null || d.tiempo.pctVsAnio != null)) {
+      var tm = d.tiempo, partes = [];
+      if (tm.mesesSecos != null) partes.push(t('tiempo_secos', { s: tm.mesesSecos }));
+      if (tm.pctVsAnio != null) partes.push(t('tiempo_lluvia', { pct: (tm.pctVsAnio > 0 ? '+' : '') + tm.pctVsAnio }));
+      html += '<p class="aviso">' + t('tiempo_txt', { p: partes.join(' · ') }) + '</p>';
+    }
     if (d.rotacion && d.rotacion.recomendaciones) {
       html += '<h3>' + esc(t('que_sembrar', { n: p.especieActual || t('esto') })) + '</h3>';
       d.rotacion.recomendaciones.forEach(function (c, i) {

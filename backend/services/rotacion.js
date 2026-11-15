@@ -76,13 +76,47 @@ function _puntaje(c, ctx, T) {
 		puntos += 8; razones.push(T.levanta_mo);
 	}
 
+	// Temporada seca (últimos 6 meses por debajo de lo habitual):
+	// favorece especies de bajo requerimiento y castiga las sedientas.
+	if (ctx.tendenciaSeca && c.lluviaMin != null) {
+		if (c.lluviaMin <= 700) { puntos += 8; razones.push(T.seca_favor); }
+		else if (c.lluviaMin >= 1000) { puntos -= 10; razones.push(T.seca_castiga); }
+	}
+
+	// Vegetación débil o cayendo en el satélite (NDVI del punto):
+	// el terreno pide cobertura, no otro cultivo extractor.
+	if (ctx.ndviBajo && (c.grupo === 'cultivo-servicio' || c.fijaN)) {
+		puntos += 8; razones.push(T.ndvi_bajo);
+	}
+	if (ctx.ndviCae && c.grupo === 'cultivo-servicio') {
+		puntos += 6; razones.push(T.ndvi_cae);
+	}
+
+	// Nitrógeno bajo (SoilGrids, g/kg): las leguminosas lo reponen.
+	if (ctx.nBajo && c.fijaN) {
+		puntos += 8; razones.push(T.n_bajo);
+	}
+
+	// CIC baja: el suelo retiene poco nutriente; una extracción alta
+	// de N lo deja peor de lo que estaba.
+	if (ctx.cicBajo && c.extraccion && c.extraccion.n >= 150) {
+		puntos -= 10; razones.push(T.cic_bajo);
+	}
+
+	// Suelo compactado (densidad aparente alta): cobertura de raíz gruesa.
+	if (ctx.denso && c.grupo === 'cultivo-servicio') {
+		puntos += 5; razones.push(T.denso);
+	}
+
 	return { puntos, razones };
 }
 
 // contexto: { ph, mo, textura, lluviaAnual, especieAnterior, familiaAnterior, grupoAnterior }
 // sueloWeb (SoilGrids/ISRIC) rellena lo que el PRIAS aún no tiene medido:
-// pH, materia orgánica estimada (SOC×1.724) y textura por fracciones.
-async function recomendar({ parcela, clima, sueloWeb, limite = 3, lang }) {
+// pH, materia orgánica estimada (SOC×1.724), textura por fracciones,
+// nitrógeno, CIC y densidad. terreno trae NDVI y SMAP del satélite;
+// tiempo trae la tendencia de los últimos 6 meses vs su climatología.
+async function recomendar({ parcela, clima, sueloWeb, terreno, tiempo, limite = 3, lang }) {
 	const T = RAZONES[langOk(lang)];
 	const catalogoArr = await catalogo();
 	const suelo = _ultimoSuelo(parcela);
@@ -93,6 +127,15 @@ async function recomendar({ parcela, clima, sueloWeb, limite = 3, lang }) {
 		moBaja: (suelo && suelo.materiaOrganica != null) ? suelo.materiaOrganica < 2
 			: (sueloWeb && sueloWeb.moEstimada != null ? sueloWeb.moEstimada < 2 : false),
 		arenoso,
+		// Señales del terreno remoto (SoilGrids) y del satélite (GIBS):
+		// nitrogeno llega en % N total; < 0.12 % es suelo pobre en N.
+		nBajo: !!(sueloWeb && sueloWeb.nitrogeno != null && sueloWeb.nitrogeno < 0.12),
+		cicBajo: !!(sueloWeb && sueloWeb.cec != null && sueloWeb.cec < 10),
+		denso: !!(sueloWeb && sueloWeb.densidad != null && sueloWeb.densidad > 1.45),
+		ndviBajo: !!(terreno && terreno.ndvi != null && terreno.ndvi < 0.3),
+		ndviCae: !!(terreno && terreno.ndvi != null && terreno.ndviAnt != null && terreno.ndviAnt - terreno.ndvi > 0.15),
+		// Señal temporal: la temporada reciente viene por debajo de lo normal.
+		tendenciaSeca: !!(tiempo && tiempo.tendenciaSeca),
 		sueloFuente: suelo ? 'PRIAS' : (sueloWeb ? 'SoilGrids' : null),
 		texturaEstimada: textura || (sueloWeb ? sueloWeb.textura : null),
 		lluviaAnual: clima && clima.lluviaAnualMedia != null ? clima.lluviaAnualMedia : null,
