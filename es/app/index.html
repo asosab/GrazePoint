@@ -23,6 +23,8 @@ robots: noindex
   <button id="fab-predios" class="fab" title="Mis predios" aria-label="Mis predios">☰</button>
   <button id="fab-importar" class="fab oculto" title="Importar archivo de mapa" aria-label="Importar archivo de mapa">⤓</button>
   <button id="fab-dibujar" class="fab oculto" title="Dibujar parcela" aria-label="Dibujar parcela">✎</button>
+  <button id="fab-capas" class="fab" title="Capas del mapa" aria-label="Capas del mapa">⧉</button>
+  <button id="fab-tiempo" class="fab" title="Paso de tiempo" aria-label="Paso de tiempo">◷</button>
 </div>
 <input id="imp-archivo" class="oculto" type="file" multiple
   accept=".kml,.kmz,.zip,.shp,.dbf,.prj,.shx,.cpg,.sbn,.sbx,.geojson,.json,.gpx,.csv,.txt,.wkt,.pdf">
@@ -32,6 +34,17 @@ robots: noindex
   <button id="dibujo-deshacer" class="btn-mini">deshacer</button>
   <button id="dibujo-cerrar" class="btn-mini">cerrar</button>
   <button id="dibujo-listo" class="btn-mini principal">listo</button>
+</div>
+
+<!-- Paso de tiempo -->
+<div id="tiempo-barra" class="tiempo-barra oculto">
+  <button id="tiempo-prev" class="btn-mini">◀</button>
+  <button id="tiempo-play" class="btn-mini">▶</button>
+  <input id="tiempo-slider" class="tiempo-slider" type="range" min="0" max="12" value="6" step="1">
+  <span id="tiempo-label" class="tiempo-label"></span>
+  <span id="tiempo-stats" class="tiempo-stats"></span>
+  <button id="tiempo-next" class="btn-mini">▶</button>
+  <button id="tiempo-close" class="btn-mini">✕</button>
 </div>
 
 <!-- Sábana inferior -->
@@ -47,4 +60,6 @@ robots: noindex
 <script src="{{ '/assets/js/auth.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/mapa.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/importar.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/capas.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/tiempo.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/app.js' | relative_url }}"></script>

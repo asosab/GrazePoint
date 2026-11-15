@@ -39,6 +39,36 @@ cada polígono marcado.
   y se importan desde la sábana (`hojaImportar` en `app.js`). El plano
   se quita con `#capa-quitar`.
 
+## Capas de análisis + paso de tiempo
+
+`assets/js/capas.js` (`FS.capas`) gestiona capas raster sobre el mapa —
+todo directo desde el navegador, sin backend ni API key:
+
+- **NASA GIBS** (`gibs.earthdata.nasa.gov/wmts/epsg3857/best/`): NDVI
+  8d 250m, LST diaria 1km, SMAP L4 raíz, MERRA-2 lluvia mensual, focos
+  de calor, color real, uso de suelo IGBP (fecha fija).
+- **SoilGrids WMS** (`maps.isric.org`): pH, arcilla y carbono 0–5 cm.
+- **Esri referencia**: nombres de lugar y límites.
+- Base: satélite Esri u OSM (`mapa.js` registra su capa base vía
+  `FS.capas.registriereBasis`).
+- La sábana de capas abre con `fab-capas` (⧉): checkbox + slider de
+  opacidad por capa — se combinan libremente. Selección y base quedan
+  en `localStorage fs_capas`.
+- `res: 'tag'|'monat'|'fix'` + `retraso` (días) en la registry: la
+  fecha del tile se kapa en `hoy − retraso`, así no se piden tiles que
+  NASA aún no publica (p. ej. MERRA-2 mensual, lag ~80 d).
+
+`assets/js/tiempo.js` (`FS.tiempo`) es el paso de tiempo: 13 pasos
+(−6 … 0 … +6 meses); `fab-tiempo` (◷) abre `#tiempo-barra` con slider,
+flechas, play y pills de lluvia/temp/humedad.
+
+- Pasado: tiles del 15 del mes (día) u 01 (mensual) + NASA POWER daily
+  agregado a meses (220 días, fetch directo — CORS abierto).
+- Futuro («proyección»): mismo mes del año anterior como tile + POWER
+  climatology como números — los ciclos previos.
+- Solo las capas `temporal` (GIBS no-fix) siguen la fecha; el resto no
+  se toca. Al cerrar, `FS.capas.setPaso(null)` vuelve a «actual».
+
 ## Internacionalización (EN por defecto + ES)
 
 Mismo esquema que NSAC: **el inglés es el idioma por defecto** y vive en

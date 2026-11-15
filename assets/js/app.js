@@ -611,9 +611,99 @@
     finally { FS.api.listo(); }
   }
 
+  // ── capas: herramienta de capas de análisis ─────────────
+  function hojaCapas() {
+    var html = '<h2>' + t('capas_h') + '</h2>' +
+      '<p class="aviso">' + t('capas_aviso') + '</p>' +
+      '<h3>' + t('capas_base') + '</h3>' +
+      '<div class="checks">' +
+      '<label class="check"><input type="radio" name="capa-base" value="sat"' + (FS.capas.basisAktuell() === 'sat' ? ' checked' : '') + '>' + t('capa_base_sat') + '</label>' +
+      '<label class="check"><input type="radio" name="capa-base" value="osm"' + (FS.capas.basisAktuell() === 'osm' ? ' checked' : '') + '>' + t('capa_base_osm') + '</label>' +
+      '</div>' +
+      '<h3>' + t('capas_analisis') + '</h3>';
+    FS.capas.liste().forEach(function (c) {
+      html += '<div class="capa-row">' +
+        '<label class="check capa-chk"><input type="checkbox" class="capa-an" data-c="' + c.id + '"' + (c.aktiv ? ' checked' : '') + '>' + esc(t(c.t)) + '</label>' +
+        (c.temporal ? '<span class="chip chip-tiempo">◷</span>' : '') +
+        '<input type="range" class="capa-opa" data-c="' + c.id + '" min="10" max="100" value="' + Math.round(c.opa * 100) + '"' + (c.aktiv ? '' : ' disabled') + '>' +
+        '</div>';
+    });
+    html += '<p class="aviso">' + t('capas_fuentes') + '</p>';
+    mostrarHoja(html);
+    document.querySelectorAll('.capa-an').forEach(function (c) {
+      c.onchange = function () {
+        FS.capas.umschalten(c.dataset.c, c.checked);
+        var op = document.querySelector('.capa-opa[data-c="' + c.dataset.c + '"]');
+        if (op) op.disabled = !c.checked;
+        el('fab-capas').classList.toggle('activo', FS.capas.liste().some(function (x) { return x.aktiv; }));
+      };
+    });
+    document.querySelectorAll('.capa-opa').forEach(function (s) {
+      s.oninput = function () { FS.capas.setOpa(s.dataset.c, s.value / 100); };
+    });
+    document.querySelectorAll('[name="capa-base"]').forEach(function (b) {
+      b.onchange = function () { FS.capas.setBasis(b.value); };
+    });
+  }
+
+  el('fab-capas').onclick = hojaCapas;
+
+  // ── tiempo: paso de tiempo (−6 … +6 Monate) ─────────────
+  var tiempoTimer = null;
+
+  function _tiempoUI(info) {
+    el('tiempo-slider').value = info.paso + 6;
+    var mesNombre = info.mes.toLocaleDateString(FS.dateLocale, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    el('tiempo-label').innerHTML = esc(mesNombre) + (info.proyeccion ? ' <span class="tiempo-proy">' + esc(t('tiempo_proy')) + '</span>' : '');
+    var v = info.valores || {};
+    var s = [];
+    if (v.lluvia != null) s.push(t('tiempo_lluvia') + ' ' + v.lluvia + ' mm');
+    if (v.temp != null) s.push(t('tiempo_temp') + ' ' + v.temp + ' °C');
+    if (v.humedad != null) s.push(t('tiempo_humedad') + ' ' + v.humedad + ' %');
+    el('tiempo-stats').textContent = s.join('  ·  ');
+  }
+
+  async function _tiempoPaso(p) { _tiempoUI(await FS.tiempo.setPaso(p)); }
+
+  function pararTiempo() {
+    if (tiempoTimer) { clearInterval(tiempoTimer); tiempoTimer = null; el('tiempo-play').textContent = '▶'; }
+  }
+
+  function abrirTiempo() {
+    el('tiempo-barra').classList.remove('oculto');
+    el('fab-tiempo').classList.add('activo');
+    _tiempoPaso(FS.tiempo.pasoAktuell());
+  }
+
+  function cerrarTiempo() {
+    pararTiempo();
+    el('tiempo-barra').classList.add('oculto');
+    el('fab-tiempo').classList.remove('activo');
+    FS.capas.setPaso(null); // de vuelta a "actual"
+  }
+
+  el('fab-tiempo').onclick = function () {
+    el('tiempo-barra').classList.contains('oculto') ? abrirTiempo() : cerrarTiempo();
+  };
+  el('tiempo-prev').onclick = function () { _tiempoPaso(FS.tiempo.pasoAktuell() - 1); };
+  el('tiempo-next').onclick = function () { _tiempoPaso(FS.tiempo.pasoAktuell() + 1); };
+  el('tiempo-close').onclick = cerrarTiempo;
+  el('tiempo-play').onclick = function () {
+    if (tiempoTimer) return pararTiempo();
+    el('tiempo-play').textContent = '⏸';
+    tiempoTimer = setInterval(function () {
+      var p = FS.tiempo.pasoAktuell() + 1;
+      if (p > 6) return pararTiempo();
+      _tiempoPaso(p);
+    }, 1600);
+  };
+  el('tiempo-slider').oninput = function () { _tiempoPaso(+el('tiempo-slider').value - 6); };
+
   // ── arranque ────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', async function () {
     FS.mapa.iniciar('mapa');
+    FS.capas.restaurieren();
+    el('fab-capas').classList.toggle('activo', FS.capas.liste().some(function (x) { return x.aktiv; }));
     await FS.auth.listo;
     if (FS.auth.get()) cargarPredios();
     else hojaEntrar('login');

@@ -15,9 +15,10 @@ window.FS = window.FS || {};
 
   function iniciar(elId) {
     mapa = L.map(elId, { zoomControl: false, attributionControl: false, worldCopyJump: true });
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    var lyrBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19, attribution: 'Esri, Maxar, Earthstar Geographics'
     }).addTo(mapa);
+    if (FS.capas && FS.capas.registriereBasis) FS.capas.registriereBasis(lyrBase);
     capaParcelas = L.layerGroup().addTo(mapa);
     capaImportados = L.featureGroup().addTo(mapa); // featureGroup: encuadrarCandidatos usa getBounds
     mapa.setView([-17.72, -63.10], 13); // Lomas de Arena, Santa Cruz

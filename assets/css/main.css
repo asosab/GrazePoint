@@ -205,9 +205,33 @@ button { font: inherit; cursor: pointer; }
 }
 @keyframes fs-girar { to { transform: rotate(360deg); } }
 
+/* Capas de análisis (Ebenen-Sábana) */
+.capa-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.capa-row .capa-chk { flex: 1; }
+.capa-opa { width: 90px; accent-color: var(--salvia); flex: none; }
+.capa-opa:disabled { opacity: .3; }
+.chip-tiempo { cursor: default; }
+
+/* Paso de tiempo */
+.tiempo-barra {
+  position: fixed; left: 12px; right: 12px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 20;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--carbon-2); border: 1px solid rgba(198,212,197,.3);
+  border-radius: 999px; padding: 8px 12px; font-size: .85rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,.4);
+}
+.tiempo-slider { flex: 1; min-width: 50px; accent-color: var(--salvia); }
+.tiempo-label { white-space: nowrap; color: var(--texto); font-weight: 600; font-size: .85rem; }
+.tiempo-proy { color: var(--acento); font-size: .72rem; margin-left: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.tiempo-stats {
+  white-space: nowrap; font-size: .75rem; color: var(--texto-suave);
+  max-width: 34vw; overflow: hidden; text-overflow: ellipsis;
+}
+
 @media (min-width: 720px) {
   .hoja { left: auto; width: 420px; border-radius: 18px 0 0 0; border-left: 1px solid rgba(198,212,197,.2); }
   .dibujo-barra { left: auto; width: 420px; }
+  .tiempo-barra { left: auto; width: 640px; }
   .landing-contenido { padding-top: 40px; }
 }
 
