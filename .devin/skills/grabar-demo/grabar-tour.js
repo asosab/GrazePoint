@@ -159,6 +159,8 @@ async function scrollHoja(page, pxPorTick, tickMs, durMs) {
     permissions: ['clipboard-read', 'clipboard-write'] // fo-copiar
   });
   T0 = Date.now();
+  // El aviso de almacenamiento (#gp-consent) tapa los clics: aceptarlo antes.
+  await context.addInitScript(() => { try { localStorage.setItem('gp_consent', '1'); } catch (e) {} });
   const page = await context.newPage();
   const tocar = (x, y) => (dev.hasTouch !== false ? page.touchscreen.tap(x, y) : page.mouse.click(x, y));
   let dialogoTxt = CFG.parcela;

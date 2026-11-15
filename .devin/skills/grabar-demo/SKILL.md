@@ -143,6 +143,10 @@ tour) las marcas.
 
 ## Trampas ya resueltas (si tocás los scripts)
 
+- El aviso de almacenamiento (`#gp-consent`) es un `role=dialog` que
+  intercepta los clics hasta aceptarlo: los contextos llevan
+  `addInitScript` con `localStorage.setItem('gp_consent','1')`.
+  Si el aviso cambia de id o de clave, actualizar ese initScript.
 - Esperar `#hoja.oculto` con `state: 'attached'`: el estado de éxito es
   la sábana *oculta*, así que pedir visibilidad da timeout siempre.
 - El alta de predio entra sola en modo dibujo; para importar hay que

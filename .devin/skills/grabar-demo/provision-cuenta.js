@@ -119,7 +119,7 @@ function guardarCreds() {
   }
 
   console.log('2) registro …');
-  r = await post('/auth/registro', { email: CFG.email, clave: CFG.clave, nombre: CFG.nombre, lang: CFG.lang });
+  r = await post('/auth/registro', { email: CFG.email, clave: CFG.clave, nombre: CFG.nombre, lang: CFG.lang, legal: true });
   console.log('   registro →', r.status, r.data && (r.data.error || 'ok'));
 
   if (r.status === 409) {

@@ -81,6 +81,7 @@ function hayFfmpeg() {
     viewport: size,
     recordVideo: { dir: CFG.out, size }
   });
+  await context.addInitScript(() => { try { localStorage.setItem('gp_consent', '1'); } catch (e) {} });
   const page = await context.newPage();
   const tocar = (x, y) => (dev.hasTouch !== false ? page.touchscreen.tap(x, y) : page.mouse.click(x, y));
 

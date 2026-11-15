@@ -21,6 +21,10 @@ Vault propio del proyecto. La app vive en la raíz del repo (Jekyll +
 - [[plan-necesidades-sueleen]] — pendientes de la entrevista en orden
   de prioridad (balance forrajero, WhatsApp, tendencia de suelo,
   germinación, CSV, estación meteo) + agenda de conversación
+- [[submission-page]] — texto de la página del proyecto en el
+  submission, listo para pegar (EN)
+- [[guion-pitch]] — guion del video de pitch de 30 s (beats,
+  subtítulos EN/ES, reglas del corte desde el tour grabado)
 
 ## Log
 
