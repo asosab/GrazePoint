@@ -60,7 +60,7 @@ function args() {
   const a = process.argv.slice(2);
   for (let i = 0; i < a.length; i++) {
     const k = a[i].replace(/^--/, '');
-    if (k.startsWith('no-') || k.startsWith('sin-') || k === 'headed') o[k] = true;
+    if (k.startsWith('no-') || k.startsWith('sin-') || k === 'headed' || k === 'debug') o[k] = true;
     else { o[k] = a[i + 1]; i++; }
   }
   return o;
@@ -155,12 +155,44 @@ async function scrollHoja(page, pxPorTick, tickMs, durMs) {
   const context = await browser.newContext({
     ...dev, locale: 'en-US',
     viewport: size,
-    recordVideo: { dir: CFG.out, size }
+    recordVideo: { dir: CFG.out, size },
+    permissions: ['clipboard-read', 'clipboard-write'] // fo-copiar
   });
   T0 = Date.now();
   const page = await context.newPage();
   const tocar = (x, y) => (dev.hasTouch !== false ? page.touchscreen.tap(x, y) : page.mouse.click(x, y));
-  page.on('dialog', d => d.accept(CFG.parcela));
+  let dialogoTxt = CFG.parcela;
+  page.on('dialog', d => d.accept(dialogoTxt));
+
+  // --api http://localhost|127.x: Chrome bloquea público→loopback
+  // (Private Network Access / mixed content). En vez de pelear flags,
+  // se interceptan las requests al API y se responden desde Node: el
+  // browser no sale a la red y CORS se satisface con headers propios.
+  if (CFG.api) {
+    const apiBase = CFG.api.replace(/\/$/, '');
+    await context.route(apiBase + '/**', async route => {
+      const req = route.request();
+      try {
+        const h = { ...req.headers() };
+        delete h.host; delete h['content-length']; delete h.origin;
+        const r = await fetch(req.url(), {
+          method: req.method(), headers: h,
+          body: ['GET', 'HEAD'].includes(req.method()) ? undefined : req.postDataBuffer()
+        });
+        const headers = {};
+        r.headers.forEach((v, k) => { headers[k] = v; });
+        headers['access-control-allow-origin'] = '*';
+        route.fulfill({ status: r.status, headers, body: Buffer.from(await r.arrayBuffer()) });
+      } catch (e) {
+        route.fulfill({
+          status: 502, headers: { 'access-control-allow-origin': '*' },
+          body: JSON.stringify({ ok: false, error: 'proxy: ' + e.message })
+        });
+      }
+    });
+  }
+  page.on('console', m => { if (m.type() !== 'log' || CFG.debug) console.log('[pg]', m.type(), m.text().slice(0, 300)); });
+  page.on('pageerror', e => console.log('[pgerr]', e.message));
 
   const url = CFG.url + (CFG.api ? (CFG.url.includes('?') ? '&' : '?') + 'api=' + encodeURIComponent(CFG.api) : '');
 
@@ -238,7 +270,7 @@ async function scrollHoja(page, pxPorTick, tickMs, durMs) {
       let n = 0;
       FS.mapa.leaflet().eachLayer(l => { if (l instanceof L.Polygon && l.options.interactive !== false) n++; });
       return n > 0;
-    }, { timeout: 20000 });
+    }, null, { timeout: 20000 });
     await pausa(page, 3000);
 
     // ── parcelas sobre el satélite → abrir ficha ─────────
@@ -306,22 +338,45 @@ async function scrollHoja(page, pxPorTick, tickMs, durMs) {
     }
 
     // ── segunda parcela (otra especie) ───────────────────
+    // Si el archivo trajo una sola, la segunda se dibuja a toques:
+    // así el video cubre también el trazado manual.
     if (!CFG['sin-parcela2'] && CFG.especie2) {
       await page.click('#hoja-asa');
       await pausa(page, 900);
-      const npts = await puntosParcelas(page);
-      if (npts.length > 1) {
-        marcar('parcela2');
-        await abrirParcela(page, tocar, 1);
+      marcar('parcela2');
+      if ((await puntosParcelas(page)).length < 2) {
+        dialogoTxt = CFG['parcela2-nombre'] || CFG.parcela + ' 2';
+        await page.click('#fab-dibujar');
+        await page.waitForSelector('#dibujo-barra:not(.oculto)', { timeout: 10000 });
         await pausa(page, 1200);
-        await page.type('#pa-especie', CFG.especie2, { delay: 60 });
-        await page.fill('#pa-fecha', ymd(+CFG['siembra2-dias'] || 55));
-        await pausa(page, 700);
-        await page.click('#pa-guardar');
-        await pausa(page, 2800);
-        await page.click('#hoja-asa');
+        // Zona segura: arriba-izquierda del centro. La columna de FABs
+        // llega hasta ~mitad de pantalla a la derecha y la barra de
+        // dibujo tapa los últimos ~80 px de abajo.
+        const vp = page.viewportSize();
+        const cx = vp.width / 2, cy = vp.height / 2;
+        for (const [dx, dy] of [[-140, -190], [-40, -190], [-30, -90], [-140, -80]]) {
+          await tocar(cx + dx, cy + dy);
+          await pausa(page, 650);
+        }
         await pausa(page, 900);
+        await page.click('#dibujo-listo');
+        await page.waitForFunction(() => {
+          let n = 0;
+          FS.mapa.leaflet().eachLayer(l => { if (l instanceof L.Polygon && l.options.interactive !== false) n++; });
+          return n >= 2;
+        }, null, { timeout: 25000 });
+        await pausa(page, 1500);
+        dialogoTxt = CFG.parcela;
       }
+      await abrirParcela(page, tocar, 1);
+      await pausa(page, 1200);
+      await page.type('#pa-especie', CFG.especie2, { delay: 60 });
+      await page.fill('#pa-fecha', ymd(+CFG['siembra2-dias'] || 55));
+      await pausa(page, 700);
+      await page.click('#pa-guardar');
+      await pausa(page, 2800);
+      await page.click('#hoja-asa');
+      await pausa(page, 900);
     }
 
     // ── ficha completa: recorrer el registro ─────────────

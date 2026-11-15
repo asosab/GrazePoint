@@ -64,8 +64,8 @@
     },
     {
       "id": "parcela2",
-      "en": ["Do the same on the other paddock. Sorghum gets tracked for silage."],
-      "es": ["Lo mismo en el otro potrero. Al sorgo se lo sigue para ensilaje."]
+      "en": ["A paddock can also be drawn right on the map. This one runs sorghum for silage."],
+      "es": ["Un potrero también se dibuja a mano en el mapa. A este se lo sigue como sorgo para ensilaje."]
     },
     {
       "id": "ficha",

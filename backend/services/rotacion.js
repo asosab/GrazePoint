@@ -16,7 +16,16 @@ const { RAZONES, langOk } = require('./i18n');
 async function catalogo() {
 	try {
 		const docs = await Cultivo.find().lean();
-		if (docs && docs.length) return docs;
+		if (docs && docs.length) {
+			// Los docs sembrados en BD quedan viejos cuando el catálogo
+			// embebido gana campos nuevos (rebrote, gddEnsilaje, notas_en):
+			// el doc gana lo que tiene, el embebido rellena lo que falta.
+			const emb = new Map(CATALGO_EMBEBIDO.map((c) => [c.especie.toLowerCase(), c]));
+			return docs.map((d) => {
+				const e = emb.get(String(d.especie || '').toLowerCase());
+				return e ? Object.assign({}, e, d) : d;
+			});
+		}
 	} catch (e) { /* BD sin catálogo: fallback */ }
 	return CATALGO_EMBEBIDO;
 }

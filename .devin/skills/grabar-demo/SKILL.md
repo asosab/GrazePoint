@@ -173,3 +173,18 @@ tour) las marcas.
   vínculo real contra el bot.
 - Los subtítulos van **arriba** (Alignment 8): la sábana inferior tapa
   el tercio de abajo durante buena parte del video.
+- `--api http://localhost:…` desde la app en github.io: Chrome bloquea
+  público→loopback (Private Network Access + mixed content) y no hay
+  flag que lo salve. `grabar-tour.js` intercepta las requests al API
+  con `context.route` y las responde desde Node con
+  `access-control-allow-origin: *` — el video queda grabado contra el
+  backend standalone local sin tocar la URL visible.
+- `#fo-copiar` necesita `permissions: ['clipboard-read','clipboard-write']`
+  en el contexto; sin eso el clipboard falla y sale el toast de error.
+- La columna de FABs sube hasta ~mitad de pantalla a la derecha: para
+  dibujar una parcela a toques hay que usar la zona superior-izquierda
+  o los toques caen sobre los botones.
+- Si el archivo importa una sola parcela, el tour **dibuja** la segunda
+  (así también cubre el trazado manual). Flags de texto: cualquier flag
+  nuevo que sea booleano hay que agregarlo a la lista del parser — si
+  no, se come el flag siguiente como su valor (lección: `--debug`).
