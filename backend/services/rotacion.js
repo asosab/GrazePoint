@@ -23,7 +23,12 @@ async function catalogo() {
 			const emb = new Map(CATALGO_EMBEBIDO.map((c) => [c.especie.toLowerCase(), c]));
 			return docs.map((d) => {
 				const e = emb.get(String(d.especie || '').toLowerCase());
-				return e ? Object.assign({}, e, d) : d;
+				if (!e) return d;
+				const m = Object.assign({}, e, d);
+				for (const k of ['rebrote', 'extraccion']) {
+					if (e[k] && d[k]) m[k] = Object.assign({}, e[k], d[k]);
+				}
+				return m;
 			});
 		}
 	} catch (e) { /* BD sin catálogo: fallback */ }
