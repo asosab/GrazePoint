@@ -302,3 +302,4 @@ button { font: inherit; cursor: pointer; }
 .legal-chk input { margin-top: 3px; }
 .legal-chk span { line-height: 1.4; }
 .enlace.peligro { color: #e08f8f; }
+.consent[hidden] { display: none; }
