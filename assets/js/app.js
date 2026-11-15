@@ -645,12 +645,27 @@
       '<button class="boton peligro" id="pa-borrar">' + t('eliminar_parcela') + '</button>';
     mostrarHoja(html);
 
+    // Tras guardar: reflejar el cambio en la sábana al instante —
+    // para los append (suelos/aforos/cortes/historial) suma el ítem
+    // devuelto; para los PUT mezcla la parcela actualizada. Así el
+    // usuario ve lo que acaba de registrar sin re-abrir la ficha.
+    function _guardado(r, msgKey, campo) {
+      if (!(r.data && r.data.ok)) return;
+      toast(t(msgKey));
+      var sc = cuerpo.scrollTop;
+      if (campo) (p[campo] = p[campo] || []).push(r.data.data);
+      else if (r.data.data) Object.assign(p, r.data.data);
+      hojaParcela();
+      cuerpo.scrollTop = sc;
+      seleccionarPredio(predioActual._id);
+    }
+
     el('pa-guardar').onclick = async function () {
       var r = await GP.api.put('/predios/' + predioActual._id + '/parcelas/' + p._id, {
         especieActual: valor('pa-especie') || null,
         fechaSiembraActual: valor('pa-fecha') || null
       }, t('esp_siembra'));
-      if (r.data && r.data.ok) { toast(t('siembra_guardada')); seleccionarPredio(predioActual._id); }
+      _guardado(r, 'siembra_guardada');
     };
     el('pa-fecha').value = p.fechaSiembraActual ? new Date(p.fechaSiembraActual).toISOString().slice(0, 10) : '';
     el('te-riego').value = p.riego || '';
@@ -662,6 +677,17 @@
       var c = document.querySelector('.te-prob[value="' + v + '"]');
       if (c) c.checked = true;
     });
+    // Último análisis de suelo / aforo registrados: precargados como
+    // punto de partida del siguiente registro (cada guardado suma
+    // una entrada nueva a la serie).
+    var sueloUlt = (p.suelos || []).slice(-1)[0] || {};
+    el('pa-ph').value = sueloUlt.ph != null ? sueloUlt.ph : '';
+    el('pa-mo').value = sueloUlt.materiaOrganica != null ? sueloUlt.materiaOrganica : '';
+    el('pa-n').value = sueloUlt.nitrogeno != null ? sueloUlt.nitrogeno : '';
+    el('pa-tex').value = sueloUlt.textura || '';
+    var aforoUlt = (p.aforos || []).slice(-1)[0] || {};
+    el('pa-aforo').value = aforoUlt.kgMSHa != null ? aforoUlt.kgMSHa : '';
+    el('pa-metodo').value = aforoUlt.metodo || '';
     el('te-guardar').onclick = async function () {
       var r = await GP.api.put('/predios/' + predioActual._id + '/parcelas/' + p._id, {
         riego: valor('te-riego') || null,
@@ -671,7 +697,7 @@
         aniosUso: num('te-anios'),
         problemasLote: marcados('te-prob')
       }, t('esp_terreno'));
-      if (r.data && r.data.ok) { toast(t('terreno_guardado')); seleccionarPredio(predioActual._id); }
+      _guardado(r, 'terreno_guardado');
     };
     el('ca-ninguno').onchange = function () {
       if (this.checked) document.querySelectorAll('.ca-prob').forEach(function (c) { if (c.value !== 'ninguno') c.checked = false; });
@@ -697,20 +723,20 @@
         rendimientoUnidad: valor('ca-unidad') || null,
         notas: valor('ca-notas') || null
       }, t('esp_campania'));
-      if (r.data && r.data.ok) { toast(t('campania_guardada')); seleccionarPredio(predioActual._id); }
+      _guardado(r, 'campania_guardada', 'historial');
     };
     el('pa-suelo').onclick = async function () {
       var r = await GP.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/suelos', {
         fecha: new Date().toISOString(), ph: num('pa-ph'), materiaOrganica: num('pa-mo'),
         nitrogeno: num('pa-n'), textura: valor('pa-tex') || null, fuente: 'laboratorio'
       }, t('esp_suelo'));
-      if (r.data && r.data.ok) { toast(t('analisis_guardado')); seleccionarPredio(predioActual._id); }
+      _guardado(r, 'analisis_guardado', 'suelos');
     };
     el('pa-aforo-ok').onclick = async function () {
       var r = await GP.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/aforos', {
         fecha: new Date().toISOString(), kgMSHa: num('pa-aforo'), metodo: valor('pa-metodo') || null
       }, t('esp_aforo'));
-      if (r.data && r.data.ok) { toast(t('aforo_guardado')); seleccionarPredio(predioActual._id); }
+      _guardado(r, 'aforo_guardado', 'aforos');
     };
     el('pa-corte-ok').onclick = async function () {
       var f = valor('pa-fecha-corte');
@@ -718,7 +744,7 @@
         fecha: f ? new Date(f + 'T12:00:00').toISOString() : new Date().toISOString(),
         tipo: valor('pa-tipo-corte') || 'pastoreo'
       }, t('esp_corte'));
-      if (r.data && r.data.ok) { toast(t('corte_guardado')); seleccionarPredio(predioActual._id); }
+      _guardado(r, 'corte_guardado', 'cortes');
     };
     el('pa-analisis').onclick = function () { hojaAnalisis(p); };
     el('pa-pdf').onclick = function () { descargarPdf(p._id); };
