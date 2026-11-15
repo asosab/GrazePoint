@@ -1,0 +1,126 @@
+{
+  "descripcion": "Guion del video tour de fieldShift. Cada escena lleva un id que grabar-tour.js emite como marca en marcas.json; subtitulos.js empalma texto y tiempos. Los textos ya pasaron por humanamente (ES) y humanamente-en (EN): frases cortas, sin rayas, sin fórmulas de IA. Ritmo de lectura: pausado, ~13 caracteres por segundo.",
+  "estilo": {
+    "lead": 0.35,
+    "gap": 0.3,
+    "minDur": 3.8,
+    "charsPorSeg": 13,
+    "margenTopPct": 10
+  },
+  "escenas": [
+    {
+      "id": "landing",
+      "en": ["Field Shift helps you decide what to plant and when.",
+             "It crosses the soil on your plot with NASA satellite data."],
+      "es": ["Field Shift te ayuda a decidir qué sembrar y cuándo.",
+             "Cruza el suelo de tu parcela con datos de la NASA."]
+    },
+    {
+      "id": "login",
+      "en": ["Sign in and your farms appear over satellite imagery."],
+      "es": ["Inicia sesión y tus predios aparecen sobre la imagen satelital."]
+    },
+    {
+      "id": "predio",
+      "en": ["Create a farm. Give it a name and it goes on the map."],
+      "es": ["Crea un predio: le pones nombre y queda en el mapa."]
+    },
+    {
+      "id": "importar",
+      "en": ["Bring your plots in from a file: KML, KMZ, shapefile, GeoJSON, GPX, CSV or GeoPDF."],
+      "es": ["Trae tus parcelas desde un archivo: KML, KMZ, shapefile, GeoJSON, GPX, CSV o GeoPDF."]
+    },
+    {
+      "id": "parcelas",
+      "en": ["Your plots sit on the satellite photo. Tap one to open its record."],
+      "es": ["Tus parcelas sobre la foto satelital. Toca una para abrir su ficha."]
+    },
+    {
+      "id": "siembra",
+      "en": ["Log the current planting: species and date."],
+      "es": ["Anota la siembra actual: especie y fecha."]
+    },
+    {
+      "id": "campania",
+      "en": ["Add last season. What grew here before shapes the advice."],
+      "es": ["Suma la campaña anterior. Lo que creció antes pesa en la recomendación."]
+    },
+    {
+      "id": "suelo",
+      "en": ["Have a lab test? Enter pH and organic matter here.",
+             "Without one, the app reads the soil from SoilGrids."],
+      "es": ["¿Tienes análisis de laboratorio? Carga pH y materia orgánica.",
+             "Si falta, la app lee el suelo desde SoilGrids."]
+    },
+    {
+      "id": "aforo",
+      "en": ["A pasture measurement calibrates what the satellite sees."],
+      "es": ["Un aforo de pasto calibra lo que ve el satélite."]
+    },
+    {
+      "id": "corte",
+      "en": ["Each grazing or cut restarts the regrowth clock."],
+      "es": ["Cada pastoreo o corte reinicia el reloj del rebrote."]
+    },
+    {
+      "id": "parcela2",
+      "en": ["Do the same on the other paddock. Sorghum gets tracked for silage."],
+      "es": ["Lo mismo en el otro potrero. Al sorgo se lo sigue para ensilaje."]
+    },
+    {
+      "id": "ficha",
+      "en": ["The plot record keeps everything: soil tests, uses and seasons."],
+      "es": ["La ficha junta todo: análisis de suelo, usos y campañas."]
+    },
+    {
+      "id": "capas",
+      "en": ["Turn on NASA layers: NDVI vigor and root-zone moisture.",
+             "They stream straight from GIBS and SoilGrids, no API key."],
+      "es": ["Activa las capas de la NASA: vigor NDVI y humedad de raíz.",
+             "Salen directo de GIBS y SoilGrids, sin clave de API."]
+    },
+    {
+      "id": "enfoque",
+      "en": ["Pick a plot with a layer on and the rest of the map fades."],
+      "es": ["Con una capa activa, al elegir la parcela el resto del mapa se apaga."]
+    },
+    {
+      "id": "tiempo",
+      "en": ["Step back month by month, or forward into last year's cycle.",
+             "Rain, temperature and soil moisture update at each stop."],
+      "es": ["Retrocede mes a mes o mira el ciclo del año pasado.",
+             "Lluvia, temperatura y humedad cambian en cada paso."]
+    },
+    {
+      "id": "forraje",
+      "en": ["The paddock board ranks where the herd goes next.",
+             "Add herd size and it estimates days of forage left.",
+             "One tap copies the summary, ready to share on WhatsApp."],
+      "es": ["La sábana de potreros ordena por dónde mandar el lote.",
+             "Con el tamaño del hato estima los días de forraje que quedan.",
+             "Un toque copia el resumen para compartirlo por WhatsApp."]
+    },
+    {
+      "id": "analisis",
+      "en": ["The analysis crosses soil, weather trends and satellite vigor.",
+             "It scores the next crop and warns about dry months ahead."],
+      "es": ["El análisis cruza suelo, tendencia del clima y vigor satelital.",
+             "Puntúa el próximo cultivo y avisa si vienen meses secos."]
+    },
+    {
+      "id": "pdf",
+      "en": ["It all lands in a PDF you can send or print."],
+      "es": ["Todo queda en un PDF listo para enviar o imprimir."]
+    },
+    {
+      "id": "telegram",
+      "en": ["Link the Telegram bot and paddock alerts reach your phone."],
+      "es": ["Vincula el bot de Telegram y las alertas llegan a tu celular."]
+    },
+    {
+      "id": "cierre",
+      "en": ["Field Shift. Open data; the planting call stays yours."],
+      "es": ["Field Shift. Datos abiertos; la decisión de siembra es tuya."]
+    }
+  ]
+}

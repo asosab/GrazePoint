@@ -496,7 +496,9 @@
   };
 
   el('imp-archivo').onchange = function (e) {
-    var fs = e.target.files;
+    // FileList es vivo: copiarlo antes de limpiar el input, si no
+    // value='' lo vacía y leerImport no recibe nada.
+    var fs = Array.prototype.slice.call(e.target.files);
     e.target.value = '';
     leerImport(fs);
   };
