@@ -1,7 +1,7 @@
 ---
 layout: default
-title: What to plant, when to rotate
-description: "A digital record for your farm: soil tests, NASA climate, rotation picks and the forage planting window. Free and open source."
+title: When to graze, what to plant
+description: "The right point for the herd and the right window to plant: your paddocks checked against NASA POWER, MODIS NDVI and SMAP moisture. Free and open source."
 leaflet: true
 body_class: landing
 ---
@@ -13,27 +13,37 @@ body_class: landing
   {% include langswitch.html %}
   <header class="landing-cabecera">
     <h1>GrazePoint</h1>
-    <p class="bajada">The digital PRIAS for your farm: what to plant after your last crop, and in which rain window.</p>
+    <p class="bajada">When to let the herd in and what to plant next: your farm measured against NASA's satellites.</p>
     <a class="boton-grande" href="{{ '/app/' | relative_url }}">Open the map</a>
+    <p class="fino">Runs in the browser, nothing to install.</p>
   </header>
 
   <section class="tarjeta">
     <h2>What it does</h2>
     <ul class="lista-sencilla">
-      <li><strong>Rotation picks.</strong> Three ranked options from your last soil test, the previous crop and your local rainfall.</li>
-      <li><strong>Forage planting window.</strong> The months when rain is enough to establish pasture, checked against your soil's current state.</li>
-      <li><strong>Plot record.</strong> Polygons drawn on the satellite image, planting history, PRIAS soil tests and forage estimates in one place, instead of paper and Excel.</li>
-      <li><strong>PDF report.</strong> Ready to forward to the producer on WhatsApp.</li>
+      <li><strong>Grazing point.</strong> Every paddock keeps its own re-growth clock: it marks when the pasture is at its best and when it has gone past.</li>
+      <li><strong>Forage balance.</strong> With your herd on record it works out how many grazing days are left before you run short.</li>
+      <li><strong>Rotation and planting window.</strong> Three ranked options from your soil and the previous crop, plus the months when there is enough rain to establish pasture.</li>
+      <li><strong>Plot record.</strong> Polygons on the satellite image, plantings, PRIAS soil tests and forage estimates in one place, instead of paper and Excel.</li>
+      <li><strong>PDF report and alerts.</strong> The diagnosis is ready to forward on WhatsApp, and the Telegram bot pings you when a paddock hits its point.</li>
     </ul>
   </section>
 
   <section class="tarjeta">
     <h2>Where the data comes from</h2>
     <ul class="lista-sencilla">
-      <li><strong>NASA POWER</strong>: rain, temperature and soil moisture at your coordinates, daily series and climatology.</li>
-      <li><strong>Your farm</strong>: your soil tests, your plantings, your forage estimates. Without your data there is no recommendation worth trusting.</li>
+      <li><strong>NASA POWER.</strong> Rain, temperature and soil moisture at your coordinates, daily series and climatology.</li>
+      <li><strong>MODIS, via NASA GIBS.</strong> Each paddock's NDVI measured across its whole area, not on a single point.</li>
+      <li><strong>SMAP L4.</strong> Root-zone moisture, measured from space.</li>
+      <li><strong>Your soil.</strong> Your PRIAS test and, if you do not have one, the SoilGrids profile from ISRIC.</li>
+      <li><strong>Your management.</strong> Your plantings, cuts and forage estimates. Without them there is no recommendation worth trusting.</li>
     </ul>
-    <p class="fino">Built with Hacienda Patiño (Santa Cruz, Bolivia) for sandy soils and regenerative ranching, but it works for any farm.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>A number for the trained eye</h2>
+    <p>At Hacienda Patiño, in Santa Cruz, the decision of when the pasture was ready for the herd came down to the field technician's trained eye. The forage count lived in paper and Excel.</p>
+    <p>GrazePoint puts a number on that eye: effective re-growth days, paddock-wide NDVI and root-zone moisture. It was built for sandy soils and regenerative ranching; it works for any farm.</p>
   </section>
 
   <footer class="landing-pie">

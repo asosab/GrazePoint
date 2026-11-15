@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Qué sembrar, cuándo rotar
-description: "Ficha digital de tu predio con suelo, clima de la NASA y recomendación de rotación y ventana de siembra forrajera. Gratis y de código abierto."
+title: Cuándo entrar al potrero, qué sembrar
+description: "El punto justo para el lote y la ventana para sembrar: tus potreros contra NASA POWER, NDVI de MODIS y humedad SMAP. Gratis y de código abierto."
 leaflet: true
 body_class: landing
 ---
@@ -13,27 +13,37 @@ body_class: landing
   {% include langswitch.html %}
   <header class="landing-cabecera">
     <h1>GrazePoint</h1>
-    <p class="bajada">El PRIAS digital de tu predio: qué sembrar después de lo que cosechaste y en qué ventana de lluvia.</p>
+    <p class="bajada">Cuándo entra el lote al potrero y qué sembrar después: tu predio medido contra los satélites de la NASA.</p>
     <a class="boton-grande" href="{{ '/es/app/' | relative_url }}">Abrir el mapa</a>
+    <p class="fino">Corre en el navegador, sin instalar nada.</p>
   </header>
 
   <section class="tarjeta">
     <h2>Qué hace</h2>
     <ul class="lista-sencilla">
-      <li><strong>Recomendador de rotación.</strong> Tres opciones rankeadas según tu último análisis de suelo, la especie anterior y la lluvia de tu zona.</li>
-      <li><strong>Ventana de siembra forrajera.</strong> Los meses en que la lluvia alcanza para establecer pasturas, con el estado actual de tu suelo.</li>
-      <li><strong>Ficha de parcela.</strong> Polígonos dibujados sobre el satélite, historial de siembras, análisis PRIAS y aforos en un solo lugar — en vez de papel y Excel.</li>
-      <li><strong>Informe PDF.</strong> Un documento listo para mandar por WhatsApp al productor.</li>
+      <li><strong>Punto óptimo de pastoreo.</strong> Cada potrero lleva su reloj de rebrote: marca cuándo el pasto está en su mejor condición y cuándo ya se pasó.</li>
+      <li><strong>Balance forrajero.</strong> Con la carga de tu hato calcula cuántos días de forraje te quedan antes de quedarte corto.</li>
+      <li><strong>Rotación y ventana de siembra.</strong> Tres opciones ordenadas según tu suelo y la especie anterior, y los meses en que la lluvia alcanza para establecer el pasto.</li>
+      <li><strong>Ficha de parcela.</strong> Polígonos sobre el satélite, siembras, análisis PRIAS y aforos en un solo lugar, en vez de papel y Excel.</li>
+      <li><strong>Informe PDF y alertas.</strong> El diagnóstico sale listo para mandar por WhatsApp, y el bot de Telegram avisa cuando un potrero llega a su punto.</li>
     </ul>
   </section>
 
   <section class="tarjeta">
     <h2>De dónde salen los datos</h2>
     <ul class="lista-sencilla">
-      <li><strong>NASA POWER</strong> — lluvia, temperatura y humedad de suelo de tu coordenada, serie diaria y climatología.</li>
-      <li><strong>Tu predio</strong> — tus análisis de suelo, tus siembras, tus aforos. Sin tus datos no hay recomendación seria.</li>
+      <li><strong>NASA POWER.</strong> Lluvia, temperatura y humedad de suelo en tu coordenada, serie diaria y climatología.</li>
+      <li><strong>MODIS, vía NASA GIBS.</strong> El NDVI de cada potrero medido en toda su superficie, no en un punto.</li>
+      <li><strong>SMAP L4.</strong> La humedad en la zona de raíces, desde el espacio.</li>
+      <li><strong>Tu suelo.</strong> Tu análisis PRIAS y, si no lo tienes, el perfil de SoilGrids (ISRIC).</li>
+      <li><strong>Tu manejo.</strong> Tus siembras, tus cortes, tus aforos. Sin esos datos no hay recomendación seria.</li>
     </ul>
-    <p class="fino">Pensado con la Hacienda Patiño (Santa Cruz, Bolivia) para suelos arenosos y ganadería regenerativa, pero sirve para cualquier predio.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Un número para el ojímetro</h2>
+    <p>En la Hacienda Patiño, en Santa Cruz, la decisión de cuándo el pasto estaba listo para que entre el lote la tomaba el ojímetro del técnico. El forraje disponible se calculaba en papel y Excel.</p>
+    <p>GrazePoint le pone número a ese ojo: días efectivos de rebrote, NDVI del potrero completo y humedad de raíz. Nació para suelos arenosos y ganadería regenerativa; sirve para cualquier predio.</p>
   </section>
 
   <footer class="landing-pie">
