@@ -78,6 +78,8 @@
     if (modo === 'login') {
       mostrarHoja(
         '<h2>' + t('entrar') + '</h2>' +
+        '<button class="boton" id="a-demo">' + t('demo_btn') + '</button>' +
+        '<p class="aviso">' + t('demo_nota') + '</p>' +
         '<label class="campo"><span>' + t('correo') + '</span><input id="a-email" type="email" autocomplete="email" inputmode="email"></label>' +
         campoClave('a-clave', t('clave'), 'current-password') +
         '<button class="boton" id="a-entrar">' + t('entrar') + '</button>' +
@@ -85,6 +87,12 @@
         '<button class="enlace" id="a-registro">' + t('crear_cta') + '</button>'
       );
       atarOjos();
+      el('a-demo').onclick = async function () {
+        var r = await GP.auth.demo();
+        if (r.data && r.data.ok) { ocultarHoja(); toast(t('demo_dentro')); return; }
+        if (!r.data) return toast(t('sin_conexion'));
+        toast(traducirError(r.data.error));
+      };
       el('a-entrar').onclick = async function () {
         var r = await GP.auth.login(valor('a-email'), valor('a-clave'));
         if (!r.data) return toast(t('sin_conexion'));
@@ -166,7 +174,8 @@
     var tg = u.telegram || {};
     mostrarHoja(
       '<h2>' + esc(u.nombre || u.email) + '</h2>' +
-      '<p class="aviso"><span class="chip">' + esc(u.rol) + '</span> ' + esc(u.email) + '</p>' +
+      '<p class="aviso"><span class="chip">' + esc(u.rol) + '</span>' +
+        (u.demo ? ' <span class="chip">' + t('cuenta_demo') + '</span>' : '') + ' ' + esc(u.email) + '</p>' +
       (tg.vinculado
         ? '<p class="aviso">✈ ' + esc(t('tg_vinculado', { u: tg.username ? '@' + tg.username : '·' })) +
           ' <button class="enlace" id="c-tg-off">' + t('tg_desvincular') + '</button></p>'

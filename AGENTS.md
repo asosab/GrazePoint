@@ -48,6 +48,14 @@ Pages: **https://asosab.github.io/GrazePoint/**
   el poller no arranca y el resto del servicio funciona igual.
 - El frontend apunta a `https://api.statetty.com/api/grazepoint`; con
   `?api=<url>` o `gp_api` en localStorage usa otro backend.
+- `POST /auth/demo` (`services/demo.js`): acceso de un clic exigido por
+  Space Apps — entra con la cuenta de prueba compartida
+  `demo@grazepoint.run` (verificada, sin clave, `demo:true`) y, si no
+  tiene predio activo, siembra «Predio demo (Lomas de Arena)» con 3
+  potreros, pastoreo, aforos, PRIAS y hato. Borrado se autocura en el
+  próximo `/auth/demo`. El botón «Probar la demo, sin cuenta» va primero
+  en la sábana de login (`GP.auth.demo`). Ojo: es cuenta distinta de
+  `fieldshiftscz@gmail.com`, la de los videos — esa no se toca.
 
 ## Importar parcelas desde archivo
 

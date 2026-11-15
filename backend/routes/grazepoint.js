@@ -3,7 +3,7 @@
 // Autoloader de nodeLab la monta en /api/grazepoint. En el backend
 // standalone (GrazePoint/backend) se monta igual.
 //
-// Público:  POST /auth/{registro,verificar,login,recuperar,restablecer,reenviar}
+// Público:  POST /auth/{registro,verificar,login,recuperar,restablecer,reenviar,demo}
 //           GET  /salud
 // Sesión:   GET  /me · /catalogo
 //           CRUD /predios y sub-recursos parcelas/siembras/suelos/aforos
@@ -15,6 +15,7 @@ const router = express.Router();
 const cnf = require('../config');
 const db = require('../db');
 const authSrv = require('../services/auth');
+const demoSrv = require('../services/demo');
 const { authenticate, soloAdmin } = require('../middleware/auth');
 const Predio = require('../models/predioModel');
 const GpUser = require('../models/gpUserModel');
@@ -104,6 +105,15 @@ router.post('/auth/restablecer', wrap(async (req, res) => {
 router.post('/auth/reenviar', wrap(async (req, res) => {
 	const r = await authSrv.reenviar(req.body || {});
 	res.status(r.status || 202).json(r.ok ? { ok: true } : { ok: false, error: r.error });
+}));
+
+// Cuenta de prueba compartida: entra de un clic, sin registrarse ni
+// manejar claves. Si el usuario demo no tiene predio activo se siembra
+// el lote de muestra, así la demo siempre arranca con datos.
+router.post('/auth/demo', wrap(async (req, res) => {
+	if (!db.lista()) return sinDb(res);
+	const r = await demoSrv.entrar();
+	res.json(r.ok ? { ok: true, token: r.token, usuario: r.usuario } : { ok: false, error: r.error });
 }));
 
 // ── Sesión ──────────────────────────────────────────────────────────────────

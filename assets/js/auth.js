@@ -41,6 +41,11 @@ window.GP = window.GP || {};
       _guardar(r);
       return r;
     },
+    demo: async function () {
+      var r = await GP.api.post('/auth/demo', { lang: GP.lang }, GP.t('esp_demo'));
+      _guardar(r);
+      return r;
+    },
     recuperar: function (email) { return GP.api.post('/auth/recuperar', { email: email, lang: GP.lang }, GP.t('esp_recuperando')); },
     restablecer: async function (email, codigo, clave) { return _guardar(await GP.api.post('/auth/restablecer', { email: email, codigo: codigo, clave: clave }, GP.t('esp_restaurando'))); },
 

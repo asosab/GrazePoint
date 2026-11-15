@@ -31,6 +31,7 @@ function usuarioPublico(u) {
 		nombre: u.nombre || null,
 		rol: u.rol,
 		verificado: !!u.verificado,
+		demo: !!u.demo,
 		creadoEn: u.createdAt || null,
 		telegram: u.telegramChatId
 			? { vinculado: true, username: u.telegramUsername || null, desde: u.telegramVinculadoEn || null }

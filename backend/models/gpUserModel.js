@@ -32,6 +32,10 @@ const gpUserSchema = new mongoose.Schema(
 		ultimoLogin: { type: Date, default: null },
 		activo: { type: Boolean, default: true },
 
+		// Cuenta de prueba compartida (POST /auth/demo): NASA exige poder
+		// probar la app sin registrarse. Marca al usuario demo para la UI.
+		demo: { type: Boolean, default: false },
+
 		// Aceptación de términos y política de privacidad al registrarse:
 		// fecha + versión del texto aceptado (prueba de consentimiento).
 		// La versión vigente vive en config.legalVersion.
