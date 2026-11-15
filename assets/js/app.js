@@ -362,14 +362,15 @@
   el('imp-archivo').onchange = async function (e) {
     if (!e.target.files.length) return;
     toast(t('imp_leyendo'));
+    var res;
     try {
-      var res = await FS.importar.leerArchivos(e.target.files);
+      res = await FS.importar.leerArchivos(e.target.files);
       console.log('[importar]', res.cands.length, 'candidato(s) · notas:', res.notas);
-      hojaImportar(res);
     } catch (err) {
       console.error('[importar] leerArchivos lanzó', err);
-      toast(t('imp_no_entendi', { f: e.target.files[0].name }));
+      return toast(t('imp_no_entendi', { f: e.target.files[0].name }));
     }
+    hojaImportar(res);
   };
 
   el('capa-quitar').onclick = function () {

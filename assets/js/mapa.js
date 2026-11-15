@@ -19,7 +19,7 @@ window.FS = window.FS || {};
       maxZoom: 19, attribution: 'Esri, Maxar, Earthstar Geographics'
     }).addTo(mapa);
     capaParcelas = L.layerGroup().addTo(mapa);
-    capaImportados = L.layerGroup().addTo(mapa);
+    capaImportados = L.featureGroup().addTo(mapa); // featureGroup: encuadrarCandidatos usa getBounds
     mapa.setView([-17.72, -63.10], 13); // Lomas de Arena, Santa Cruz
 
     mapa.on('click', function (e) {
