@@ -11,7 +11,10 @@ Pages: **https://asosab.github.io/GrazePoint/**
   CDN (Esri World Imagery). Sin Gemfile ni CI.
 - Backend: `backend/` Express + MongoDB standalone, espejo del módulo
   `servicios/grazepoint` de nodeLab (api.statetty.com). **Todo cambio al
-  backend hay que espejarlo en nodeLab.**
+  backend hay que espejarlo en nodeLab.** En la VPS (Contabo) nodeLab
+  vive en `/opt/statetty/nodeLab` (con L mayúscula); el `.env` está en
+  la raíz de ese repo y el deploy es `git pull && npm i &&
+  ./bot.sh restart`.
 - El análisis cruza NASA POWER con el suelo de la parcela: primero el
   PRIAS medido a mano (pH, MO, textura) y, si falta, **SoilGrids**
   vía `services/sueloWeb.js` — el WMS de ISRIC con
