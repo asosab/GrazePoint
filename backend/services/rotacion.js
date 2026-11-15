@@ -99,6 +99,9 @@ async function recomendar({ parcela, clima, limite = 3, lang }) {
 		})()
 	};
 
+	// Si el catálogo de BD aún no tiene notas_en, se toma la del catálogo
+	// embebido por especie antes de caer a la nota en castellano.
+	const notasEnEmb = new Map(CATALGO_EMBEBIDO.map((x) => [x.especie.toLowerCase(), x.notas_en]));
 	const rankeados = catalogoArr
 		.map((c) => {
 			const { puntos, razones } = _puntaje(c, ctx, T);
@@ -110,7 +113,7 @@ async function recomendar({ parcela, clima, limite = 3, lang }) {
 				fijaN: !!c.fijaN,
 				puntaje: Math.max(0, Math.min(100, puntos)),
 				razones,
-				notas: (langOk(lang) === 'en' ? c.notas_en : null) || c.notas || null
+				notas: (langOk(lang) === 'en' ? (c.notas_en || notasEnEmb.get(String(c.especie || '').toLowerCase())) : null) || c.notas || null
 			};
 		})
 		.sort((a, b) => b.puntaje - a.puntaje)

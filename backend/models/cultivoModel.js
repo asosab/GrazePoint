@@ -27,7 +27,8 @@ const cultivoSchema = new mongoose.Schema(
 		cicloDias: { type: Number, default: null }, // establecimiento o cosecha
 		toleraArenosos: { type: Boolean, default: false },
 		zonas: { type: [String], default: [] },     // piso ecológico: llanos | valle | altiplano
-		notas: { type: String, default: null, maxlength: 500 }
+		notas: { type: String, default: null, maxlength: 500 },
+		notas_en: { type: String, default: null, maxlength: 500 }
 	},
 	{ timestamps: true, versionKey: false }
 );
