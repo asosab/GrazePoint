@@ -30,7 +30,19 @@ const fsUserSchema = new mongoose.Schema(
 		bloqueadoHasta: { type: Date, default: null },
 
 		ultimoLogin: { type: Date, default: null },
-		activo: { type: Boolean, default: true }
+		activo: { type: Boolean, default: true },
+
+		// Vínculo con el bot de Telegram (@fieldshift_bot): la app web
+		// emite un código FS-XXXXXX (se guarda hasheado, 10 min de vida)
+		// y el usuario lo manda al bot; el bot confirma y queda el
+		// chatId para avisos. telegramCodigo* no pisa codigo* porque es
+		// para otro propósito (vincular, no auth).
+		telegramChatId: { type: Number, default: null },
+		telegramUsername: { type: String, default: null, trim: true },
+		telegramVinculadoEn: { type: Date, default: null },
+		telegramCodigoHash: { type: String, default: null },
+		telegramCodigoExpira: { type: Date, default: null },
+		telegramCodigoEnviadoEn: { type: Date, default: null }
 	},
 	{ timestamps: true, versionKey: false }
 );
@@ -61,6 +73,15 @@ function nuevoCodigo() {
 	return String(crypto.randomInt(0, 1000000)).padStart(6, '0');
 }
 
+// Código de vínculo Telegram: FS- + 6 chars sin ambiguos (nada de
+// 0/O/1/I/L). Va en el deep-link t.me/<bot>?start=FS-XXXXXX.
+function nuevoCodigoTelegram() {
+	const ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+	let c = 'FS-';
+	for (let i = 0; i < 6; i++) c += ABC[crypto.randomInt(0, ABC.length)];
+	return c;
+}
+
 function hashCodigo(codigo) {
 	return crypto.createHash('sha256').update(String(codigo), 'utf8').digest('hex');
 }
@@ -77,5 +98,6 @@ module.exports = conn.model('FsUser', fsUserSchema);
 module.exports.hashClave = hashClave;
 module.exports.verificarClave = verificarClave;
 module.exports.nuevoCodigo = nuevoCodigo;
+module.exports.nuevoCodigoTelegram = nuevoCodigoTelegram;
 module.exports.hashCodigo = hashCodigo;
 module.exports.rolParaEmail = rolParaEmail;

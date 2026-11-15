@@ -47,5 +47,13 @@ module.exports = {
 		dailyParams: 'PRECTOTCORR,T2M,T2M_MIN,T2M_MAX,GWETTOP,GWETROOT,GWETPROF,WS2M',
 		climaParams: 'PRECTOTCORR,T2M,GWETROOT',
 		timeoutMs: 15000
+	},
+
+	// Bot de Telegram propio (@fieldshift_bot): avisos de campo y
+	// vínculo de cuenta web ↔ chat. Sin token el poller no arranca.
+	telegram: {
+		token: process.env.FIELDSHIFT_TG_TOKEN || '',
+		botUser: process.env.FIELDSHIFT_TG_BOT || 'fieldshift_bot',
+		adminId: Number(process.env.FIELDSHIFT_TG_ADMIN || 0)
 	}
 };

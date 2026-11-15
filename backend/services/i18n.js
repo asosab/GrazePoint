@@ -181,4 +181,29 @@ const MAIL = {
 	}
 };
 
-module.exports = { langOk, MESES, GRUPO, TIPO, grupoDe, tipoDe, RAZONES, VENTANA, INFORME, MAIL };
+// Bot de Telegram (respuestas del bot; el idioma sale del
+// language_code del usuario de Telegram, no del JWT).
+const TG = {
+	es: {
+		bienvenida: 'Hola, soy el bot de Field Shift. Para vincular tu cuenta abre la app, entra a tu perfil y toca «Vincular Telegram»: te va a dar un código como FS-ABC123 para mandarme acá.',
+		vinculado_ok: (n, e) => 'Listo' + (n ? ', ' + n : '') + ': este Telegram quedó vinculado a la cuenta ' + e + '. Por acá te van a llegar los avisos de tu predio.',
+		vinculado_re: (e) => 'Este Telegram estaba vinculado a otra cuenta: ahora quedó con ' + e + '.',
+		codigo_malo: 'Ese código no sirve o ya venció. Genera uno nuevo en la app, en tu perfil: dura 10 minutos.',
+		estado_si: (e) => 'Estás vinculado a la cuenta ' + e + '.',
+		estado_no: 'Este Telegram no está vinculado a ninguna cuenta todavía. Vinculalo desde tu perfil en la app.',
+		estado_admin: (n) => 'Bot funcionando. Usuarios con Telegram vinculado: ' + n + '.',
+		ayuda: 'Comandos: /vincular <código> para vincular tu cuenta · /estado para ver tu vínculo.'
+	},
+	en: {
+		bienvenida: 'Hi, I am the Field Shift bot. To link your account, open the app, go to your profile and tap "Link Telegram": it will give you a code like FS-ABC123 to send me here.',
+		vinculado_ok: (n, e) => 'Done' + (n ? ', ' + n : '') + ': this Telegram is now linked to the account ' + e + '. Your farm alerts will arrive here.',
+		vinculado_re: (e) => 'This Telegram was linked to a different account: it now belongs to ' + e + '.',
+		codigo_malo: 'That code is invalid or already expired. Generate a new one in the app, in your profile: it lasts 10 minutes.',
+		estado_si: (e) => 'You are linked to the account ' + e + '.',
+		estado_no: 'This Telegram is not linked to any account yet. Link it from your profile in the app.',
+		estado_admin: (n) => 'Bot is running. Users with linked Telegram: ' + n + '.',
+		ayuda: 'Commands: /link <code> to link your account · /status to check your link.'
+	}
+};
+
+module.exports = { langOk, MESES, GRUPO, TIPO, grupoDe, tipoDe, RAZONES, VENTANA, INFORME, MAIL, TG };

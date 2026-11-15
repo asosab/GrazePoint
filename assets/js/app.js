@@ -153,14 +153,35 @@
   }
 
   // ── cuenta ──────────────────────────────────────────────
-  function hojaCuenta() {
-    var u = FS.auth.get();
+  async function hojaCuenta() {
+    var r = await FS.api.get('/me', t('esp_sesion'));
+    var u = (r.data && r.data.ok) ? r.data.usuario : FS.auth.get();
+    var tg = u.telegram || {};
     mostrarHoja(
       '<h2>' + esc(u.nombre || u.email) + '</h2>' +
       '<p class="aviso"><span class="chip">' + esc(u.rol) + '</span> ' + esc(u.email) + '</p>' +
+      (tg.vinculado
+        ? '<p class="aviso">✈ ' + esc(t('tg_vinculado', { u: tg.username ? '@' + tg.username : '·' })) +
+          ' <button class="enlace" id="c-tg-off">' + t('tg_desvincular') + '</button></p>'
+        : '<button class="boton secundario" id="c-tg">' + t('tg_vincular') + '</button>') +
+      '<div id="c-tg-zona"></div>' +
       '<button class="boton secundario" id="c-salir">' + t('cerrar_sesion') + '</button>'
     );
     el('c-salir').onclick = function () { FS.auth.salir(); ocultarHoja(); toast(t('sesion_cerrada')); };
+    if (el('c-tg')) el('c-tg').onclick = async function () {
+      var rc = await FS.api.post('/me/telegram/codigo', {}, t('esp_tg'));
+      if (!(rc.data && rc.data.ok)) return toast(traducirError(rc.data && rc.data.error));
+      el('c-tg-zona').innerHTML =
+        '<p class="aviso">' + t('tg_instruccion', { m: rc.data.expiraMin }) + '</p>' +
+        '<p class="aviso"><b>' + esc(rc.data.codigo) + '</b> · <a href="' + esc(rc.data.url) + '" target="_blank" rel="noopener">' + t('tg_abrir') + '</a>' +
+        ' · <button class="enlace" id="c-tg-check">' + t('tg_check') + '</button></p>';
+      el('c-tg-check').onclick = hojaCuenta;
+    };
+    if (el('c-tg-off')) el('c-tg-off').onclick = async function () {
+      var rd = await FS.api.del('/me/telegram', t('esp_tg'));
+      if (rd.data && rd.data.ok) { toast(t('tg_off_ok')); hojaCuenta(); }
+      else toast(traducirError(rd.data && rd.data.error));
+    };
   }
 
   el('btn-cuenta').onclick = function () {

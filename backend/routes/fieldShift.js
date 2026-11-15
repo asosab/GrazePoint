@@ -24,10 +24,13 @@ const power = require('../services/power');
 const sueloWeb = require('../services/sueloWeb');
 const gibs = require('../services/gibsValores');
 const tiempo = require('../services/tiempo');
+const telegram = require('../services/telegram');
 const informe = require('../services/informe');
 
 // Conexión propia al cargar el módulo (reintenta sola si mongo aún no está).
 db.init();
+// Bot de Telegram: poller propio, no arranca si falta el token en env.
+telegram.iniciar();
 
 // CORS propio: Bearer, sin cookies. En nodeLab ya hay cors() global abierto;
 // esto mantiene el comportamiento en el backend standalone.
@@ -104,6 +107,20 @@ router.post('/auth/reenviar', wrap(async (req, res) => {
 router.get('/me', authenticate, (req, res) => {
 	res.json({ ok: true, usuario: authSrv.usuarioPublico(req.fsUser) });
 });
+
+// Vínculo web ↔ Telegram: el usuario pide un código, abre el
+// deep-link t.me/<bot>?start=FS-XXXXXX y el bot confirma que el chat
+// pertenece a la misma persona que tiene la sesión web.
+router.post('/me/telegram/codigo', authenticate, wrap(async (req, res) => {
+	const r = await telegram.crearCodigo(req.fsUser);
+	if (!r.ok) return res.status(429).json({ ok: false, error: r.error });
+	res.json({ ok: true, codigo: r.codigo, url: r.url, expiraMin: 10 });
+}));
+
+router.delete('/me/telegram', authenticate, wrap(async (req, res) => {
+	await telegram.desvincular(req.fsUser);
+	res.json({ ok: true });
+}));
 
 router.get('/catalogo', authenticate, wrap(async (req, res) => {
 	res.json({ ok: true, data: await rotacion.catalogo() });

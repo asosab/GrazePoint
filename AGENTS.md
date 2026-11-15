@@ -29,6 +29,15 @@ Pages: **https://asosab.github.io/fieldShift/**
   N bajo (+fijaN), CIC baja (−alta extracción), suelo denso (+raíz
   gruesa). La respuesta de `/analisis` trae `terreno` (ndvi, ndviAnt,
   smap + fechas de tile) y `tiempo` (meses, pctVsAnio, mesesSecos).
+- Bot propio **@fieldshift_bot** (`services/telegram.js`, poller
+  `getUpdates` propio sin webhook): vínculo cuenta web ↔ chat con
+  código `FS-XXXXXX` de un solo uso (10 min, hasheado). Flujo:
+  `POST /me/telegram/codigo` → deep-link `t.me/fieldshift_bot?start=`
+  → `/start` o `/vincular <código>` en el chat → `GET /me` trae
+  `telegram.vinculado`. `DELETE /me/telegram` desvincula. Env:
+  `FIELDSHIFT_TG_TOKEN`, `FIELDSHIFT_TG_BOT`, `FIELDSHIFT_TG_ADMIN`
+  (chat id del admin: comandos de control como `/estado`). Sin token
+  el poller no arranca y el resto del servicio funciona igual.
 - El frontend apunta a `https://api.statetty.com/api/fieldShift`; con
   `?api=<url>` o `fs_api` en localStorage usa otro backend.
 
