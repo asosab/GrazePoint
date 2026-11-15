@@ -206,4 +206,57 @@ const TG = {
 	}
 };
 
-module.exports = { langOk, MESES, GRUPO, TIPO, grupoDe, tipoDe, RAZONES, VENTANA, INFORME, MAIL, TG };
+// Estado forrajero del potrero (services/forraje.js). Los textos se
+// leen en la app, el PDF y los avisos de Telegram.
+const FORRAJE = {
+	es: {
+		sin_especie: 'Sin especie forrajera registrada: anota qué pasto hay para estimar el punto de corte.',
+		sin_dato: 'Sin fecha de inicio: anota el último pastoreo o la fecha de siembra para arrancar el reloj.',
+		sin_clima: 'Sin datos de clima para estimar el rebrote.',
+		rebrote: (d) => 'En rebrote: faltan unos ' + d + ' días para entrar.',
+		punto_optimo: 'En punto óptimo: buen momento para entrar el lote o cortar.',
+		punto_tardio: 'En punto pero al límite: entrar pronto, la calidad ya empieza a bajar.',
+		pasado: 'Pasado de punto: la fibra ya gana; si queda pie, mejor cortar para reserva.',
+		desacuerdo: 'El reloj marca punto pero la vegetación no despegó: revisar el potrero (estrés o fecha mal anotada).',
+		creciendo: (d) => 'Creciendo para ensilar: faltan unos ' + d + ' días al grano pastoso.',
+		punto_ensilaje: 'Punto de ensilar: grano pastoso, cortar para silo ahora.',
+		pasado_ensilaje: 'Pasó el punto de ensilar: el grano ya endureció.',
+		fuente_ndvi: 'inicio estimado por satélite, sin registro anotado',
+		kgms: (v, ha) => 'Forraje estimado: ~' + v + ' kg MS/ha' + (ha ? ' (~' + Math.round(v * ha) + ' kg MS en el potrero)' : ''),
+		estados: { sin_especie: 'sin especie', sin_dato: 'sin dato', rebrote: 'en rebrote', punto_optimo: 'punto óptimo', pasado: 'pasado', creciendo: 'creciendo', punto_ensilaje: 'punto de ensilar', pasado_ensilaje: 'pasado de ensilar' },
+		aviso_tg: (p, predio, esp) => 'El potrero «' + p + '» de ' + predio + ' llegó a su punto óptimo de ' + (esp || 'pasto') + ': buen momento para entrar el lote o cortar.',
+		pdf_h: 'Estado de los potreros',
+		pdf_desde: 'desde',
+		pdf_efectivos: 'días efectivos de rebrote',
+		pdf_faltan: (d) => 'faltan ~' + d + ' días',
+		pdf_forraje: 'forraje estimado',
+		pdf_total: (v) => 'Forraje total estimado del predio: ~' + v + ' kg MS',
+		tipo_pastoreo: 'pastoreo', tipo_corte: 'corte', tipo_ensilaje: 'ensilaje', tipo_desbroce: 'desbroce'
+	},
+	en: {
+		sin_especie: 'No forage species recorded: note what grass is there to estimate the cutting point.',
+		sin_dato: 'No start date: note the last grazing or the planting date to start the clock.',
+		sin_clima: 'No weather data to estimate regrowth.',
+		rebrote: (d) => 'Still regrowing: about ' + d + ' days left before grazing.',
+		punto_optimo: 'At its best point: good time to move the herd in or cut.',
+		punto_tardio: 'Still good but at the edge: graze soon, quality is starting to drop.',
+		pasado: 'Past its best: fiber is winning; if left standing, better cut it for reserve.',
+		desacuerdo: 'The clock says ready but the canopy did not take off: check the paddock (stress or a wrong date).',
+		creciendo: (d) => 'Growing for silage: about ' + d + ' days to soft-dough stage.',
+		punto_ensilaje: 'Silage point: soft-dough grain, cut for silo now.',
+		pasado_ensilaje: 'Past silage point: the grain has hardened.',
+		fuente_ndvi: 'start estimated from satellite, no logged record',
+		kgms: (v, ha) => 'Estimated forage: ~' + v + ' kg DM/ha' + (ha ? ' (~' + Math.round(v * ha) + ' kg DM in the paddock)' : ''),
+		estados: { sin_especie: 'no species', sin_dato: 'no data', rebrote: 'regrowing', punto_optimo: 'best point', pasado: 'overmature', creciendo: 'growing', punto_ensilaje: 'silage point', pasado_ensilaje: 'past silage point' },
+		aviso_tg: (p, predio, esp) => 'The paddock "' + p + '" at ' + predio + ' reached its best point for ' + (esp || 'forage') + ': good time to move the herd in or cut.',
+		pdf_h: 'Paddock status',
+		pdf_desde: 'since',
+		pdf_efectivos: 'effective regrowth days',
+		pdf_faltan: (d) => '~' + d + ' days left',
+		pdf_forraje: 'estimated forage',
+		pdf_total: (v) => 'Estimated total forage on the farm: ~' + v + ' kg DM',
+		tipo_pastoreo: 'grazing', tipo_corte: 'cut', tipo_ensilaje: 'silage', tipo_desbroce: 'bush-hogging'
+	}
+};
+
+module.exports = { langOk, MESES, GRUPO, TIPO, grupoDe, tipoDe, RAZONES, VENTANA, INFORME, MAIL, TG, FORRAJE };

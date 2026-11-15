@@ -25,6 +25,12 @@ const cultivoSchema = new mongoose.Schema(
 		phMax: { type: Number, default: null },
 		lluviaMin: { type: Number, default: null }, // mm/año
 		cicloDias: { type: Number, default: null }, // establecimiento o cosecha
+		rebrote: {
+			min: { type: Number, default: null },    // días efectivos para punto óptimo
+			max: { type: Number, default: null },    // fin de la ventana ideal
+			pasado: { type: Number, default: null }  // desde acá la calidad ya cayó
+		},
+		gddEnsilaje: { type: Number, default: null }, // grados-día base 10 al punto de ensilar
 		toleraArenosos: { type: Boolean, default: false },
 		zonas: { type: [String], default: [] },     // piso ecológico: llanos | valle | altiplano
 		notas: { type: String, default: null, maxlength: 500 },

@@ -214,12 +214,35 @@
         (predioActual && p._id === predioActual._id ? '<span class="chip">' + t('activo') + '</span>' : '') + '</button>';
     });
     html += '<button class="boton" id="p-nuevo">' + t('registrar_predio') + '</button>';
+    if (predioActual) html += '<button class="boton secundario" id="p-forraje">' + t('ver_potreros') + '</button>';
     if (!predios.length) html += '<p class="aviso">' + t('sin_predios') + '</p>';
     mostrarHoja(html);
     document.querySelectorAll('[data-p]').forEach(function (b) {
       b.onclick = function () { seleccionarPredio(b.dataset.p); ocultarHoja(); };
     });
     el('p-nuevo').onclick = hojaNuevoPredio;
+    if (el('p-forraje')) el('p-forraje').onclick = hojaForraje;
+  }
+
+  // ── estado de potreros: por dónde rotar el lote ─────────
+  async function hojaForraje() {
+    mostrarHoja('<h2>' + t('potreros_h') + '</h2><p class="aviso">' + t('consultando') + '</p>');
+    var r = await FS.api.get('/predios/' + predioActual._id + '/forraje?lang=' + FS.lang, t('esp_analisis'));
+    if (!(r.data && r.data.ok)) return mostrarHoja('<h2>' + t('potreros_h') + '</h2><p class="aviso">' + t('no_cargar') + '</p>');
+    var d = r.data.data;
+    var cls = { punto_optimo: 'favorable_ahora', punto_ensilaje: 'favorable_ahora', rebrote: 'esperar', creciendo: 'esperar', pasado: 'ventana_pero_seco', pasado_ensilaje: 'ventana_pero_seco' };
+    var html = '<h2>' + t('potreros_h') + '</h2><p class="aviso">' + t('potreros_aviso') + '</p>';
+    if (d.forrajeTotalKgMS) html += '<p class="aviso">' + t('forraje_total', { v: d.forrajeTotalKgMS }) + '</p>';
+    (d.potreros || []).forEach(function (e) {
+      var det = [];
+      if (e.diasEfectivos != null) det.push(t('forraje_efec', { d: e.diasEfectivos }));
+      if (e.kgMSHaEst != null) det.push(t('forraje_kgms', { v: e.kgMSHaEst }) + (e.areaHa ? ' (~' + Math.round(e.kgMSHaEst * e.areaHa) + ' kg MS · ' + e.areaHa + ' ha)' : ''));
+      if (e.t0Fuente === 'ndvi') det.push(t('forraje_ndvi_t0'));
+      html += '<div class="reco"><h4>' + esc(e.parcela.nombre) + (e.parcela.especie ? ' <span class="chip">' + esc(e.parcela.especie) + '</span>' : '') + '</h4>' +
+        '<div class="veredicto ' + (cls[e.estado] || 'esperar') + '">' + esc(e.texto) + '</div>' +
+        (det.length ? '<p class="aviso">' + det.join(' · ') + '</p>' : '') + '</div>';
+    });
+    mostrarHoja(html);
   }
 
   function hojaNuevoPredio() {
@@ -482,6 +505,15 @@
       '<label class="campo"><span>' + t('metodo') + '</span><input id="pa-metodo" placeholder="' + t('ph_metodo') + '"></label>' +
       '</div>' +
       '<button class="boton secundario" id="pa-aforo-ok">' + t('guardar_aforo') + '</button>' +
+      '<h3>' + t('corte_h') + '</h3>' +
+      '<p class="aviso">' + t('corte_aviso') + '</p>' +
+      '<div class="fila">' +
+      '<label class="campo"><span>' + t('tipo') + '</span><select id="pa-tipo-corte">' +
+      '<option value="pastoreo">' + t('ct_pastoreo') + '</option><option value="corte">' + t('ct_corte') + '</option>' +
+      '<option value="ensilaje">' + t('ct_ensilaje') + '</option><option value="desbroce">' + t('ct_desbroce') + '</option></select></label>' +
+      '<label class="campo"><span>' + t('fecha') + '</span><input id="pa-fecha-corte" type="date"></label>' +
+      '</div>' +
+      '<button class="boton secundario" id="pa-corte-ok">' + t('guardar_corte') + '</button>' +
       _htmlHistorial(p) +
       '<h3>' + t('peligro_h') + '</h3>' +
       '<button class="boton peligro" id="pa-borrar">' + t('eliminar_parcela') + '</button>';
@@ -553,6 +585,14 @@
       }, t('esp_aforo'));
       if (r.data && r.data.ok) { toast(t('aforo_guardado')); seleccionarPredio(predioActual._id); }
     };
+    el('pa-corte-ok').onclick = async function () {
+      var f = valor('pa-fecha-corte');
+      var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/cortes', {
+        fecha: f ? new Date(f + 'T12:00:00').toISOString() : new Date().toISOString(),
+        tipo: valor('pa-tipo-corte') || 'pastoreo'
+      }, t('esp_corte'));
+      if (r.data && r.data.ok) { toast(t('corte_guardado')); seleccionarPredio(predioActual._id); }
+    };
     el('pa-analisis').onclick = function () { hojaAnalisis(p); };
     el('pa-pdf').onclick = function () { descargarPdf(p._id); };
     el('pa-borrar').onclick = async function () {
@@ -568,6 +608,12 @@
       s += '<h3>' + t('suelos_h') + '</h3>';
       p.suelos.slice().reverse().forEach(function (x) {
         s += '<p class="aviso">• ' + fecha(x.fecha) + ': pH ' + (x.ph || '—') + ', ' + t('mo').replace(' %', '') + ' ' + (x.materiaOrganica || '—') + '%, ' + esc(x.textura || '') + '</p>';
+      });
+    }
+    if (p.cortes && p.cortes.length) {
+      s += '<h3>' + t('usos_h') + '</h3>';
+      p.cortes.slice().reverse().slice(0, 6).forEach(function (x) {
+        s += '<p class="aviso">• ' + fecha(x.fecha) + ': ' + esc(t('ct_' + (x.tipo || 'pastoreo'))) + (x.notas ? ' · ' + esc(x.notas) : '') + '</p>';
       });
     }
     if (p.historial && p.historial.length) {
@@ -615,6 +661,17 @@
       if (tm.mesesSecos != null) partes.push(t('tiempo_secos', { s: tm.mesesSecos }));
       if (tm.pctVsAnio != null) partes.push(t('tiempo_lluvia', { pct: (tm.pctVsAnio > 0 ? '+' : '') + tm.pctVsAnio }));
       html += '<p class="aviso">' + t('tiempo_txt', { p: partes.join(' · ') }) + '</p>';
+    }
+    if (d.forraje && d.forraje.estado && d.forraje.estado !== 'sin_especie' && d.forraje.estado !== 'sin_dato') {
+      var fo = d.forraje;
+      var cls = fo.estado === 'punto_optimo' || fo.estado === 'punto_ensilaje' ? 'favorable_ahora'
+        : fo.estado === 'pasado' || fo.estado === 'pasado_ensilaje' || fo.desacuerdo ? 'ventana_pero_seco' : 'esperar';
+      html += '<h3>' + t('forraje_h') + '</h3><div class="veredicto ' + cls + '">' + esc(fo.texto) + '</div>';
+      var det = [];
+      if (fo.diasEfectivos != null) det.push(t('forraje_efec', { d: fo.diasEfectivos }));
+      if (fo.kgMSHaEst != null) det.push(t('forraje_kgms', { v: fo.kgMSHaEst }) + (fo.areaHa ? ' (~' + Math.round(fo.kgMSHaEst * fo.areaHa) + ' kg MS)' : ''));
+      if (fo.t0Fuente === 'ndvi') det.push(t('forraje_ndvi_t0'));
+      if (det.length) html += '<p class="aviso">' + det.join(' · ') + '</p>';
     }
     if (d.rotacion && d.rotacion.recomendaciones) {
       html += '<h3>' + esc(t('que_sembrar', { n: p.especieActual || t('esto') })) + '</h3>';

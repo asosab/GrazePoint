@@ -64,6 +64,15 @@ const aforoSchema = new mongoose.Schema(
 	{ _id: true }
 );
 
+const corteSchema = new mongoose.Schema(
+	{
+		fecha: { type: Date, required: true },
+		tipo: { type: String, default: 'pastoreo', trim: true }, // pastoreo | corte | ensilaje | desbroce
+		notas: { type: String, default: null, maxlength: 500 }
+	},
+	{ _id: true }
+);
+
 const parcelaSchema = new mongoose.Schema(
 	{
 		nombre: { type: String, required: true, trim: true, maxlength: 120 },
@@ -81,7 +90,14 @@ const parcelaSchema = new mongoose.Schema(
 		notas: { type: String, default: null, maxlength: 500 },
 		historial: { type: [siembraSchema], default: [] },
 		suelos: { type: [medicionSueloSchema], default: [] },
-		aforos: { type: [aforoSchema], default: [] }
+		aforos: { type: [aforoSchema], default: [] },
+		cortes: { type: [corteSchema], default: [] },
+		// Dedo de la alerta de Telegram: último estado avisado para no
+		// reenviar el mismo «punto óptimo» en cada barrido diario.
+		avisoForraje: {
+			estado: { type: String, default: null },
+			en: { type: Date, default: null }
+		}
 	},
 	{ _id: true }
 );

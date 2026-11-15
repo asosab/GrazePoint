@@ -129,4 +129,19 @@ async function valorBuscando(capa, lat, lon, diasAtras, paso, intentos) {
 	return null;
 }
 
-module.exports = { valor, valorBuscando };
+// Serie NDVI del punto: una muestra cada `paso` días hasta `dias`
+// atrás, ascendente y sin fechas repetidas de tile (el producto es de
+// 8 días: pedir días consecutivos solo repite el mismo tile).
+async function serieNdvi(lat, lon, dias, paso) {
+	const out = [];
+	const n = Math.max(2, Math.round(dias / paso));
+	for (let i = n; i >= 0; i--) {
+		const r = await valorBuscando('ndvi', lat, lon, i * paso, 8, 2);
+		if (r && (!out.length || out[out.length - 1].fecha !== r.fecha)) {
+			out.push({ fecha: r.fecha, valor: r.valor });
+		}
+	}
+	return out;
+}
+
+module.exports = { valor, valorBuscando, serieNdvi };

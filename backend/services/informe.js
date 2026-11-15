@@ -10,7 +10,8 @@ const PDFDocument = require('pdfkit');
 const rotacion = require('./rotacion');
 const ventana = require('./ventana');
 const power = require('./power');
-const { INFORME, grupoDe, tipoDe, langOk } = require('./i18n');
+const forraje = require('./forraje');
+const { INFORME, FORRAJE, grupoDe, tipoDe, langOk } = require('./i18n');
 
 function _f(d, lang) { return d ? new Date(d).toLocaleDateString(langOk(lang) === 'es' ? 'es-BO' : 'en-US') : '—'; }
 function _n(v, u) { return v == null ? '—' : v + (u || ''); }
@@ -62,6 +63,8 @@ async function generar({ predio, parcela, solicitadoPor, lang }) {
 			if (climaMeta.anomaliaLluvia != null) _fila(doc, T.anomalia, climaMeta.anomaliaLluvia + ' %');
 		}
 
+		const catalogo = await rotacion.catalogo();
+		const F = FORRAJE[L];
 		const parcelas = parcela ? [parcela] : predio.parcelas;
 		for (const p of parcelas) {
 			doc.addPage();
@@ -90,6 +93,18 @@ async function generar({ predio, parcela, solicitadoPor, lang }) {
 				p.aforos.slice().sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 5).forEach((a) => {
 					doc.text('• ' + f(a.fecha) + ': ' + _n(a.kgMSHa, L === 'es' ? ' kg MS/ha' : ' kg DM/ha') + (a.metodo ? ' (' + a.metodo + ')' : ''));
 				});
+			}
+
+			// Estado forrajero del potrero (reloj de rebrote ligero:
+			// sin serie NDVI ni calibración de aforos para no
+			// alargar el PDF).
+			const fe = await forraje.evaluar(p, { catalogo, lang: L, ligero: true });
+			if (fe && fe.estado !== 'sin_especie') {
+				_titulo(doc, F.pdf_h);
+				_fila(doc, F.estados[fe.estado] || fe.estado, fe.texto);
+				if (fe.t0) _fila(doc, F.pdf_desde, f(fe.t0) + (fe.t0Fuente === 'ndvi' ? ' (' + F.fuente_ndvi + ')' : ''));
+				if (fe.diasEfectivos != null) _fila(doc, F.pdf_efectivos, fe.diasEfectivos);
+				if (fe.diasFaltantes != null) doc.text(F.pdf_faltan(fe.diasFaltantes));
 			}
 
 			const r = await rotacion.recomendar({ parcela: p, clima: climaMeta, lang: L });

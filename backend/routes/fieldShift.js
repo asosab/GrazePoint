@@ -25,12 +25,16 @@ const sueloWeb = require('../services/sueloWeb');
 const gibs = require('../services/gibsValores');
 const tiempo = require('../services/tiempo');
 const telegram = require('../services/telegram');
+const forraje = require('../services/forraje');
+const alertas = require('../services/alertas');
 const informe = require('../services/informe');
 
 // Conexión propia al cargar el módulo (reintenta sola si mongo aún no está).
 db.init();
 // Bot de Telegram: poller propio, no arranca si falta el token en env.
 telegram.iniciar();
+// Barrido diario de potreros en punto óptimo → aviso por Telegram.
+alertas.iniciar();
 
 // CORS propio: Bearer, sin cookies. En nodeLab ya hay cors() global abierto;
 // esto mantiene el comportamiento en el backend standalone.
@@ -301,6 +305,41 @@ router.post('/predios/:id/parcelas/:pid/aforos', authenticate, _append('aforos',
 	return { fecha: b.fecha, kgMSHa: b.kgMSHa != null ? Number(b.kgMSHa) : null, metodo: b.metodo || null, notas: b.notas || null };
 }));
 
+// Último uso del potrero: pastoreo, corte, ensilaje o desbroce. Es lo
+// que reinicia el reloj de rebrote del estado forrajero.
+const TIPOS_CORTE = ['pastoreo', 'corte', 'ensilaje', 'desbroce'];
+router.post('/predios/:id/parcelas/:pid/cortes', authenticate, _append('cortes', (b, res) => {
+	if (!b.fecha) { res.status(400).json({ ok: false, error: 'fecha_requerida' }); return null; }
+	return { fecha: b.fecha, tipo: TIPOS_CORTE.includes(b.tipo) ? b.tipo : 'pastoreo', notas: b.notas || null };
+}));
+
+// Estado forrajero de todo el predio: por qué potrero rotar el lote
+// primero. Ordena punto óptimo/ensilar primero, luego por días que
+// faltan; suma el forraje estimado cuando hay calibración de aforos.
+router.get('/predios/:id/forraje', authenticate, wrap(async (req, res) => {
+	const predio = await _cargarPredio(req, res);
+	if (!predio) return;
+	const lang = langDe(req);
+	const catalogo = await rotacion.catalogo();
+	const orden = { punto_optimo: 0, punto_ensilaje: 0, rebrote: 1, creciendo: 1, pasado: 2, pasado_ensilaje: 2, sin_dato: 3, sin_especie: 3 };
+	const estados = [];
+	let forrajeTotal = 0;
+	for (const p of predio.parcelas) {
+		const e = await forraje.evaluar(p, { catalogo, lang });
+		if (e.kgMSHaEst != null && e.areaHa) forrajeTotal += e.kgMSHaEst * e.areaHa;
+		estados.push({
+			parcela: { _id: p._id, nombre: p.nombre, tipo: p.tipo, especie: p.especieActual },
+			estado: e.estado, texto: e.texto, tardio: e.tardio, desacuerdo: e.desacuerdo,
+			diasEfectivos: e.diasEfectivos, diasFaltantes: e.diasFaltantes, t0: e.t0, t0Fuente: e.t0Fuente,
+			ndvi: e.ndvi, kgMSHaEst: e.kgMSHaEst, areaHa: e.areaHa
+		});
+	}
+	estados.sort((a, b) => (orden[a.estado] - orden[b.estado])
+		|| ((b.kgMSHaEst || 0) - (a.kgMSHaEst || 0))
+		|| ((a.diasFaltantes || 999) - (b.diasFaltantes || 999)));
+	res.json({ ok: true, data: { potreros: estados, forrajeTotalKgMS: forrajeTotal ? Math.round(forrajeTotal) : null } });
+}));
+
 // ── Análisis: clima + rotación + ventana ────────────────────────────────────
 
 function _centroDe(predio, parcela) {
@@ -341,9 +380,10 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 		smapFecha: smap ? smap.fecha : null
 	};
 	const lang = langDe(req);
-	const [rec, ven] = await Promise.all([
+	const [rec, ven, forr] = await Promise.all([
 		parcela ? rotacion.recomendar({ parcela, clima: resumenPower, sueloWeb: sueloW, terreno, tiempo: tendencia, lang }) : Promise.resolve(null),
-		Promise.resolve(ventana.evaluar({ clima: clim, resumenPower, especie: parcela ? parcela.especieActual : null, lang }))
+		Promise.resolve(ventana.evaluar({ clima: clim, resumenPower, especie: parcela ? parcela.especieActual : null, lang })),
+		parcela ? forraje.evaluar(parcela, { catalogo: await rotacion.catalogo(), lang }) : Promise.resolve(null)
 	]);
 
 	res.json({
@@ -357,6 +397,7 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 			lluviaPorMes: ven && ven.ok ? ven.lluviaPorMes : null,
 			rotacion: rec,
 			ventana: ven,
+			forraje: forr,
 			fuentes: [
 				lang === 'es' ? 'NASA POWER (serie diaria + climatología)' : 'NASA POWER daily + climatology',
 				'SoilGrids (ISRIC)',

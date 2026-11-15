@@ -95,6 +95,37 @@ flechas, play y pills de lluvia/temp/humedad.
 - Solo las capas `temporal` (GIBS no-fix) siguen la fecha; el resto no
   se toca. Al cerrar, `FS.capas.setPaso(null)` vuelve a «actual».
 
+## Estado forrajero (punto óptimo de pastoreo / corte / ensilaje)
+
+`backend/services/forraje.js` estima cuándo un potrero está listo para
+entrar el lote o cortarse, en tres estados (`rebrote` / `punto_optimo` /
+`pasado`; para ensilar: `creciendo` / `punto_ensilaje` / `pasado_ensilaje`):
+
+- **Reloj de rebrote**: el último uso del potrero (`parcela.cortes` —
+  pastoreo/corte/ensilaje/desbroce, `POST .../cortes`) o la siembra
+  reinicia la cuenta. Se suman **días efectivos** de la serie diaria
+  POWER: cada día vale `fAgua × fTemp` (GWETROOT vs. umbral 0.30,
+  T2M vs. base 10 °C / óptimo 28 °C), comparado contra `rebrote
+  {min,max,pasado}` de la especie en el catálogo.
+- **Sin registro**: `gibsValores.serieNdvi` (muestras cada 8 días,
+  ~3 meses) detecta caídas >0.10 → `t0Fuente:'ndvi'` marcado como
+  «estimado por satélite».
+- **Desacuerdo**: reloj en punto pero NDVI <0.25 → `desacuerdo:'revisar'`
+  (estrés o fecha mal anotada).
+- **Calibración aforo↔NDVI** (`kgMSHaEst`): regresión local
+  kg MS/ha ≈ a+b·NDVI con los últimos aforos + NDVI de sus fechas;
+  alimenta `forrajeTotalKgMS` del predio.
+- **Ensilaje**: especies con `gddEnsilaje` (sorgo 1250, maíz 1400) usan
+  grados-día base 10 °C desde `fechaSiembraActual` al grano pastoso.
+- Endpoints: `GET /predios/:id/forraje` (ranking: punto óptimo primero,
+  luego forraje estimado, sábana «Estado de potreros») y `forraje`
+  dentro de `/analisis`. En el PDF la sección va en modo `ligero`
+  (sin serie NDVI ni calibración: el informe no puede esperar ~15
+  tiles por parcela).
+- **Alertas Telegram** (`services/alertas.js`): barrido diario; avisa
+  cuando una parcela ENTRA a punto óptimo/ensilar. Dedo por parcela:
+  `avisoForraje {estado,en}` evita reenviar y se limpia al salir.
+
 ## Internacionalización (EN por defecto + ES)
 
 Mismo esquema que NSAC: **el inglés es el idioma por defecto** y vive en
