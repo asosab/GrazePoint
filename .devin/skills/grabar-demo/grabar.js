@@ -16,6 +16,7 @@
 //   --especie       cultivo actual (def: 'Soybean')          --siembra-fecha YYYY-MM-DD
 //   --ultimo-especie / --ultimo-inicio YYYY-MM / --ultimo-fin / --ultimo-rend / --ultimo-unidad
 //   --sin-cultivos  salta la ficha de cultivos
+//   --no-pdf-view   no muestra el PDF en pantalla tras descargarlo
 //   --creds         JSON {email, clave} — o --email + --clave
 //   --device        descriptor Playwright (def: 'Pixel 7'); --width/--height lo sobrescriben
 //   --out           carpeta de salida (def: <repo>/.tmp/videos/<timestamp>)
@@ -188,7 +189,7 @@ function hayFfmpeg() {
   });
   await pausa(page, 1500);
 
-  // ── 7. informe PDF ─────────────────────────────────────
+  // ── 7. informe PDF: descargar y mostrarlo ──────────────
   const [download] = await Promise.all([
     page.waitForEvent('download', { timeout: 60000 }),
     page.click('#an-pdf')
@@ -196,6 +197,53 @@ function hayFfmpeg() {
   const pdf = path.join(CFG.out, await download.suggestedFilename());
   await download.saveAs(pdf);
   await pausa(page, 2000);
+
+  if (!CFG['no-pdf-view']) {
+    // Headless no tiene visor de PDF: se pintan las páginas con pdf.js
+    // (la misma versión que la app carga por CDN) en un overlay full
+    // screen y se recorre para la cámara.
+    const b64 = fs.readFileSync(pdf).toString('base64');
+    await page.evaluate(async (b64) => {
+      const data = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      if (!window.pdfjsLib) {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      }
+      const doc = await pdfjsLib.getDocument({ data }).promise;
+      const ov = document.createElement('div');
+      ov.id = 'pdf-view';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#14181a;' +
+        'overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;align-items:center';
+      for (let n = 1; n <= doc.numPages; n++) {
+        const pg = await doc.getPage(n);
+        const w = Math.min(window.innerWidth - 28, 700);
+        const vp = pg.getViewport({ scale: w * 2 / pg.getViewport({ scale: 1 }).width });
+        const cv = document.createElement('canvas');
+        cv.width = vp.width; cv.height = vp.height;
+        cv.style.cssText = 'width:' + w + 'px;background:#fff;border-radius:6px;flex:none';
+        await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+        ov.appendChild(cv);
+      }
+      document.body.appendChild(ov);
+    }, b64);
+    await pausa(page, 1200);
+    await page.evaluate(() => {
+      const c = document.getElementById('pdf-view');
+      let y = 0;
+      const t = setInterval(() => { y += 30; c.scrollTop = y; if (y + c.clientHeight >= c.scrollHeight) clearInterval(t); }, 60);
+    });
+    await pausa(page, 5500);
+    await page.evaluate(() => { document.getElementById('pdf-view').scrollTop = 0; });
+    await pausa(page, 2000);
+    await page.evaluate(() => { const v = document.getElementById('pdf-view'); if (v) v.remove(); });
+    await pausa(page, 800);
+  }
   await page.evaluate(() => { document.getElementById('hoja-cuerpo').scrollTop = 0; });
   await pausa(page, 1500);
 

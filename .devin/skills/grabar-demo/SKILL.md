@@ -61,6 +61,11 @@ y responde el `prompt()` del nombre. Flags útiles:
   `--width`/`--height` para un tamaño a medida.
 - `--ritmo 0.7` acelera las pausas; `1.4` las estira.
 - `--timeout 120000` si el análisis (NASA POWER) viene lento.
+- Tras descargar el informe lo muestra en pantalla: pinta cada página
+  con pdf.js en un overlay a pantalla completa y lo recorre para la
+  cámara (`--no-pdf-view` lo apaga). El visor nativo no existe en
+  headless; el worker cross-origin de pdf.js cae a fake worker, que
+  alcanza para los informes de pocas páginas.
 - `--out`, `--salida`, `--no-mp4`, `--headed` (ver el navegador).
 
 Al terminar imprime un JSON con las rutas del video y del PDF.
