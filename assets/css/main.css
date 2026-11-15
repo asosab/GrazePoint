@@ -153,8 +153,8 @@ button { font: inherit; cursor: pointer; }
   display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .75rem;
   background: rgba(143,166,142,.2); color: var(--salvia-claro); border: 1px solid rgba(143,166,142,.4);
 }
-.fila { display: flex; gap: 10px; }
-.fila > * { flex: 1; }
+.fila { display: flex; flex-wrap: wrap; gap: 10px; }
+.fila > * { flex: 1 1 150px; }
 .aviso { font-size: .85rem; color: var(--texto-suave); padding: 10px 0; }
 
 .detalles {
