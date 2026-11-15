@@ -12,6 +12,11 @@ Pages: **https://asosab.github.io/fieldShift/**
 - Backend: `backend/` Express + MongoDB standalone, espejo del módulo
   `servicios/fieldShift` de nodeLab (api.statetty.com). **Todo cambio al
   backend hay que espejarlo en nodeLab.**
+- El análisis cruza NASA POWER con el suelo de la parcela: primero el
+  PRIAS medido a mano (pH, MO, textura) y, si falta, **SoilGrids**
+  vía `services/sueloWeb.js` — el WMS de ISRIC con
+  `GetFeatureInfo`/`text/html` devuelve el valor crudo por punto
+  (la REST v2.0 de rest.isric.org está caída y da nulls).
 - El frontend apunta a `https://api.statetty.com/api/fieldShift`; con
   `?api=<url>` o `fs_api` en localStorage usa otro backend.
 

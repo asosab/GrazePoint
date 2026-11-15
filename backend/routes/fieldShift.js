@@ -21,6 +21,7 @@ const FsUser = require('../models/fsUserModel');
 const rotacion = require('../services/rotacion');
 const ventana = require('../services/ventana');
 const power = require('../services/power');
+const sueloWeb = require('../services/sueloWeb');
 const informe = require('../services/informe');
 
 // Conexión propia al cargar el módulo (reintenta sola si mongo aún no está).
@@ -298,14 +299,15 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 	const centro = _centroDe(predio, parcela);
 	if (!centro) return res.status(400).json({ ok: false, error: 'sin_coordenadas' });
 
-	const [clim, dia] = await Promise.all([
+	const [clim, dia, sueloW] = await Promise.all([
 		power.climatologia(centro.lat, centro.lon),
-		power.diario(centro.lat, centro.lon, 120)
+		power.diario(centro.lat, centro.lon, 120),
+		sueloWeb.consultar(centro.lat, centro.lon)
 	]);
 	const resumenPower = power.resumen(dia, clim);
 	const lang = langDe(req);
 	const [rec, ven] = await Promise.all([
-		parcela ? rotacion.recomendar({ parcela, clima: resumenPower, lang }) : Promise.resolve(null),
+		parcela ? rotacion.recomendar({ parcela, clima: resumenPower, sueloWeb: sueloW, lang }) : Promise.resolve(null),
 		Promise.resolve(ventana.evaluar({ clima: clim, resumenPower, especie: parcela ? parcela.especieActual : null, lang }))
 	]);
 
@@ -314,10 +316,14 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 		data: {
 			centro,
 			clima: resumenPower,
+			sueloWeb: sueloW,
 			lluviaPorMes: ven && ven.ok ? ven.lluviaPorMes : null,
 			rotacion: rec,
 			ventana: ven,
-			fuentes: [lang === 'es' ? 'NASA POWER (serie diaria + climatología)' : 'NASA POWER daily + climatology']
+			fuentes: [
+				lang === 'es' ? 'NASA POWER (serie diaria + climatología)' : 'NASA POWER daily + climatology',
+				'SoilGrids (ISRIC)'
+			]
 		}
 	});
 }));

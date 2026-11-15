@@ -80,16 +80,21 @@ function _puntaje(c, ctx, T) {
 }
 
 // contexto: { ph, mo, textura, lluviaAnual, especieAnterior, familiaAnterior, grupoAnterior }
-async function recomendar({ parcela, clima, limite = 3, lang }) {
+// sueloWeb (SoilGrids/ISRIC) rellena lo que el PRIAS aún no tiene medido:
+// pH, materia orgánica estimada (SOC×1.724) y textura por fracciones.
+async function recomendar({ parcela, clima, sueloWeb, limite = 3, lang }) {
 	const T = RAZONES[langOk(lang)];
 	const catalogoArr = await catalogo();
 	const suelo = _ultimoSuelo(parcela);
 	const textura = suelo && suelo.textura ? String(suelo.textura).toLowerCase() : '';
-	const arenoso = /aren/.test(textura);
+	const arenoso = /aren/.test(textura) || (!textura && sueloWeb && sueloWeb.textura === 'arenosa');
 	const ctx = {
-		ph: suelo && suelo.ph != null ? suelo.ph : null,
-		moBaja: suelo && suelo.materiaOrganica != null ? suelo.materiaOrganica < 2 : false,
+		ph: (suelo && suelo.ph != null) ? suelo.ph : (sueloWeb ? sueloWeb.ph : null),
+		moBaja: (suelo && suelo.materiaOrganica != null) ? suelo.materiaOrganica < 2
+			: (sueloWeb && sueloWeb.moEstimada != null ? sueloWeb.moEstimada < 2 : false),
 		arenoso,
+		sueloFuente: suelo ? 'PRIAS' : (sueloWeb ? 'SoilGrids' : null),
+		texturaEstimada: textura || (sueloWeb ? sueloWeb.textura : null),
 		lluviaAnual: clima && clima.lluviaAnualMedia != null ? clima.lluviaAnualMedia : null,
 		especieAnterior: parcela && parcela.especieActual ? parcela.especieActual : null,
 		familiaAnterior: _familiaDe(parcela && parcela.especieActual, catalogoArr),

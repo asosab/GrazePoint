@@ -572,6 +572,15 @@
         (d.clima.anomaliaLluvia != null ? ' (' + (d.clima.anomaliaLluvia > 0 ? '+' : '') + d.clima.anomaliaLluvia + '%' + t('vs_media') + ')' : '') +
         (d.clima.humedadSueloReciente != null ? t('humedad_raiz') + '<b>' + d.clima.humedadSueloReciente + '</b>' : '') + '</p>';
     }
+    if (d.sueloWeb) {
+      var sw = d.sueloWeb;
+      var tex = t('tex_' + (sw.textura || ''));
+      html += '<p class="aviso">' + t('suelo_est', {
+        tex: tex !== 'tex_' + sw.textura ? tex : esc(sw.textura || '—'),
+        ph: sw.ph != null ? sw.ph : '—', a: sw.arena != null ? sw.arena : '—', c: sw.arcilla != null ? sw.arcilla : '—',
+        cic: sw.cec != null ? sw.cec : '—'
+      }) + '</p>';
+    }
     if (d.rotacion && d.rotacion.recomendaciones) {
       html += '<h3>' + esc(t('que_sembrar', { n: p.especieActual || t('esto') })) + '</h3>';
       d.rotacion.recomendaciones.forEach(function (c, i) {
