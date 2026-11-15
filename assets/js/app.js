@@ -269,6 +269,7 @@
         '<div class="veredicto ' + (cls[e.estado] || 'esperar') + '">' + esc(e.texto) + '</div>' +
         (det.length ? '<p class="aviso">' + det.join(' · ') + '</p>' : '') + '</div>';
     });
+    html += '<p class="aviso">' + esc(t('forraje_fuente')) + '</p>';
     html += '<button class="boton secundario" id="fo-copiar">' + t('copiar_resumen') + '</button>';
     html += '<button class="boton secundario" id="fo-wa">' + t('compartir_wa') + '</button>';
     mostrarHoja(html);
@@ -900,6 +901,7 @@
     if (v.lluvia != null) s.push(t('tiempo_lluvia') + ' ' + v.lluvia + ' mm');
     if (v.temp != null) s.push(t('tiempo_temp') + ' ' + v.temp + ' °C');
     if (v.humedad != null) s.push(t('tiempo_humedad') + ' ' + v.humedad + ' %');
+    if (s.length) s.unshift(t('tiempo_pw'));
     el('tiempo-stats').textContent = s.join('  ·  ');
   }
 
