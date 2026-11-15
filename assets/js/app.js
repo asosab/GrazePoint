@@ -622,7 +622,10 @@
       '<label class="campo"><span>' + t('mo') + '</span><input id="pa-mo" inputmode="decimal" type="number" step="0.1"></label>' +
       '</div><div class="fila">' +
       '<label class="campo"><span>N %</span><input id="pa-n" inputmode="decimal" type="number" step="0.01"></label>' +
-      '<label class="campo"><span>' + t('textura') + '</span><input id="pa-tex" placeholder="' + t('ph_textura') + '"></label>' +
+      '<label class="campo"><span>' + t('textura') + '</span><select id="pa-tex"><option value="">—</option>' +
+      ['arenosa', 'arcillosa', 'franco_arenosa', 'franco_arcillosa', 'franca'].map(function (tx) {
+        return '<option value="' + tx + '">' + t('tex_' + tx) + '</option>';
+      }).join('') + '</select></label>' +
       '</div>' +
       '<button class="boton secundario" id="pa-suelo">' + t('guardar_analisis') + '</button>' +
       '<h3>' + t('aforo_h') + '</h3>' +
@@ -684,6 +687,12 @@
     el('pa-ph').value = sueloUlt.ph != null ? sueloUlt.ph : '';
     el('pa-mo').value = sueloUlt.materiaOrganica != null ? sueloUlt.materiaOrganica : '';
     el('pa-n').value = sueloUlt.nitrogeno != null ? sueloUlt.nitrogeno : '';
+    if (sueloUlt.textura && !el('pa-tex').querySelector('option[value="' + sueloUlt.textura + '"]')) {
+      var optTex = document.createElement('option');
+      optTex.value = sueloUlt.textura;
+      optTex.textContent = sueloUlt.textura;
+      el('pa-tex').appendChild(optTex);
+    }
     el('pa-tex').value = sueloUlt.textura || '';
     var aforoUlt = (p.aforos || []).slice(-1)[0] || {};
     el('pa-aforo').value = aforoUlt.kgMSHa != null ? aforoUlt.kgMSHa : '';
