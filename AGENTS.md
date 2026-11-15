@@ -65,9 +65,18 @@ la raíz; el español vive bajo `es/`.
 ## Textos: filtro humanamente obligatorio
 
 Toda prosa visible (sitio, UI, correos, PDF, mensajes) pasa por el
-skill `humanamente` (copia en `D:\proyectos\NSAC\.devin\skills\`) antes
+skill `humanamente` (vendored en `.devin/skills/humanamente`) antes
 de entregarse: en castellano con `humanamente`, en inglés con
 `humanamente-en` (misma rúbrica; **cero em dashes** en inglés).
+
+## Skills del proyecto (`.devin/skills/`)
+
+- `grabar-demo`: graba video de la app en formato celular con la UI
+  real — login, predio, parcela (importa archivo o dibuja), cultivos,
+  análisis y PDF. `provision-cuenta.js` asegura la cuenta de pruebas
+  (registro/recuperar + código leído del Gmail por IMAP). Ver su
+  SKILL.md para los flags.
+- `humanamente`, `humanamente-en`: filtro de prosa (arriba).
 
 ## Orden de archivos
 
