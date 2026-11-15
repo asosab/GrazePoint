@@ -94,10 +94,14 @@ const parcelaSchema = new mongoose.Schema(
 		cortes: { type: [corteSchema], default: [] },
 		// Dedo de la alerta de Telegram: último estado avisado para no
 		// reenviar el mismo «punto óptimo» en cada barrido diario.
+		// (legado: ahora el dedo por tipo vive en `avisos`)
 		avisoForraje: {
 			estado: { type: String, default: null },
 			en: { type: Date, default: null }
-		}
+		},
+		// Dedo por tipo de alerta (punto | revisar | estres | ndvi_cae |
+		// saturado): tipo → fecha del último aviso mandado.
+		avisos: { type: Object, default: {} }
 	},
 	{ _id: true }
 );

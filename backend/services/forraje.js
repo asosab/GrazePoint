@@ -24,6 +24,7 @@
 
 const power = require('./power');
 const gibs = require('./gibsValores');
+const muestreo = require('./muestreo');
 const { CATALGO_EMBEBIDO } = require('./catalogo');
 const { langOk, FORRAJE } = require('./i18n');
 
@@ -32,24 +33,18 @@ const TOPT = 28;    // °C: óptimo
 const HUM_MIN = 0.30; // GWETROOT: bajo esto el pasto estresa
 const NDVI_BAJO = 0.25; // dosel aún débil
 const CAIDA_NDVI = 0.10; // salto que sugiere pastoreo/corte
+const SECO21 = 15;    // días de las últimas 3 semanas muy secos → estrés hídrico
+const SMAP_ANEGADO = 0.50; // cm³/cm³ de raíz: arriba de esto está empozado
+const UTIL = 0.50;        // aprovechamiento del forraje parado
+const CONSUMO_DIA = 10;   // kg MS/día: animal de ~450 kg (unidad ganadera)
 
+// El punto de consulta es un punto dentro del polígono (el centroide
+// si cae adentro), no el primer vértice anotado.
 function _centro(parcela) {
-	const c = parcela && parcela.geometry && parcela.geometry.coordinates && parcela.geometry.coordinates[0] && parcela.geometry.coordinates[0][0];
-	return c ? { lon: c[0], lat: c[1] } : null;
+	return muestreo.puntoDentro(parcela && parcela.geometry);
 }
 
-// Área del polígono en hectáreas (fórmula esférica de anillos).
-function areaHa(geometry) {
-	const ring = geometry && geometry.coordinates && geometry.coordinates[0];
-	if (!ring || ring.length < 3) return null;
-	const R = 6378137;
-	let s = 0;
-	for (let i = 0; i < ring.length; i++) {
-		const a = ring[i], b = ring[(i + 1) % ring.length];
-		s += ((b[0] - a[0]) * Math.PI / 180) * (2 + Math.sin(a[1] * Math.PI / 180) + Math.sin(b[1] * Math.PI / 180));
-	}
-	return Math.round(Math.abs(s * R * R / 2) / 10000 * 10) / 10;
-}
+const areaHa = muestreo.areaHa;
 
 // Especie del catálogo por nombre libre (exacto o contenido).
 function _especieDoc(catalogo, nombre) {
@@ -96,6 +91,7 @@ function _reloj(parametros, desde) {
 	const hoy = Date.now();
 	let ef = 0, gdd = 0;
 	const ult = [];
+	const gwUlt = [];
 	for (const f of Object.keys(t2).sort()) {
 		const d = Date.UTC(+f.slice(0, 4), +f.slice(4, 6) - 1, +f.slice(6, 8));
 		if (d < desde.getTime() || d > hoy) continue;
@@ -108,10 +104,23 @@ function _reloj(parametros, desde) {
 		if (tOk) gdd += Math.max(0, t - TBASE);
 		ult.push({ de, gdd: tOk ? Math.max(0, t - TBASE) : 0 });
 		if (ult.length > 14) ult.shift();
+		if (g != null && g > -900) gwUlt.push(g);
+		if (gwUlt.length > 21) gwUlt.shift();
 	}
 	const ritmo = ult.length ? ult.reduce((a, u) => a + u.de, 0) / ult.length : 0.5;
 	const ritmoGdd = ult.length ? ult.reduce((a, u) => a + u.gdd, 0) / ult.length : 0;
-	return { efectivos: Math.round(ef * 10) / 10, gdd: Math.round(gdd), ritmo: Math.max(0.1, ritmo), ritmoGdd: Math.max(1, ritmoGdd) };
+	// Estrés hídrico sostenido: días de las últimas 3 semanas con la
+	// raíz muy por debajo del umbral — aunque el reloj marque punto,
+	// el rebote no despega.
+	const secos21 = gwUlt.filter((g) => g < HUM_MIN * 0.7).length;
+	return {
+		efectivos: Math.round(ef * 10) / 10,
+		gdd: Math.round(gdd),
+		ritmo: Math.max(0.1, ritmo),
+		ritmoGdd: Math.max(1, ritmoGdd),
+		secos21,
+		estresHidrico: secos21 >= SECO21
+	};
 }
 
 // Regresión kgMS/ha ≈ a + b·NDVI calibrada con los aforos de la
@@ -159,9 +168,14 @@ async function evaluar(parcela, { catalogo, lang, ligero }) {
 	if (!centro) { out.estado = 'sin_dato'; out.texto = T.sin_dato; return out; }
 
 	const uso = _ultimoUso(parcela);
-	const [dia, ndviHoy] = await Promise.all([
+	// NDVI por área: mediana de los píxeles dentro del polígono, no
+	// del punto solo. En ligero (PDF) se saltea el año pasado y el
+	// SMAP, que son fichas extra.
+	const [dia, ndviZona, ndviZonaAnt, smapZona] = await Promise.all([
 		power.diario(centro.lat, centro.lon, 400),
-		gibs.valorBuscando('ndvi', centro.lat, centro.lon, 0, 8, 4)
+		gibs.valorBuscandoZona('ndvi', parcela.geometry, 0, 8, 4),
+		ligero ? Promise.resolve(null) : gibs.valorBuscandoZona('ndvi', parcela.geometry, 365, 8, 6),
+		ligero ? Promise.resolve(null) : gibs.valorBuscandoZona('smap', parcela.geometry, 3, 1, 6)
 	]);
 	const parametros = dia && dia.parametros;
 	if (!parametros || !parametros.T2M) { out.estado = 'sin_dato'; out.texto = T.sin_clima; return out; }
@@ -173,7 +187,12 @@ async function evaluar(parcela, { catalogo, lang, ligero }) {
 		const detectado = detectarCorte(serie);
 		if (detectado) { t0 = new Date(detectado); t0Fuente = 'ndvi'; }
 	}
-	out.ndvi = ndviHoy ? ndviHoy.valor : null;
+	const z = ndviZona && ndviZona.zona;
+	out.ndvi = z ? z.media : null;
+	out.ndviRango = z && z.n > 1 ? { min: z.min, max: z.max, n: z.n } : null;
+	out.ndviFecha = ndviZona ? ndviZona.fecha : null;
+	out.ndviAnt = ndviZonaAnt && ndviZonaAnt.zona ? ndviZonaAnt.zona.media : null;
+	out.smap = smapZona && smapZona.zona ? smapZona.zona.media : null;
 	if (!t0) { out.estado = 'sin_dato'; out.texto = T.sin_dato; return out; }
 
 	out.t0 = t0.toISOString().slice(0, 10);
@@ -181,7 +200,14 @@ async function evaluar(parcela, { catalogo, lang, ligero }) {
 	const reloj = _reloj(parametros, t0);
 	out.diasEfectivos = reloj.efectivos;
 	out.gdd = reloj.gdd;
+	out.estresHidrico = reloj.estresHidrico;
 	out.kgMSHaEst = ligero ? null : await kgMSHaEst(parcela, centro.lat, centro.lon, out.ndvi);
+	// Capacidad de carga orientativa: con el forraje parado y
+	// aprovechamiento del 50 %, cuántos animales de ~450 kg sostiene
+	// el potrero durante 30 días.
+	if (out.kgMSHaEst != null && out.areaHa) {
+		out.ev30 = Math.round(out.kgMSHaEst * out.areaHa * UTIL / (CONSUMO_DIA * 30) * 10) / 10;
+	}
 
 	// Variante ensilaje: el reloj va por grados-día al grano pastoso.
 	if (esp.gddEnsilaje && t0Fuente === 'siembra') {

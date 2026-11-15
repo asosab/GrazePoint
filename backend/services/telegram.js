@@ -102,10 +102,37 @@ async function vincular(codigo, msg, T) {
 	return reasignado ? conf + ' ' + T.vinculado_re(user.email) : conf;
 }
 
+// /resumen — estado forrajero de los potreros del usuario vinculado,
+// como texto plano. Requires perezosos: el poller arranca antes de
+// que mongo esté lista y estos modelos esperan la conexión.
+async function _resumen(msg, T, lang) {
+	const yo = await FsUser.findOne({ telegramChatId: msg.chat.id });
+	if (!yo) return T.estado_no;
+	const Predio = require('../models/predioModel');
+	const forraje = require('./forraje');
+	const rotacion = require('./rotacion');
+	const predios = await Predio.find({ owner: String(yo._id), activo: true }).select('nombre parcelas.nombre parcelas.tipo parcelas.geometry parcelas.especieActual parcelas.fechaSiembraActual parcelas.cortes parcelas.aforos');
+	if (!predios.length || !predios.some((p) => p.parcelas.length)) return T.resumen_vacio;
+	const catalogo = await rotacion.catalogo();
+	const lineas = [T.resumen_h];
+	let n = 0;
+	for (const predio of predios) {
+		if (!predio.parcelas.length) continue;
+		lineas.push(predio.nombre + ':');
+		for (const p of predio.parcelas.slice(0, 15)) {
+			const e = await forraje.evaluar(p, { catalogo, lang });
+			lineas.push('• ' + p.nombre + ' — ' + e.texto);
+			n++;
+		}
+	}
+	return n ? lineas.join('\n') : T.resumen_vacio;
+}
+
 async function _procesar(upd) {
 	const msg = upd.message;
 	if (!msg || !msg.text) return;
-	const T = TG[_langDe(msg)];
+	const lang = _langDe(msg);
+	const T = TG[lang];
 	const partes = msg.text.trim().split(/\s+/);
 	const cmd = partes[0].split('@')[0].toLowerCase();
 	const arg = partes.slice(1).join(' ').trim();
@@ -116,6 +143,7 @@ async function _procesar(upd) {
 		return enviar(msg.chat.id, await vincular(arg, msg, T));
 	}
 	if (cmd === '/start') return enviar(msg.chat.id, T.bienvenida);
+	if (cmd === '/resumen' || cmd === '/summary') return enviar(msg.chat.id, await _resumen(msg, T, lang));
 	if (cmd === '/estado' || cmd === '/status') {
 		if (cnf.telegram.adminId && msg.chat.id === cnf.telegram.adminId) {
 			const n = await FsUser.countDocuments({ telegramChatId: { $ne: null } });

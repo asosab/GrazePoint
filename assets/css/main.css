@@ -59,6 +59,11 @@ button { font: inherit; cursor: pointer; }
 
 /* ── App ─────────────────────────────────────────────────── */
 .mapa-app { position: fixed; inset: 0; z-index: 0; }
+.mapa-app.soltando { outline: 3px dashed #4cb8e8; outline-offset: -8px; }
+.mapa-app.soltando::after {
+  content: '⤓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 3rem; color: #4cb8e8; pointer-events: none; z-index: 5;
+}
 .barra-top {
   position: fixed; top: 0; left: 0; right: 0; z-index: 20;
   display: flex; align-items: center; justify-content: space-between;

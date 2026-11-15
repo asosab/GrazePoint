@@ -34,7 +34,9 @@ Pages: **https://asosab.github.io/fieldShift/**
   código `FS-XXXXXX` de un solo uso (10 min, hasheado). Flujo:
   `POST /me/telegram/codigo` → deep-link `t.me/fieldshift_bot?start=`
   → `/start` o `/vincular <código>` en el chat → `GET /me` trae
-  `telegram.vinculado`. `DELETE /me/telegram` desvincula. Env:
+  `telegram.vinculado`. `DELETE /me/telegram` desvincula.
+  `/resumen` (`/summary`) devuelve el estado forrajero de todos los
+  potreros del usuario como texto plano. Env:
   `FIELDSHIFT_TG_TOKEN`, `FIELDSHIFT_TG_BOT`, `FIELDSHIFT_TG_ADMIN`
   (chat id del admin: comandos de control como `/estado`). Sin token
   el poller no arranca y el resto del servicio funciona igual.
@@ -60,10 +62,14 @@ cada polígono marcado.
   Anillos se cierran y orientan (exterior antihorario, huecos horarios).
 - Libs por CDN bajo demanda (no se cargan hasta que hace falta):
   jszip, shp.js, pdfjs-dist, pdf-lib, proj4.
-- UI: `fab-importar` (⤓) + input `#imp-archivo` en `app/` y `es/app/`;
-  los candidatos se pintan punteados en `mapa.js` (`pintarCandidatos`)
-  y se importan desde la sábana (`hojaImportar` en `app.js`). El plano
-  se quita con `#capa-quitar`.
+- UI: `fab-importar` (⤓) abre `hojaImportarInicio` en `app.js`:
+  subir archivo (`#imp-archivo`), **soltar archivos directo sobre el
+  mapa** (drop en `#mapa`, clase `.soltando`) o **pegar coordenadas
+  UTM** (Este/Norte por línea, zona 19–21 S →
+  `FS.importar.utmPunto` + `FS.importar.candidato`). Los candidatos
+  se pintan punteados en `mapa.js` (`pintarCandidatos`) y se importan
+  desde la sábana (`hojaImportar`). El plano se quita con
+  `#capa-quitar`.
 
 ## Capas de análisis + paso de tiempo
 
@@ -94,6 +100,11 @@ flechas, play y pills de lluvia/temp/humedad.
   climatology como números — los ciclos previos.
 - Solo las capas `temporal` (GIBS no-fix) siguen la fecha; el resto no
   se toca. Al cerrar, `FS.capas.setPaso(null)` vuelve a «actual».
+- **Enfoque de parcela** (`FS.mapa.enfocar`): con al menos una capa
+  de análisis activa y una parcela seleccionada, `app.js`
+  (`actualizarEnfoque`) pinta una máscara mundo-con-hueco que oscurece
+  lo que queda fuera del polígono — refuerza que el análisis es del
+  área, no del mapa entero.
 
 ## Estado forrajero (punto óptimo de pastoreo / corte / ensilaje)
 
@@ -114,7 +125,18 @@ entrar el lote o cortarse, en tres estados (`rebrote` / `punto_optimo` /
   (estrés o fecha mal anotada).
 - **Calibración aforo↔NDVI** (`kgMSHaEst`): regresión local
   kg MS/ha ≈ a+b·NDVI con los últimos aforos + NDVI de sus fechas;
-  alimenta `forrajeTotalKgMS` del predio.
+  alimenta `forrajeTotalKgMS` del predio. Con aforo+área sale
+  `ev30`: capacidad de carga orientativa (cabezas de ~450 kg por
+  30 días, aprovechamiento 50 %, consumo 10 kg MS/día).
+- **Análisis por área, no por punto** (`services/muestreo.js`):
+  grilla de puntos dentro del polígono al paso del píxel nativo de
+  cada capa (NDVI ~300 m en z9, SMAP ~2.4 km en z6, tope 40) →
+  `gibsValores.valorZona`/`valorBuscandoZona` devuelven
+  `{media,min,max,n}` (mediana de píxeles). `puntoDentro` da un punto
+  interior garantizado (centroide si cae dentro) para POWER/suelo:
+  ya no se usa el primer vértice del anillo. `forraje.evaluar`
+  además trae `ndviAnt` (misma época año anterior), `smap`,
+  `estresHidrico` (≥15 de 21 días con GWETROOT <0.21) y `ev30`.
 - **Ensilaje**: especies con `gddEnsilaje` (sorgo 1250, maíz 1400) usan
   grados-día base 10 °C desde `fechaSiembraActual` al grano pastoso.
 - Endpoints: `GET /predios/:id/forraje` (ranking: punto óptimo primero,
@@ -123,8 +145,12 @@ entrar el lote o cortarse, en tres estados (`rebrote` / `punto_optimo` /
   (sin serie NDVI ni calibración: el informe no puede esperar ~15
   tiles por parcela).
 - **Alertas Telegram** (`services/alertas.js`): barrido diario; avisa
-  cuando una parcela ENTRA a punto óptimo/ensilar. Dedo por parcela:
-  `avisoForraje {estado,en}` evita reenviar y se limpia al salir.
+  al ENTRAR a una condición, no mientras siga. Tipos: `punto`
+  (óptimo/ensilar), `revisar` (desacuerdo reloj-vs-NDVI), `estres`
+  (estrés hídrico sostenido), `ndvi_cae` (peor que el año pasado
+  −0.10) y `saturado` (SMAP ≥0.50, anegamiento). Dedo por tipo:
+  `parcela.avisos {tipo: fecha}` (migra el viejo `avisoForraje`),
+  se limpia solo al salir de la condición.
 
 ## Internacionalización (EN por defecto + ES)
 

@@ -132,6 +132,22 @@ window.FS = window.FS || {};
 
   function limpiarCandidatos() { capaImportados.clearLayers(); }
 
+  // ── Enfoque de parcela ──────────────────────────────────
+  // El análisis es del área del polígono, no de todo el mapa: cuando
+  // hay capas de datos activas se oscurece lo que queda fuera de la
+  // parcela seleccionada (mundo con hueco), así los tiles se leen
+  // solo sobre ella. Sin parcela (null) se quita la máscara.
+  var capaEnfoque = null;
+  function enfocar(parcela) {
+    if (capaEnfoque) { mapa.removeLayer(capaEnfoque); capaEnfoque = null; }
+    if (!parcela || !parcela.geometry || !parcela.geometry.coordinates) return;
+    var mundo = [[-85, -180], [85, -180], [85, 180], [-85, 180]];
+    var hueco = parcela.geometry.coordinates[0].map(function (c) { return [c[1], c[0]]; });
+    capaEnfoque = L.polygon([mundo, hueco], {
+      stroke: false, fillColor: '#0b0f0c', fillOpacity: .45, interactive: false
+    }).addTo(mapa);
+  }
+
   function ponerPlano(dataUrl, bounds) {
     quitarPlano();
     capaPlano = L.imageOverlay(dataUrl, bounds, { opacity: .72 }).addTo(mapa);
@@ -206,6 +222,7 @@ window.FS = window.FS || {};
     pintarCandidatos: pintarCandidatos,
     encuadrarCandidatos: encuadrarCandidatos,
     limpiarCandidatos: limpiarCandidatos,
+    enfocar: enfocar,
     ponerPlano: ponerPlano,
     quitarPlano: quitarPlano,
     hayPlano: hayPlano,

@@ -13,6 +13,7 @@
 
 const { PNG } = require('pngjs');
 const cnf = require('../config');
+const muestreo = require('./muestreo');
 
 const TILE_TTL = 6 * 60 * 60 * 1000;
 const tiles = new Map();
@@ -144,4 +145,51 @@ async function serieNdvi(lat, lon, dias, paso) {
 	return out;
 }
 
-module.exports = { valor, valorBuscando, serieNdvi };
+// ── Muestreo por área ────────────────────────────────────────────────────
+// El valor no es de un punto sino de la parcela: grilla de puntos
+// dentro del polígono con el paso del píxel nativo de la capa
+// (NDVI ~305 m en z9, SMAP ~2.4 km en z6). Los tiles se cachean por
+// xyz, así que muchos puntos sobre el mismo tile no cuestan fichas.
+// Devuelve { media, min, max, n, nTotal } o null si ningún punto dio
+// dato (nube / fuera de cobertura). Parcelas más chicas que el paso
+// caen a un único punto interior.
+const PASO_M = { ndvi: 300, smap: 2400 };
+const MAX_PUNTOS = 40;
+
+async function valorZona(capa, geometry, ymd) {
+	if (!CAPAS[capa]) return null;
+	let pts = muestreo.puntosMuestra(geometry, PASO_M[capa] || 300, MAX_PUNTOS);
+	if (!pts.length) {
+		const p = muestreo.puntoDentro(geometry);
+		if (!p) return null;
+		pts = [[p.lon, p.lat]];
+	}
+	const vals = [];
+	for (const [lon, lat] of pts) {
+		const v = await valor(capa, lat, lon, ymd);
+		if (v != null) vals.push(v);
+	}
+	if (!vals.length) return null;
+	vals.sort((a, b) => a - b);
+	return {
+		media: vals[Math.floor(vals.length / 2)],
+		min: vals[0],
+		max: vals[vals.length - 1],
+		n: vals.length,
+		nTotal: pts.length
+	};
+}
+
+// Igual que valorBuscando pero por área: camina fechas hacia atrás
+// hasta que la parcela tenga al menos un píxel con dato.
+async function valorBuscandoZona(capa, geometry, diasAtras, paso, intentos) {
+	for (let i = 0; i < intentos; i++) {
+		const d = new Date(Date.now() - (diasAtras + i * paso) * 86400000);
+		const ymd = d.toISOString().slice(0, 10);
+		const z = await valorZona(capa, geometry, ymd);
+		if (z) return { zona: z, fecha: ymd };
+	}
+	return null;
+}
+
+module.exports = { valor, valorBuscando, serieNdvi, valorZona, valorBuscandoZona };

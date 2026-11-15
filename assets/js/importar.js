@@ -570,6 +570,27 @@ window.FS = window.FS || {};
     return res;
   }
 
+  // ── entrada directa por coordenadas UTM ────────────────
+  // Este,Norte UTM zona `z` sur (19|20|21…) → [lon,lat] WGS84.
+  async function utmPunto(e, n, zona) {
+    await lib('proj4');
+    _registrarDefs();
+    var epsg = 'EPSG:327' + (zona < 10 ? '0' : '') + zona;
+    if (!proj4.defs[epsg]) throw new Error('zona_mala');
+    var p = proj4(epsg, 'EPSG:4326').forward([e, n]);
+    return [p[0], p[1]];
+  }
+
+  // Normaliza un anillo lon/lat suelto al formato candidato:
+  // cierra el anillo, orienta y mide hectáreas.
+  function candidato(nombre, anillo) {
+    var ring = cerrarAnillo(anillo);
+    if (!ring) return null;
+    var c = { nombre: nombre, geometry: { type: 'Polygon', coordinates: orientar([ring]) } };
+    c.ha = Math.round(areaHa(c.geometry) * 10) / 10;
+    return c;
+  }
+
   // ── entrada principal ───────────────────────────────────
   var cands_crs = null;
 
@@ -639,5 +660,5 @@ window.FS = window.FS || {};
     return { cands: cands, notas: notas, plano: plano };
   }
 
-  FS.importar = { leerArchivos: leerArchivos };
+  FS.importar = { leerArchivos: leerArchivos, utmPunto: utmPunto, candidato: candidato };
 })();

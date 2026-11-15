@@ -192,7 +192,9 @@ const TG = {
 		estado_si: (e) => 'Estás vinculado a la cuenta ' + e + '.',
 		estado_no: 'Este Telegram no está vinculado a ninguna cuenta todavía. Vinculalo desde tu perfil en la app.',
 		estado_admin: (n) => 'Bot funcionando. Usuarios con Telegram vinculado: ' + n + '.',
-		ayuda: 'Comandos: /vincular <código> para vincular tu cuenta · /estado para ver tu vínculo.'
+		resumen_h: 'Estado de tus potreros:',
+		resumen_vacio: 'No tienes predios ni potreros registrados todavía: cargalos en la app primero.',
+		ayuda: 'Comandos: /vincular <código> para vincular tu cuenta · /estado para ver tu vínculo · /resumen para el estado de tus potreros.'
 	},
 	en: {
 		bienvenida: 'Hi, I am the Field Shift bot. To link your account, open the app, go to your profile and tap "Link Telegram": it will give you a code like FS-ABC123 to send me here.',
@@ -202,7 +204,9 @@ const TG = {
 		estado_si: (e) => 'You are linked to the account ' + e + '.',
 		estado_no: 'This Telegram is not linked to any account yet. Link it from your profile in the app.',
 		estado_admin: (n) => 'Bot is running. Users with linked Telegram: ' + n + '.',
-		ayuda: 'Commands: /link <code> to link your account · /status to check your link.'
+		resumen_h: 'Your paddock status:',
+		resumen_vacio: 'No farms or paddocks on record yet: add them in the app first.',
+		ayuda: 'Commands: /link <code> to link your account · /status to check your link · /summary for your paddock status.'
 	}
 };
 
@@ -225,6 +229,10 @@ const FORRAJE = {
 		kgms: (v, ha) => 'Forraje estimado: ~' + v + ' kg MS/ha' + (ha ? ' (~' + Math.round(v * ha) + ' kg MS en el potrero)' : ''),
 		estados: { sin_especie: 'sin especie', sin_dato: 'sin dato', rebrote: 'en rebrote', punto_optimo: 'punto óptimo', pasado: 'pasado', creciendo: 'creciendo', punto_ensilaje: 'punto de ensilar', pasado_ensilaje: 'pasado de ensilar' },
 		aviso_tg: (p, predio, esp) => 'El potrero «' + p + '» de ' + predio + ' llegó a su punto óptimo de ' + (esp || 'pasto') + ': buen momento para entrar el lote o cortar.',
+		aviso_revisar: (p, predio) => 'El potrero «' + p + '» de ' + predio + ' marcó punto óptimo pero la vegetación no despegó: conviene revisarlo en campo.',
+		aviso_estres: (p, predio) => 'El suelo del potrero «' + p + '» de ' + predio + ' lleva semanas muy seco: el rebrote va lento aunque el reloj diga otra cosa.',
+		aviso_ndvi_cae: (p, predio) => 'La vegetación del potrero «' + p + '» de ' + predio + ' se ve peor que en la misma época del año pasado.',
+		aviso_saturado: (p, predio) => 'El suelo del potrero «' + p + '» de ' + predio + ' está saturado de agua: mejor no meter el lote hasta que drene.',
 		pdf_h: 'Estado de los potreros',
 		pdf_desde: 'desde',
 		pdf_efectivos: 'días efectivos de rebrote',
@@ -249,6 +257,10 @@ const FORRAJE = {
 		kgms: (v, ha) => 'Estimated forage: ~' + v + ' kg DM/ha' + (ha ? ' (~' + Math.round(v * ha) + ' kg DM in the paddock)' : ''),
 		estados: { sin_especie: 'no species', sin_dato: 'no data', rebrote: 'regrowing', punto_optimo: 'best point', pasado: 'overmature', creciendo: 'growing', punto_ensilaje: 'silage point', pasado_ensilaje: 'past silage point' },
 		aviso_tg: (p, predio, esp) => 'The paddock "' + p + '" at ' + predio + ' reached its best point for ' + (esp || 'forage') + ': good time to move the herd in or cut.',
+		aviso_revisar: (p, predio) => 'The paddock "' + p + '" at ' + predio + ' hit its best point but the canopy did not take off: worth a field visit.',
+		aviso_estres: (p, predio) => 'The soil at paddock "' + p + '" at ' + predio + ' has been very dry for weeks: regrowth is slow even if the clock says otherwise.',
+		aviso_ndvi_cae: (p, predio) => 'Vegetation at paddock "' + p + '" at ' + predio + ' looks worse than at this time last year.',
+		aviso_saturado: (p, predio) => 'The soil at paddock "' + p + '" at ' + predio + ' is waterlogged: better keep the herd out until it drains.',
 		pdf_h: 'Paddock status',
 		pdf_desde: 'since',
 		pdf_efectivos: 'effective regrowth days',

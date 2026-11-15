@@ -331,7 +331,8 @@ router.get('/predios/:id/forraje', authenticate, wrap(async (req, res) => {
 			parcela: { _id: p._id, nombre: p.nombre, tipo: p.tipo, especie: p.especieActual },
 			estado: e.estado, texto: e.texto, tardio: e.tardio, desacuerdo: e.desacuerdo,
 			diasEfectivos: e.diasEfectivos, diasFaltantes: e.diasFaltantes, t0: e.t0, t0Fuente: e.t0Fuente,
-			ndvi: e.ndvi, kgMSHaEst: e.kgMSHaEst, areaHa: e.areaHa
+			ndvi: e.ndvi, ndviRango: e.ndviRango, ndviAnt: e.ndviAnt, smap: e.smap,
+			estresHidrico: e.estresHidrico, kgMSHaEst: e.kgMSHaEst, ev30: e.ev30, areaHa: e.areaHa
 		});
 	}
 	estados.sort((a, b) => (orden[a.estado] - orden[b.estado])
@@ -342,9 +343,14 @@ router.get('/predios/:id/forraje', authenticate, wrap(async (req, res) => {
 
 // ── Análisis: clima + rotación + ventana ────────────────────────────────────
 
+const muestreo = require('../services/muestreo');
+
 function _centroDe(predio, parcela) {
-	if (parcela && parcela.geometry && parcela.geometry.coordinates[0] && parcela.geometry.coordinates[0][0]) {
-		return { lon: parcela.geometry.coordinates[0][0][0], lat: parcela.geometry.coordinates[0][0][1] };
+	// El punto de consulta es un punto interior de la parcela, no el
+	// primer vértice del anillo.
+	if (parcela) {
+		const p = muestreo.puntoDentro(parcela.geometry);
+		if (p) return p;
 	}
 	if (predio.centro && predio.centro.coordinates) return { lon: predio.centro.coordinates[0], lat: predio.centro.coordinates[1] };
 	return null;
@@ -359,25 +365,32 @@ router.get('/predios/:id/analisis', authenticate, wrap(async (req, res) => {
 
 	// Serie diaria de 400 días: cubre los últimos 6 meses y los mismos
 	// 6 meses del ciclo anterior, que es lo que `tiempo` compara.
-	// GIBS en paralelo: NDVI actual, NDVI de hace un año y humedad
-	// SMAP de raíz — valores reales decodificados del tile del punto.
+	// GIBS por área: NDVI actual, NDVI de hace un año y humedad SMAP
+	// de raíz muestreados en una grilla dentro del polígono (mediana
+	// de píxeles, no un punto suelto). Sin parcela cae al punto.
+	const geom = parcela && parcela.geometry && parcela.geometry.coordinates ? parcela.geometry : null;
 	const [clim, dia, sueloW, ndviHoy, ndviAnt, smap] = await Promise.all([
 		power.climatologia(centro.lat, centro.lon),
 		power.diario(centro.lat, centro.lon, 400),
 		sueloWeb.consultar(centro.lat, centro.lon),
-		gibs.valorBuscando('ndvi', centro.lat, centro.lon, 10, 8, 4),
-		gibs.valorBuscando('ndvi', centro.lat, centro.lon, 365, 8, 6),
-		gibs.valorBuscando('smap', centro.lat, centro.lon, 3, 1, 6)
+		geom ? gibs.valorBuscandoZona('ndvi', geom, 10, 8, 4) : gibs.valorBuscando('ndvi', centro.lat, centro.lon, 10, 8, 4),
+		geom ? gibs.valorBuscandoZona('ndvi', geom, 365, 8, 6) : gibs.valorBuscando('ndvi', centro.lat, centro.lon, 365, 8, 6),
+		geom ? gibs.valorBuscandoZona('smap', geom, 3, 1, 6) : gibs.valorBuscando('smap', centro.lat, centro.lon, 3, 1, 6)
 	]);
 	const resumenPower = power.resumen(dia, clim);
 	const tendencia = tiempo.analizar(dia, clim);
+	const _v = (r) => (r && r.zona ? r.zona.media : r && r.valor != null ? r.valor : null);
+	const _f = (r) => (r ? r.fecha : null);
 	const terreno = {
-		ndvi: ndviHoy ? ndviHoy.valor : null,
-		ndviFecha: ndviHoy ? ndviHoy.fecha : null,
-		ndviAnt: ndviAnt ? ndviAnt.valor : null,
-		ndviAntFecha: ndviAnt ? ndviAnt.fecha : null,
-		smap: smap ? smap.valor : null,
-		smapFecha: smap ? smap.fecha : null
+		ndvi: _v(ndviHoy),
+		ndviFecha: _f(ndviHoy),
+		ndviAnt: _v(ndviAnt),
+		ndviAntFecha: _f(ndviAnt),
+		smap: _v(smap),
+		smapFecha: _f(smap),
+		ndviMin: ndviHoy && ndviHoy.zona && ndviHoy.zona.n > 1 ? ndviHoy.zona.min : null,
+		ndviMax: ndviHoy && ndviHoy.zona && ndviHoy.zona.n > 1 ? ndviHoy.zona.max : null,
+		muestras: ndviHoy && ndviHoy.zona ? ndviHoy.zona.n : null
 	};
 	const lang = langDe(req);
 	const [rec, ven, forr] = await Promise.all([

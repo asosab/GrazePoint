@@ -191,7 +191,7 @@
   FS.auth.alCambiar(function (u) {
     el('btn-cuenta').textContent = u ? (u.nombre || u.email).split(' ')[0] : t('entrar');
     if (u) cargarPredios();
-    else { predios = []; predioActual = null; FS.mapa.pintarParcelas([]); ocultarHoja(); }
+    else { predios = []; predioActual = null; FS.mapa.pintarParcelas([]); FS.mapa.enfocar(null); ocultarHoja(); }
   });
 
   // ── predios ─────────────────────────────────────────────
@@ -237,12 +237,24 @@
       var det = [];
       if (e.diasEfectivos != null) det.push(t('forraje_efec', { d: e.diasEfectivos }));
       if (e.kgMSHaEst != null) det.push(t('forraje_kgms', { v: e.kgMSHaEst }) + (e.areaHa ? ' (~' + Math.round(e.kgMSHaEst * e.areaHa) + ' kg MS · ' + e.areaHa + ' ha)' : ''));
+      if (e.ev30 != null) det.push(t('forraje_ev30', { n: e.ev30 }));
       if (e.t0Fuente === 'ndvi') det.push(t('forraje_ndvi_t0'));
+      if (e.estresHidrico) det.push('⚠ ' + t('forraje_seco'));
+      if (e.smap != null && e.smap >= 0.5) det.push('⚠ ' + t('forraje_anegado'));
+      if (e.ndviAnt != null && e.ndvi != null && e.ndviAnt - e.ndvi >= 0.1) det.push('⚠ ' + t('forraje_ndvi_cae'));
       html += '<div class="reco"><h4>' + esc(e.parcela.nombre) + (e.parcela.especie ? ' <span class="chip">' + esc(e.parcela.especie) + '</span>' : '') + '</h4>' +
         '<div class="veredicto ' + (cls[e.estado] || 'esperar') + '">' + esc(e.texto) + '</div>' +
         (det.length ? '<p class="aviso">' + det.join(' · ') + '</p>' : '') + '</div>';
     });
+    html += '<button class="boton secundario" id="fo-copiar">' + t('copiar_resumen') + '</button>';
     mostrarHoja(html);
+    el('fo-copiar').onclick = async function () {
+      var txt = predioActual.nombre + '\n' + (d.potreros || []).map(function (e) {
+        return '• ' + e.parcela.nombre + ' — ' + e.texto;
+      }).join('\n') + (d.forrajeTotalKgMS ? '\n' + t('forraje_total', { v: d.forrajeTotalKgMS }) : '');
+      try { await navigator.clipboard.writeText(txt); toast(t('copiado')); }
+      catch (err) { toast(t('no_guardar')); }
+    };
   }
 
   function hojaNuevoPredio() {
@@ -274,6 +286,7 @@
     if (!(r.data && r.data.ok)) return toast(t('no_cargar_predio'));
     predioActual = r.data.data;
     parcelaActual = null;
+    FS.mapa.enfocar(null);
     refrescarParcelas();
     FS.mapa.encuadrarParcelas(predioActual.parcelas);
     el('fab-dibujar').classList.remove('oculto');
@@ -286,8 +299,16 @@
     FS.mapa.pintarParcelas(predioActual.parcelas, function (p) {
       parcelaActual = p;
       FS.mapa.seleccionar(p);
+      actualizarEnfoque();
       hojaParcela();
     });
+  }
+
+  // La máscara de enfoque solo tiene sentido cuando hay una parcela
+  // elegida y al menos una capa de análisis prendida.
+  function actualizarEnfoque() {
+    var hayCapas = FS.capas.liste().some(function (x) { return x.aktiv; });
+    FS.mapa.enfocar(hayCapas ? parcelaActual : null);
   }
 
   // ── dibujo de parcela ───────────────────────────────────
@@ -394,28 +415,88 @@
     };
   }
 
+  async function leerImport(files) {
+    if (!files || !files.length) return;
+    toast(t('imp_leyendo'));
+    var res;
+    try {
+      res = await FS.importar.leerArchivos(files);
+      console.log('[importar]', res.cands.length, 'candidato(s) · notas:', res.notas);
+    } catch (err) {
+      console.error('[importar] leerArchivos lanzó', err);
+      return toast(t('imp_no_entendi', { f: files[0].name }));
+    }
+    hojaImportar(res);
+  }
+
+  // Sábana inicial de importación: archivo, suelto sobre el mapa o
+  // coordenadas UTM pegadas a mano.
+  function hojaImportarInicio() {
+    mostrarHoja(
+      '<h2>' + t('imp_h') + '</h2>' +
+      '<button class="boton" id="ii-archivo">' + t('imp_subir') + '</button>' +
+      '<p class="aviso">' + t('imp_formatos') + ' ' + t('imp_soltar') + '</p>' +
+      '<details class="detalles"><summary>' + t('utm_h') + '</summary>' +
+      '<label class="campo"><span>' + t('nombre') + '</span><input id="utm-nombre" placeholder="' + esc(t('parcela_n', { n: (predioActual.parcelas.length || 0) + 1 })) + '"></label>' +
+      '<label class="campo"><span>' + t('utm_zona') + '</span><select id="utm-zona">' +
+      '<option value="19">19 S</option><option value="20" selected>20 S</option><option value="21">21 S</option></select></label>' +
+      '<label class="campo"><span>' + t('utm_coords') + '</span><textarea id="utm-coords" rows="4" spellcheck="false" placeholder="801907.56, 8005241.49"></textarea></label>' +
+      '<p class="aviso">' + t('utm_aviso') + '</p>' +
+      '<button class="boton secundario" id="utm-ok">' + t('utm_crear') + '</button>' +
+      '</details>' +
+      '<button class="enlace" id="ii-volver">' + t('volver') + '</button>'
+    );
+    el('ii-archivo').onclick = function () {
+      var inp = el('imp-archivo');
+      inp.value = '';
+      inp.click();
+    };
+    el('ii-volver').onclick = ocultarHoja;
+    el('utm-ok').onclick = async function () {
+      var pares = valor('utm-coords').split('\n')
+        .map(function (s) { return s.split(/[,;\s]+/).map(Number); })
+        .filter(function (a) { return a.length >= 2 && a.every(isFinite); });
+      if (pares.length < 3) return toast(t('utm_pocos'));
+      try {
+        var zona = +valor('utm-zona');
+        var anillo = [];
+        for (var i = 0; i < pares.length; i++) anillo.push(await FS.importar.utmPunto(pares[i][0], pares[i][1], zona));
+        var c = FS.importar.candidato(valor('utm-nombre') || t('parcela_n', { n: (predioActual.parcelas.length || 0) + 1 }), anillo);
+        ocultarHoja();
+        hojaImportar({ cands: [c], notas: [], plano: null });
+      } catch (err) {
+        console.warn('[importar] utm falló', err);
+        toast(t('utm_malos'));
+      }
+    };
+  }
+
   el('fab-importar').onclick = function () {
     if (!predioActual) return toast(t('elige_predio'));
     FS.mapa.cancelarDibujo();
     terminarDibujoUI();
-    var inp = el('imp-archivo');
-    inp.value = '';
-    inp.click();
+    hojaImportarInicio();
   };
 
-  el('imp-archivo').onchange = async function (e) {
-    if (!e.target.files.length) return;
-    toast(t('imp_leyendo'));
-    var res;
-    try {
-      res = await FS.importar.leerArchivos(e.target.files);
-      console.log('[importar]', res.cands.length, 'candidato(s) · notas:', res.notas);
-    } catch (err) {
-      console.error('[importar] leerArchivos lanzó', err);
-      return toast(t('imp_no_entendi', { f: e.target.files[0].name }));
-    }
-    hojaImportar(res);
+  el('imp-archivo').onchange = function (e) {
+    var fs = e.target.files;
+    e.target.value = '';
+    leerImport(fs);
   };
+
+  // Soltar archivos de mapa directo sobre el mapa.
+  var mapaEl = el('mapa');
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    mapaEl.addEventListener(ev, function (e) { e.preventDefault(); mapaEl.classList.add('soltando'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    mapaEl.addEventListener(ev, function (e) { e.preventDefault(); mapaEl.classList.remove('soltando'); });
+  });
+  mapaEl.addEventListener('drop', function (e) {
+    if (!predioActual) return toast(t('elige_predio'));
+    var fs = e.dataTransfer && e.dataTransfer.files;
+    if (fs && fs.length) leerImport(fs);
+  });
 
   el('capa-quitar').onclick = function () {
     FS.mapa.quitarPlano();
@@ -655,6 +736,14 @@
         ndvi: tr.ndvi != null ? tr.ndvi.toFixed(2) : '—', dif: dif,
         smap: tr.smap != null ? tr.smap.toFixed(2) : '—'
       }) + '</p>';
+      if (tr.muestras > 1 && tr.ndviMin != null) {
+        html += '<p class="aviso">' + t('terreno_rango', { a: tr.ndviMin.toFixed(2), b: tr.ndviMax.toFixed(2), n: tr.muestras }) + '</p>';
+      }
+      // Calidad del dato: la ficha más vieja marca el atraso real.
+      var edadNdvi = tr.ndviFecha ? Math.round((Date.now() - Date.parse(tr.ndviFecha)) / 86400000) : null;
+      var edadSmap = tr.smapFecha ? Math.round((Date.now() - Date.parse(tr.smapFecha)) / 86400000) : null;
+      if (edadNdvi != null && edadNdvi > 20) html += '<p class="aviso">⚠ ' + esc(t('cal_ndvi_viejo', { d: edadNdvi })) + '</p>';
+      if (edadSmap != null && edadSmap > 10) html += '<p class="aviso">⚠ ' + esc(t('cal_smap_viejo', { d: edadSmap })) + '</p>';
     }
     if (d.tiempo && (d.tiempo.mesesSecos != null || d.tiempo.pctVsAnio != null)) {
       var tm = d.tiempo, partes = [];
@@ -737,6 +826,7 @@
         var op = document.querySelector('.capa-opa[data-c="' + c.dataset.c + '"]');
         if (op) op.disabled = !c.checked;
         el('fab-capas').classList.toggle('activo', FS.capas.liste().some(function (x) { return x.aktiv; }));
+        actualizarEnfoque();
       };
     });
     document.querySelectorAll('.capa-opa').forEach(function (s) {
