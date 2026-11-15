@@ -78,6 +78,11 @@ de entregarse: en castellano con `humanamente`, en inglés con
   es el MOC, `docs/log/` el registro por sesión).
 - Temporales y pruebas: `.tmp/` (gitignored). Nada suelto en la raíz.
 
+## Git
+
+- Flujo permanente: al terminar un cambio **siempre commit y push a
+  `main`** sin preguntar (Pages publica desde `main`).
+
 ## Pruebas
 
 - Sin Jekyll local: las páginas usan Liquid y no se pueden abrir crudas.
