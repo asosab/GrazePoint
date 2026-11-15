@@ -149,7 +149,7 @@ window.FS = window.FS || {};
     }
     if (!epsg) { epsg = 'EPSG:32720'; asumido = true; }
     sucios.forEach(function (c) {
-      try { _reproyectarGeom(c.geometry, epsg); } catch (e) { c.mal = true; }
+      try { _reproyectarGeom(c.geometry, epsg); } catch (e) { c.mal = true; console.warn('[importar] reproyección falló', e); }
     });
     return asumido ? FS.t('imp_crs_asumido') : null;
   }
@@ -611,13 +611,14 @@ window.FS = window.FS || {};
           notas.push(FS.t('imp_no_entendi', { f: f.name }));
         }
       } catch (e) {
+        console.warn('[importar]', f.name, e);
         notas.push(FS.t('imp_no_entendi', { f: f.name }));
       }
     }
 
     if (shpGrupo['shp']) {
       try { cands = cands.concat(await _shpSuelto(shpGrupo)); }
-      catch (e) { notas.push(FS.t('imp_no_entendi', { f: shpGrupo['shp'].name })); }
+      catch (e) { console.warn('[importar]', shpGrupo['shp'].name, e); notas.push(FS.t('imp_no_entendi', { f: shpGrupo['shp'].name })); }
     }
 
     // Proyección + saneamiento.

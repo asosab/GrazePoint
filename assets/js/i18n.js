@@ -226,7 +226,30 @@ window.FS = window.FS || {};
       grupo_leguminosa: 'leguminosa',
       grupo_cultivo_servicio: 'cultivo de servicio',
       grupo_ensilaje: 'ensilaje',
-      grupo_grano: 'grano'
+      grupo_grano: 'grano',
+      // ── espera y clave ──
+      ver_clave: 'Ver la clave',
+      ocultar_clave: 'Ocultar la clave',
+      esp_generico: 'Esperando datos del servidor…',
+      esp_sesion: 'Retomando tu sesión…',
+      esp_entrando: 'Revisando tus credenciales…',
+      esp_registro: 'Creando tu cuenta…',
+      esp_verificando: 'Verificando el código…',
+      esp_reenviando: 'Reenviando el código…',
+      esp_recuperando: 'Mandando el código por correo…',
+      esp_restaurando: 'Guardando la clave nueva…',
+      esp_predios: 'Cargando tus predios…',
+      esp_creando: 'Creando el predio…',
+      esp_abriendo: 'Cargando el predio…',
+      esp_parcela: 'Guardando la parcela…',
+      esp_importando: 'Importando parcela {i} de {n}…',
+      esp_siembra: 'Guardando la siembra…',
+      esp_terreno: 'Guardando los datos del terreno…',
+      esp_campania: 'Guardando la campaña…',
+      esp_suelo: 'Guardando el análisis de suelo…',
+      esp_aforo: 'Guardando el aforo…',
+      esp_borrando: 'Eliminando la parcela…',
+      esp_analisis: 'Cruzando clima de la NASA con tu suelo…'
     },
     en: {
       // ── account ──
@@ -446,7 +469,30 @@ window.FS = window.FS || {};
       grupo_leguminosa: 'legume',
       grupo_cultivo_servicio: 'cover crop',
       grupo_ensilaje: 'silage',
-      grupo_grano: 'grain'
+      grupo_grano: 'grain',
+      // ── waiting and password ──
+      ver_clave: 'Show password',
+      ocultar_clave: 'Hide password',
+      esp_generico: 'Waiting for data from the server…',
+      esp_sesion: 'Restoring your session…',
+      esp_entrando: 'Checking your credentials…',
+      esp_registro: 'Creating your account…',
+      esp_verificando: 'Checking the code…',
+      esp_reenviando: 'Resending the code…',
+      esp_recuperando: 'Emailing you the code…',
+      esp_restaurando: 'Saving the new password…',
+      esp_predios: 'Loading your farms…',
+      esp_creando: 'Creating the farm…',
+      esp_abriendo: 'Loading the farm…',
+      esp_parcela: 'Saving the plot…',
+      esp_importando: 'Importing plot {i} of {n}…',
+      esp_siembra: 'Saving the planting…',
+      esp_terreno: 'Saving the terrain data…',
+      esp_campania: 'Saving the season…',
+      esp_suelo: 'Saving the soil test…',
+      esp_aforo: 'Saving the forage estimate…',
+      esp_borrando: 'Deleting the plot…',
+      esp_analisis: 'Crossing NASA climate data with your soil…'
     }
   };
 

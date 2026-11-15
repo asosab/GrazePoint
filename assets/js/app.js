@@ -43,6 +43,33 @@
 
   el('hoja-asa').addEventListener('click', ocultarHoja);
 
+  // ── ojo de clave ────────────────────────────────────────
+  var OJO_ABIERTO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var OJO_TACHADO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+  function campoClave(id, txt, ac) {
+    return '<div class="campo"><label for="' + id + '">' + txt + '</label>' +
+      '<div class="clave-wrap"><input id="' + id + '" type="password" autocomplete="' + ac + '">' +
+      '<button type="button" class="ojo" data-ojo="' + id + '" aria-label="' + t('ver_clave') + '" title="' + t('ver_clave') + '">' + OJO_ABIERTO + '</button>' +
+      '</div></div>';
+  }
+
+  function atarOjos() {
+    document.querySelectorAll('[data-ojo]').forEach(function (b) {
+      b.onclick = function () {
+        var inp = el(b.dataset.ojo);
+        if (!inp) return;
+        var ver = inp.type === 'password';
+        inp.type = ver ? 'text' : 'password';
+        b.innerHTML = ver ? OJO_TACHADO : OJO_ABIERTO;
+        var txt = t(ver ? 'ocultar_clave' : 'ver_clave');
+        b.setAttribute('aria-label', txt);
+        b.title = txt;
+        inp.focus();
+      };
+    });
+  }
+
   // ── auth UI ─────────────────────────────────────────────
   var emailPendiente = null;
 
@@ -52,11 +79,12 @@
       mostrarHoja(
         '<h2>' + t('entrar') + '</h2>' +
         '<label class="campo"><span>' + t('correo') + '</span><input id="a-email" type="email" autocomplete="email" inputmode="email"></label>' +
-        '<label class="campo"><span>' + t('clave') + '</span><input id="a-clave" type="password" autocomplete="current-password"></label>' +
+        campoClave('a-clave', t('clave'), 'current-password') +
         '<button class="boton" id="a-entrar">' + t('entrar') + '</button>' +
         '<button class="enlace" id="a-olvide">' + t('olvide') + '</button>' +
         '<button class="enlace" id="a-registro">' + t('crear_cta') + '</button>'
       );
+      atarOjos();
       el('a-entrar').onclick = async function () {
         var r = await FS.auth.login(valor('a-email'), valor('a-clave'));
         if (!r.data) return toast(t('sin_conexion'));
@@ -71,10 +99,11 @@
         '<h2>' + t('crear_cta_h') + '</h2>' +
         '<label class="campo"><span>' + t('nombre') + '</span><input id="a-nombre" type="text" autocomplete="name"></label>' +
         '<label class="campo"><span>' + t('correo') + '</span><input id="a-email" type="email" autocomplete="email" inputmode="email"></label>' +
-        '<label class="campo"><span>' + t('clave_min') + '</span><input id="a-clave" type="password" autocomplete="new-password"></label>' +
+        campoClave('a-clave', t('clave_min'), 'new-password') +
         '<button class="boton" id="a-crear">' + t('registrarme') + '</button>' +
         '<button class="enlace" id="a-login">' + t('ya_cuenta') + '</button>'
       );
+      atarOjos();
       el('a-crear').onclick = async function () {
         var r = await FS.auth.registro(valor('a-email'), valor('a-clave'), valor('a-nombre'));
         if (r.data && r.data.ok) { emailPendiente = valor('a-email'); hojaCodigo('verificar'); }
@@ -89,10 +118,11 @@
       '<h2>' + (tipo === 'reset' ? t('reset_h') : t('verifica_h')) + '</h2>' +
       '<p class="aviso">' + t('codigo_aviso', { e: esc(emailPendiente) }) + '</p>' +
       '<label class="campo"><span>' + t('codigo') + '</span><input id="a-codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:1.3rem"></label>' +
-      (tipo === 'reset' ? '<label class="campo"><span>' + t('clave_nueva_min') + '</span><input id="a-clave2" type="password" autocomplete="new-password"></label>' : '') +
+      (tipo === 'reset' ? campoClave('a-clave2', t('clave_nueva_min'), 'new-password') : '') +
       '<button class="boton" id="a-ok">' + t('continuar') + '</button>' +
       '<button class="enlace" id="a-reenviar">' + t('reenviar') + '</button>'
     );
+    atarOjos();
     el('a-ok').onclick = async function () {
       var ok;
       if (tipo === 'reset') ok = await FS.auth.restablecer(emailPendiente, valor('a-codigo'), valor('a-clave2'));
@@ -145,7 +175,7 @@
 
   // ── predios ─────────────────────────────────────────────
   async function cargarPredios() {
-    var r = await FS.api.get('/predios');
+    var r = await FS.api.get('/predios', t('esp_predios'));
     predios = (r.data && r.data.ok) ? r.data.data : [];
     if (!predioActual && predios.length) seleccionarPredio(predios[0]._id);
     if (predioActual) {
@@ -182,7 +212,7 @@
     el('np-ubicar').onclick = function () { FS.mapa.centrarEnUsuario(); toast(t('centrando')); };
     el('np-ok').onclick = async function () {
       if (!valor('np-nombre')) return toast(t('ponle_nombre'));
-      var r = await FS.api.post('/predios', { nombre: valor('np-nombre'), descripcion: valor('np-desc') || null });
+      var r = await FS.api.post('/predios', { nombre: valor('np-nombre'), descripcion: valor('np-desc') || null }, t('esp_creando'));
       if (r.data && r.data.ok) {
         predioActual = r.data.data;
         await cargarPredios();
@@ -196,7 +226,7 @@
   }
 
   async function seleccionarPredio(id) {
-    var r = await FS.api.get('/predios/' + id);
+    var r = await FS.api.get('/predios/' + id, t('esp_abriendo'));
     if (!(r.data && r.data.ok)) return toast(t('no_cargar_predio'));
     predioActual = r.data.data;
     parcelaActual = null;
@@ -225,7 +255,7 @@
       if (!nombre) { toast(t('dibujo_descartado')); return; }
       var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas', {
         nombre: nombre, tipo: 'potrero', geometry: geo
-      });
+      }, t('esp_parcela'));
       if (r.data && r.data.ok) { toast(t('parcela_guardada')); seleccionarPredio(predioActual._id); }
       else toast(t('no_guardar'));
     });
@@ -302,8 +332,9 @@
         for (var i = 0; i < sel.length; i++) {
           var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas', {
             nombre: sel[i].nombre, tipo: 'parcela', geometry: sel[i].geometry
-          });
-          if (r.data && r.data.ok) okN++; else malN++;
+          }, t('esp_importando', { i: i + 1, n: sel.length }));
+          if (r.data && r.data.ok) okN++;
+          else { malN++; console.warn('[importar] alta falló:', sel[i].nombre, '→', r.status, r.data); }
         }
         FS.mapa.limpiarCandidatos();
         importados = [];
@@ -333,8 +364,10 @@
     toast(t('imp_leyendo'));
     try {
       var res = await FS.importar.leerArchivos(e.target.files);
+      console.log('[importar]', res.cands.length, 'candidato(s) · notas:', res.notas);
       hojaImportar(res);
     } catch (err) {
+      console.error('[importar] leerArchivos lanzó', err);
       toast(t('imp_no_entendi', { f: e.target.files[0].name }));
     }
   };
@@ -436,7 +469,7 @@
       var r = await FS.api.put('/predios/' + predioActual._id + '/parcelas/' + p._id, {
         especieActual: valor('pa-especie') || null,
         fechaSiembraActual: valor('pa-fecha') || null
-      });
+      }, t('esp_siembra'));
       if (r.data && r.data.ok) { toast(t('siembra_guardada')); seleccionarPredio(predioActual._id); }
     };
     el('te-riego').value = p.riego || '';
@@ -456,7 +489,7 @@
         drenaje: valor('te-dren') || null,
         aniosUso: num('te-anios'),
         problemasLote: marcados('te-prob')
-      });
+      }, t('esp_terreno'));
       if (r.data && r.data.ok) { toast(t('terreno_guardado')); seleccionarPredio(predioActual._id); }
     };
     el('ca-ninguno').onchange = function () {
@@ -482,27 +515,27 @@
         rendimiento: num('ca-rend'),
         rendimientoUnidad: valor('ca-unidad') || null,
         notas: valor('ca-notas') || null
-      });
+      }, t('esp_campania'));
       if (r.data && r.data.ok) { toast(t('campania_guardada')); seleccionarPredio(predioActual._id); }
     };
     el('pa-suelo').onclick = async function () {
       var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/suelos', {
         fecha: new Date().toISOString(), ph: num('pa-ph'), materiaOrganica: num('pa-mo'),
         nitrogeno: num('pa-n'), textura: valor('pa-tex') || null, fuente: 'laboratorio'
-      });
+      }, t('esp_suelo'));
       if (r.data && r.data.ok) { toast(t('analisis_guardado')); seleccionarPredio(predioActual._id); }
     };
     el('pa-aforo-ok').onclick = async function () {
       var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/aforos', {
         fecha: new Date().toISOString(), kgMSHa: num('pa-aforo'), metodo: valor('pa-metodo') || null
-      });
+      }, t('esp_aforo'));
       if (r.data && r.data.ok) { toast(t('aforo_guardado')); seleccionarPredio(predioActual._id); }
     };
     el('pa-analisis').onclick = function () { hojaAnalisis(p); };
     el('pa-pdf').onclick = function () { descargarPdf(p._id); };
     el('pa-borrar').onclick = async function () {
       if (!confirm(t('confirma_borrar', { n: p.nombre }))) return;
-      await FS.api.del('/predios/' + predioActual._id + '/parcelas/' + p._id);
+      await FS.api.del('/predios/' + predioActual._id + '/parcelas/' + p._id, t('esp_borrando'));
       parcelaActual = null; ocultarHoja(); seleccionarPredio(predioActual._id);
     };
   }
@@ -529,7 +562,7 @@
   // ── análisis ────────────────────────────────────────────
   async function hojaAnalisis(p) {
     mostrarHoja('<h2>' + t('analizando', { n: esc(p.nombre) }) + '</h2><p class="aviso">' + t('consultando') + '</p>');
-    var r = await FS.api.get('/predios/' + predioActual._id + '/analisis?parcela=' + p._id + '&lang=' + FS.lang);
+    var r = await FS.api.get('/predios/' + predioActual._id + '/analisis?parcela=' + p._id + '&lang=' + FS.lang, t('esp_analisis'));
     if (!(r.data && r.data.ok)) return mostrarHoja('<h2>' + t('sin_analisis') + '</h2><p class="aviso">' + esc(traducirError(r.data && r.data.error)) + '</p>');
     var d = r.data.data;
     var html = '<h2>' + esc(t('analisis_de', { n: p.nombre })) + '</h2>';
@@ -563,10 +596,10 @@
 
   // ── PDF ─────────────────────────────────────────────────
   async function descargarPdf(parcelaId) {
-    toast(t('generando_pdf'));
+    FS.api.esperar(t('generando_pdf'));
     try {
       var res = await fetch(FS.api.informeUrl(predioActual._id, parcelaId), { headers: { Authorization: 'Bearer ' + FS.api.token() } });
-      if (!res.ok) return toast(t('no_pdf'));
+      if (!res.ok) { toast(t('no_pdf')); return; }
       var blob = await res.blob();
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
@@ -574,6 +607,7 @@
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
     } catch (e) { toast(t('no_pdf')); }
+    finally { FS.api.listo(); }
   }
 
   // ── arranque ────────────────────────────────────────────

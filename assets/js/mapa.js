@@ -8,6 +8,8 @@ window.FS = window.FS || {};
   var capaParcelas = null;
   var capaImportados = null;
   var capaPlano = null;
+  var capaPos = null;    // punto azul + círculo de precisión del GPS
+  var watchId = null;
   var dibujo = null; // {puntos:[], polyline, vertices[], alCerrar}
   var parcelaSeleccionada = null;
 
@@ -23,6 +25,7 @@ window.FS = window.FS || {};
     mapa.on('click', function (e) {
       if (dibujo) _agregarVertice(e.latlng);
     });
+    _posicionSiPermitida();
     return mapa;
   }
 
@@ -139,10 +142,52 @@ window.FS = window.FS || {};
 
   function hayPlano() { return !!capaPlano; }
 
+  // ── Ubicación del usuario (GPS) ─────────────────────────
+  // Punto azul estilo Google Maps + círculo de precisión.
+  // Si el permiso ya estaba otorgado se pinta solo al abrir.
+  function _pintarPos(pos) {
+    if (!mapa) return;
+    var ll = [pos.coords.latitude, pos.coords.longitude];
+    if (!capaPos) capaPos = L.layerGroup().addTo(mapa);
+    capaPos.clearLayers();
+    if (pos.coords.accuracy) {
+      L.circle(ll, {
+        radius: pos.coords.accuracy, color: '#4cb8e8', weight: 1,
+        opacity: .5, fillColor: '#4cb8e8', fillOpacity: .12
+      }).addTo(capaPos);
+    }
+    L.circleMarker(ll, {
+      radius: 7, color: '#ffffff', weight: 2.5,
+      fillColor: '#2f9be8', fillOpacity: 1
+    }).addTo(capaPos);
+  }
+
+  function _vigilarPos() {
+    if (watchId != null || !navigator.geolocation) return;
+    watchId = navigator.geolocation.watchPosition(_pintarPos, function () {},
+      { enableHighAccuracy: true, maximumAge: 10000 });
+  }
+
+  function _posicionSiPermitida() {
+    if (!navigator.geolocation || !navigator.permissions || !navigator.permissions.query) return;
+    try {
+      navigator.permissions.query({ name: 'geolocation' }).then(function (r) {
+        if (r.state !== 'granted') return;
+        navigator.geolocation.getCurrentPosition(function (pos) {
+          _pintarPos(pos);
+          mapa.setView([pos.coords.latitude, pos.coords.longitude], 14);
+        }, function () {}, { timeout: 8000 });
+        _vigilarPos();
+      }).catch(function () {});
+    } catch (e) { /* navegador sin permissions.query para geolocation */ }
+  }
+
   function centrarEnUsuario() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(function (pos) {
+      _pintarPos(pos);
       mapa.setView([pos.coords.latitude, pos.coords.longitude], 16);
+      _vigilarPos();
     }, function () {}, { enableHighAccuracy: true, timeout: 8000 });
   }
 
