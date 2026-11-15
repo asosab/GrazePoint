@@ -27,7 +27,7 @@ semioscura — mismo estilo que `subtitulos.js`).
 | 4 | capas           | 5.5  | MODIS NDVI, SMAP L4 and NASA POWER, / measured on your land. | NDVI de MODIS, SMAP L4 y NASA POWER, / medidos en tu predio. |
 | 5 | analisis        | 4.5  | Crossed with your soil, your herd, / your cuts. | Cruzados con tu suelo, tu hato, / tus cortes. |
 | 6 | pdf             | 4.0  | A report for WhatsApp. / Alerts on Telegram. | Un informe para WhatsApp. / Alertas por Telegram. |
-| 7 | cierre          | 3.5  | GrazePoint. / Free and open source. | GrazePoint. / Gratis y de código abierto. |
+| 7 | cierre          | 3.5  | GrazePoint. / Open source. | GrazePoint. / Código abierto. |
 
 Total ≈ 30 s. Sin audio: el tour se graba mudo; los subtítulos
 llevan la historia (sirve igual para YouTube/social con mute).

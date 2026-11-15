@@ -35,7 +35,7 @@ South American lowlands work the same way.
 
 ## What GrazePoint does
 
-GrazePoint is a free, open-source web app that runs in the browser.
+GrazePoint is an open-source web app that runs in the browser.
 The rancher draws or imports paddock polygons on a satellite map,
 keeps the planting, cutting and soil test record there, and the app
 answers the three questions that today rely on guesswork:
@@ -97,7 +97,7 @@ with no install.
 - Grow the aforo-to-NDVI calibration as real samplings accumulate.
 - Add MapBiomas / ESA WorldCereal land-cover context for regional
   expansion, and species catalogs for other regions.
-- Keep it free and open source so any ranch can fork it.
+- Keep it open source so any ranch can fork it.
 
 ## Links
 

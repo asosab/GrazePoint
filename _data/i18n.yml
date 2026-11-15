@@ -4,7 +4,7 @@ en:
   og_locale_alt: es_BO
   lang_aria: "Language"
   home: "/"
-  default_desc: "Digital PRIAS for your farm: soil records, NASA POWER climate, rotation picks and the forage planting window. Free and open source."
+  default_desc: "Digital PRIAS for your farm: soil records, NASA POWER climate, rotation picks and the forage planting window. Open source."
   consent_txt: "GrazePoint keeps a session key and your map preferences in this browser's local storage. No cookies, no ad trackers."
   consent_ok: "Got it"
   consent_priv: "Privacy policy"
@@ -17,7 +17,7 @@ es:
   og_locale_alt: en_US
   lang_aria: "Idioma"
   home: "/es/"
-  default_desc: "PRIAS digital de tu predio: suelo, clima de la NASA (POWER), rotación sugerida y ventana de siembra forrajera. Gratis y de código abierto."
+  default_desc: "PRIAS digital de tu predio: suelo, clima de la NASA (POWER), rotación sugerida y ventana de siembra forrajera. Código abierto."
   consent_txt: "GrazePoint guarda una clave de sesión y tus capas del mapa en el almacenamiento local de este navegador. Sin cookies ni rastreadores de publicidad."
   consent_ok: "Entendido"
   consent_priv: "Política de privacidad"
