@@ -18,6 +18,9 @@ Vault propio del proyecto. La app vive en la raíz del repo (Jekyll +
   debe cubrir el proyecto *(copia de la nota del vault NSAC)*
 - [[respuestas-sueleen-pena]] — cuestionario de la directora de la
   Hacienda *(copia de la nota del vault NSAC)*
+- [[plan-necesidades-sueleen]] — pendientes de la entrevista en orden
+  de prioridad (balance forrajero, WhatsApp, tendencia de suelo,
+  germinación, CSV, estación meteo) + agenda de conversación
 
 ## Log
 

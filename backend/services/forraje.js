@@ -201,6 +201,23 @@ async function evaluar(parcela, { catalogo, lang, ligero }) {
 	out.diasEfectivos = reloj.efectivos;
 	out.gdd = reloj.gdd;
 	out.estresHidrico = reloj.estresHidrico;
+	// Siembra reciente sin agua encima: la lluvia llegó tarde o se
+	// cortó y la raíz está seca → riesgo de falla de germinación.
+	// Ventana de vigilancia: primeras 3 semanas.
+	if (t0Fuente === 'siembra' && (Date.now() - t0.getTime()) < 21 * 86400000) {
+		const pre = parametros.PRECTOTCORR || {};
+		const gw = parametros.GWETROOT || {};
+		let mm = 0, gwSum = 0, gwN = 0;
+		for (const f of Object.keys(pre)) {
+			const d = Date.UTC(+f.slice(0, 4), +f.slice(4, 6) - 1, +f.slice(6, 8));
+			if (d < t0.getTime() || d > Date.now()) continue;
+			if (pre[f] > -900) mm += pre[f];
+			if (gw[f] != null && gw[f] > -900) { gwSum += gw[f]; gwN++; }
+		}
+		out.lluviaDesdeSembra = Math.round(mm);
+		const gwMedia = gwN ? gwSum / gwN : null;
+		if (mm < 15 && (gwMedia == null || gwMedia < HUM_MIN)) out.riesgoGerminacion = true;
+	}
 	out.kgMSHaEst = ligero ? null : await kgMSHaEst(parcela, centro.lat, centro.lon, out.ndvi);
 	// Capacidad de carga orientativa: con el forraje parado y
 	// aprovechamiento del 50 %, cuántos animales de ~450 kg sostiene
@@ -249,4 +266,23 @@ async function evaluar(parcela, { catalogo, lang, ligero }) {
 	return out;
 }
 
-module.exports = { evaluar, detectarCorte, areaHa, kgMSHaEst };
+// Balance oferta/demanda del predio: cuántos días cubre el forraje
+// parado al hato declarado, con el mismo aprovechamiento que ev30.
+// Sin cabezas anotadas devuelve null (la UI invita a cargarlas).
+function balance(predio, forrajeTotalKgMS) {
+	const hato = (predio && predio.hato) || {};
+	const cabezas = Number(hato.cabezas) || 0;
+	if (!cabezas || !forrajeTotalKgMS) return null;
+	const peso = Number(hato.pesoKg) || 450;
+	const consumoDia = cabezas * (peso / 450) * CONSUMO_DIA;
+	const dias = Math.floor(forrajeTotalKgMS * UTIL / consumoDia);
+	return {
+		cabezas,
+		pesoKg: peso,
+		consumoDiaKgMS: Math.round(consumoDia),
+		diasCobertura: dias,
+		fechaDeficit: new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10)
+	};
+}
+
+module.exports = { evaluar, detectarCorte, areaHa, kgMSHaEst, balance };

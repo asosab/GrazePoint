@@ -36,7 +36,8 @@ Pages: **https://asosab.github.io/fieldShift/**
   → `/start` o `/vincular <código>` en el chat → `GET /me` trae
   `telegram.vinculado`. `DELETE /me/telegram` desvincula.
   `/resumen` (`/summary`) devuelve el estado forrajero de todos los
-  potreros del usuario como texto plano. Env:
+  potreros del usuario como texto plano + cobertura del hato si hay
+  `predio.hato` cargado. Env:
   `FIELDSHIFT_TG_TOKEN`, `FIELDSHIFT_TG_BOT`, `FIELDSHIFT_TG_ADMIN`
   (chat id del admin: comandos de control como `/estado`). Sin token
   el poller no arranca y el resto del servicio funciona igual.
@@ -128,6 +129,15 @@ entrar el lote o cortarse, en tres estados (`rebrote` / `punto_optimo` /
   alimenta `forrajeTotalKgMS` del predio. Con aforo+área sale
   `ev30`: capacidad de carga orientativa (cabezas de ~450 kg por
   30 días, aprovechamiento 50 %, consumo 10 kg MS/día).
+- **Balance forrajero** (`forraje.balance`): con `predio.hato
+  {cabezas,pesoKg}` (PUT `/predios/:id`) la oferta (`forrajeTotal`)
+  se cruza con la demanda del hato → `diasCobertura` y `fechaDeficit`
+  en `/forraje` y `/resumen`. En la sábana de potreros va la línea de
+  cobertura + fila editable del hato + botón **compartir por
+  WhatsApp** (`wa.me` con el resumen en texto).
+- **Germinación** (`riesgoGerminacion`): siembra <21 días con <15 mm
+  acumulados POWER y GWETROOT medio <0.30 desde la siembra → bandera
+  y alerta `germinacion`.
 - **Análisis por área, no por punto** (`services/muestreo.js`):
   grilla de puntos dentro del polígono al paso del píxel nativo de
   cada capa (NDVI ~300 m en z9, SMAP ~2.4 km en z6, tope 40) →
@@ -148,7 +158,8 @@ entrar el lote o cortarse, en tres estados (`rebrote` / `punto_optimo` /
   al ENTRAR a una condición, no mientras siga. Tipos: `punto`
   (óptimo/ensilar), `revisar` (desacuerdo reloj-vs-NDVI), `estres`
   (estrés hídrico sostenido), `ndvi_cae` (peor que el año pasado
-  −0.10) y `saturado` (SMAP ≥0.50, anegamiento). Dedo por tipo:
+  −0.10), `saturado` (SMAP ≥0.50, anegamiento) y `germinacion`
+  (siembra reciente sin agua). Dedo por tipo:
   `parcela.avisos {tipo: fecha}` (migra el viejo `avisoForraje`),
   se limpia solo al salir de la condición.
 

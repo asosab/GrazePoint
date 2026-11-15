@@ -111,7 +111,7 @@ async function _resumen(msg, T, lang) {
 	const Predio = require('../models/predioModel');
 	const forraje = require('./forraje');
 	const rotacion = require('./rotacion');
-	const predios = await Predio.find({ owner: String(yo._id), activo: true }).select('nombre parcelas.nombre parcelas.tipo parcelas.geometry parcelas.especieActual parcelas.fechaSiembraActual parcelas.cortes parcelas.aforos');
+	const predios = await Predio.find({ owner: String(yo._id), activo: true }).select('nombre hato parcelas.nombre parcelas.tipo parcelas.geometry parcelas.especieActual parcelas.fechaSiembraActual parcelas.cortes parcelas.aforos');
 	if (!predios.length || !predios.some((p) => p.parcelas.length)) return T.resumen_vacio;
 	const catalogo = await rotacion.catalogo();
 	const lineas = [T.resumen_h];
@@ -119,11 +119,15 @@ async function _resumen(msg, T, lang) {
 	for (const predio of predios) {
 		if (!predio.parcelas.length) continue;
 		lineas.push(predio.nombre + ':');
+		let forrajeTotal = 0;
 		for (const p of predio.parcelas.slice(0, 15)) {
 			const e = await forraje.evaluar(p, { catalogo, lang });
 			lineas.push('• ' + p.nombre + ' — ' + e.texto);
+			if (e.kgMSHaEst != null && e.areaHa) forrajeTotal += e.kgMSHaEst * e.areaHa;
 			n++;
 		}
+		const bal = forraje.balance(predio, forrajeTotal);
+		if (bal) lineas.push(T.resumen_cobertura(bal.diasCobertura, bal.cabezas, bal.fechaDeficit));
 	}
 	return n ? lineas.join('\n') : T.resumen_vacio;
 }

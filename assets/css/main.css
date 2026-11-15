@@ -121,6 +121,9 @@ button { font: inherit; cursor: pointer; }
 /* Formularios y contenido de la hoja */
 .hoja h2 { margin: 4px 0 12px; font-size: 1.2rem; }
 .hoja h3 { margin: 18px 0 8px; font-size: 1rem; color: var(--salvia-claro); }
+.hato { display: flex; align-items: center; gap: 8px; margin: 8px 0; flex-wrap: wrap; font-size: .85rem; color: var(--texto-suave); }
+.hato input { width: 90px; padding: 5px 8px; border: 1px solid rgba(198,212,197,.3); border-radius: 6px; background: rgba(0,0,0,.3); color: var(--texto); font: inherit; }
+.hato .enlace { width: auto; padding: 5px 0; }
 .campo { display: block; margin: 10px 0; }
 .campo > span, .campo > label { display: block; font-size: .8rem; color: var(--texto-suave); margin-bottom: 4px; }
 .campo input, .campo select, .campo textarea {

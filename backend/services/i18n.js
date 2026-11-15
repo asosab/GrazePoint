@@ -193,6 +193,7 @@ const TG = {
 		estado_no: 'Este Telegram no está vinculado a ninguna cuenta todavía. Vinculalo desde tu perfil en la app.',
 		estado_admin: (n) => 'Bot funcionando. Usuarios con Telegram vinculado: ' + n + '.',
 		resumen_h: 'Estado de tus potreros:',
+		resumen_cobertura: (d, c, f) => 'Forraje estimado alcanza para ~' + d + ' días del hato (' + c + ' cabezas, hasta ~' + f + ').',
 		resumen_vacio: 'No tienes predios ni potreros registrados todavía: cargalos en la app primero.',
 		ayuda: 'Comandos: /vincular <código> para vincular tu cuenta · /estado para ver tu vínculo · /resumen para el estado de tus potreros.'
 	},
@@ -205,6 +206,7 @@ const TG = {
 		estado_no: 'This Telegram is not linked to any account yet. Link it from your profile in the app.',
 		estado_admin: (n) => 'Bot is running. Users with linked Telegram: ' + n + '.',
 		resumen_h: 'Your paddock status:',
+		resumen_cobertura: (d, c, f) => 'Estimated forage covers ~' + d + ' days of the herd (' + c + ' head, until ~' + f + ').',
 		resumen_vacio: 'No farms or paddocks on record yet: add them in the app first.',
 		ayuda: 'Commands: /link <code> to link your account · /status to check your link · /summary for your paddock status.'
 	}
@@ -233,6 +235,7 @@ const FORRAJE = {
 		aviso_estres: (p, predio) => 'El suelo del potrero «' + p + '» de ' + predio + ' lleva semanas muy seco: el rebrote va lento aunque el reloj diga otra cosa.',
 		aviso_ndvi_cae: (p, predio) => 'La vegetación del potrero «' + p + '» de ' + predio + ' se ve peor que en la misma época del año pasado.',
 		aviso_saturado: (p, predio) => 'El suelo del potrero «' + p + '» de ' + predio + ' está saturado de agua: mejor no meter el lote hasta que drene.',
+		aviso_germinacion: (p, predio, mm) => 'La siembra reciente de «' + p + '» de ' + predio + ' lleva ' + (mm != null ? mm : 'pocos') + ' mm de lluvia acumulada y la raíz está seca: riesgo de falla de germinación.',
 		pdf_h: 'Estado de los potreros',
 		pdf_desde: 'desde',
 		pdf_efectivos: 'días efectivos de rebrote',
@@ -261,6 +264,7 @@ const FORRAJE = {
 		aviso_estres: (p, predio) => 'The soil at paddock "' + p + '" at ' + predio + ' has been very dry for weeks: regrowth is slow even if the clock says otherwise.',
 		aviso_ndvi_cae: (p, predio) => 'Vegetation at paddock "' + p + '" at ' + predio + ' looks worse than at this time last year.',
 		aviso_saturado: (p, predio) => 'The soil at paddock "' + p + '" at ' + predio + ' is waterlogged: better keep the herd out until it drains.',
+		aviso_germinacion: (p, predio, mm) => 'The recent planting at "' + p + '" at ' + predio + ' has ' + (mm != null ? mm : 'little') + ' mm of rain so far and the root zone is dry: germination may fail.',
 		pdf_h: 'Paddock status',
 		pdf_desde: 'since',
 		pdf_efectivos: 'effective regrowth days',

@@ -202,6 +202,7 @@ window.FS = window.FS || {};
       textura: 'Textura',
       ph_textura: 'arenosa…',
       guardar_analisis: 'Guardar análisis',
+      suelo_tend: 'Desde el análisis del {f}:',
       analisis_guardado: 'Análisis guardado',
       aforo_h: 'Aforo',
       kgms: 'kg MS/ha',
@@ -229,6 +230,12 @@ window.FS = window.FS || {};
       potreros_h: '¿A dónde entra el lote?',
       potreros_aviso: 'Ordenados por punto óptimo. El satélite estima; el ojo del técnico decide.',
       forraje_total: 'Forraje total estimado del predio: ~{v} kg MS',
+      balance_line: 'Alcanza para ~{d} días del hato ({c} cabezas, hasta ~{f})',
+      forraje_germina: 'Siembra seca: {mm} mm desde que se sembró',
+      hato_lbl: 'Hato:',
+      hato_cabezas: 'Cabezas',
+      hato_peso: 'Peso prom. kg',
+      compartir_wa: 'Mandar por WhatsApp',
       forraje_ev30: 'carga estimada ~{n} cabezas (450 kg) por 30 días',
       forraje_seco: 'suelo muy seco hace semanas',
       forraje_anegado: 'suelo saturado de agua',
@@ -330,7 +337,10 @@ window.FS = window.FS || {};
       esp_suelo: 'Guardando el análisis de suelo…',
       esp_aforo: 'Guardando el aforo…',
       esp_borrando: 'Eliminando la parcela…',
-      esp_analisis: 'Cruzando clima de la NASA con tu suelo…'
+      esp_guardando: 'Guardando…',
+      esp_analisis: 'Cruzando clima de la NASA con tu suelo…',
+      guardar: 'Guardar',
+      guardado_ok: 'Guardado',
     },
     en: {
       // ── account ──
@@ -526,6 +536,7 @@ window.FS = window.FS || {};
       textura: 'Texture',
       ph_textura: 'sandy…',
       guardar_analisis: 'Save soil test',
+      suelo_tend: 'Since the {f} test:',
       analisis_guardado: 'Soil test saved',
       aforo_h: 'Forage estimate',
       kgms: 'kg DM/ha',
@@ -553,6 +564,12 @@ window.FS = window.FS || {};
       potreros_h: 'Where does the herd go?',
       potreros_aviso: 'Sorted by best point. The satellite estimates; the field tech decides.',
       forraje_total: 'Estimated forage on the farm: ~{v} kg DM',
+      balance_line: 'Covers ~{d} days of the herd ({c} head, until ~{f})',
+      forraje_germina: 'Dry planting: {mm} mm since sowing',
+      hato_lbl: 'Herd:',
+      hato_cabezas: 'Head',
+      hato_peso: 'Avg weight kg',
+      compartir_wa: 'Share on WhatsApp',
       forraje_ev30: 'estimated load ~{n} head (450 kg) for 30 days',
       forraje_seco: 'soil very dry for weeks',
       forraje_anegado: 'waterlogged soil',
@@ -654,7 +671,10 @@ window.FS = window.FS || {};
       esp_suelo: 'Saving the soil test…',
       esp_aforo: 'Saving the forage estimate…',
       esp_borrando: 'Deleting the plot…',
-      esp_analisis: 'Crossing NASA climate data with your soil…'
+      esp_guardando: 'Saving…',
+      esp_analisis: 'Crossing NASA climate data with your soil…',
+      guardar: 'Save',
+      guardado_ok: 'Saved',
     }
   };
 

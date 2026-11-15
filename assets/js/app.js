@@ -233,6 +233,12 @@
     var cls = { punto_optimo: 'favorable_ahora', punto_ensilaje: 'favorable_ahora', rebrote: 'esperar', creciendo: 'esperar', pasado: 'ventana_pero_seco', pasado_ensilaje: 'ventana_pero_seco' };
     var html = '<h2>' + t('potreros_h') + '</h2><p class="aviso">' + t('potreros_aviso') + '</p>';
     if (d.forrajeTotalKgMS) html += '<p class="aviso">' + t('forraje_total', { v: d.forrajeTotalKgMS }) + '</p>';
+    if (d.balance) html += '<p class="aviso">' + t('balance_line', { d: d.balance.diasCobertura, c: d.balance.cabezas, f: d.balance.fechaDeficit }) + '</p>';
+    var hato = (predioActual && predioActual.hato) || {};
+    html += '<div class="hato"><span>' + t('hato_lbl') + '</span>' +
+      '<input id="fo-cabezas" type="number" min="0" inputmode="numeric" placeholder="' + t('hato_cabezas') + '" value="' + (hato.cabezas != null ? hato.cabezas : '') + '">' +
+      '<input id="fo-peso" type="number" min="0" inputmode="numeric" placeholder="' + t('hato_peso') + '" value="' + (hato.pesoKg != null ? hato.pesoKg : '') + '">' +
+      '<button class="enlace" id="fo-hato">' + t('guardar') + '</button></div>';
     (d.potreros || []).forEach(function (e) {
       var det = [];
       if (e.diasEfectivos != null) det.push(t('forraje_efec', { d: e.diasEfectivos }));
@@ -242,18 +248,29 @@
       if (e.estresHidrico) det.push('⚠ ' + t('forraje_seco'));
       if (e.smap != null && e.smap >= 0.5) det.push('⚠ ' + t('forraje_anegado'));
       if (e.ndviAnt != null && e.ndvi != null && e.ndviAnt - e.ndvi >= 0.1) det.push('⚠ ' + t('forraje_ndvi_cae'));
+      if (e.riesgoGerminacion) det.push('⚠ ' + t('forraje_germina', { mm: e.lluviaDesdeSembra }));
       html += '<div class="reco"><h4>' + esc(e.parcela.nombre) + (e.parcela.especie ? ' <span class="chip">' + esc(e.parcela.especie) + '</span>' : '') + '</h4>' +
         '<div class="veredicto ' + (cls[e.estado] || 'esperar') + '">' + esc(e.texto) + '</div>' +
         (det.length ? '<p class="aviso">' + det.join(' · ') + '</p>' : '') + '</div>';
     });
     html += '<button class="boton secundario" id="fo-copiar">' + t('copiar_resumen') + '</button>';
+    html += '<button class="boton secundario" id="fo-wa">' + t('compartir_wa') + '</button>';
     mostrarHoja(html);
+    var txt = predioActual.nombre + '\n' + (d.potreros || []).map(function (e) {
+      return '• ' + e.parcela.nombre + ' — ' + e.texto;
+    }).join('\n') + (d.forrajeTotalKgMS ? '\n' + t('forraje_total', { v: d.forrajeTotalKgMS }) : '') +
+      (d.balance ? '\n' + t('balance_line', { d: d.balance.diasCobertura, c: d.balance.cabezas, f: d.balance.fechaDeficit }) : '');
     el('fo-copiar').onclick = async function () {
-      var txt = predioActual.nombre + '\n' + (d.potreros || []).map(function (e) {
-        return '• ' + e.parcela.nombre + ' — ' + e.texto;
-      }).join('\n') + (d.forrajeTotalKgMS ? '\n' + t('forraje_total', { v: d.forrajeTotalKgMS }) : '');
       try { await navigator.clipboard.writeText(txt); toast(t('copiado')); }
       catch (err) { toast(t('no_guardar')); }
+    };
+    el('fo-wa').onclick = function () { window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank'); };
+    el('fo-hato').onclick = async function () {
+      var r = await FS.api.put('/predios/' + predioActual._id, {
+        hato: { cabezas: valor('fo-cabezas') ? Number(valor('fo-cabezas')) : null, pesoKg: valor('fo-peso') ? Number(valor('fo-peso')) : null }
+      }, t('esp_guardando'));
+      if (r.data && r.data.ok) { predioActual.hato = r.data.data.hato; toast(t('guardado_ok')); hojaForraje(); }
+      else toast(t('no_guardar'));
     };
   }
 
@@ -683,10 +700,24 @@
     };
   }
 
+  function _tendenciaSuelo(p) {
+    if (!p.suelos || p.suelos.length < 2) return '';
+    var s = p.suelos.slice().sort(function (a, b) { return Date.parse(b.fecha) - Date.parse(a.fecha); });
+    var a = s[0], b = s[1];
+    var partes = [];
+    [['ph', 'pH'], ['materiaOrganica', 'MO %'], ['nitrogeno', 'N %']].forEach(function (par) {
+      if (a[par[0]] != null && b[par[0]] != null) {
+        var dif = Math.round((a[par[0]] - b[par[0]]) * 100) / 100;
+        partes.push(par[1] + ' ' + b[par[0]] + ' → ' + a[par[0]] + (dif > 0 ? ' (+' : ' (') + dif + ')');
+      }
+    });
+    return partes.length ? '<p class="aviso">' + t('suelo_tend', { f: fecha(b.fecha) }) + ' ' + partes.join(' · ') + '</p>' : '';
+  }
+
   function _htmlHistorial(p) {
     var s = '';
     if (p.suelos && p.suelos.length) {
-      s += '<h3>' + t('suelos_h') + '</h3>';
+      s += '<h3>' + t('suelos_h') + '</h3>' + _tendenciaSuelo(p);
       p.suelos.slice().reverse().forEach(function (x) {
         s += '<p class="aviso">• ' + fecha(x.fecha) + ': pH ' + (x.ph || '—') + ', ' + t('mo').replace(' %', '') + ' ' + (x.materiaOrganica || '—') + '%, ' + esc(x.textura || '') + '</p>';
       });

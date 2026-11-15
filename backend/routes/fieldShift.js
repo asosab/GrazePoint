@@ -178,6 +178,10 @@ router.put('/predios/:id', authenticate, wrap(async (req, res) => {
 	if (b.nombre) predio.nombre = String(b.nombre).slice(0, 160);
 	if (b.descripcion !== undefined) predio.descripcion = b.descripcion ? String(b.descripcion).slice(0, 1000) : null;
 	if (b.centro && Array.isArray(b.centro)) predio.centro = { type: 'Point', coordinates: [Number(b.centro[0]), Number(b.centro[1])] };
+	if (b.hato) predio.hato = {
+		cabezas: b.hato.cabezas != null ? Number(b.hato.cabezas) : null,
+		pesoKg: b.hato.pesoKg != null ? Number(b.hato.pesoKg) : null
+	};
 	await predio.save();
 	res.json({ ok: true, data: predio });
 }));
@@ -332,13 +336,18 @@ router.get('/predios/:id/forraje', authenticate, wrap(async (req, res) => {
 			estado: e.estado, texto: e.texto, tardio: e.tardio, desacuerdo: e.desacuerdo,
 			diasEfectivos: e.diasEfectivos, diasFaltantes: e.diasFaltantes, t0: e.t0, t0Fuente: e.t0Fuente,
 			ndvi: e.ndvi, ndviRango: e.ndviRango, ndviAnt: e.ndviAnt, smap: e.smap,
-			estresHidrico: e.estresHidrico, kgMSHaEst: e.kgMSHaEst, ev30: e.ev30, areaHa: e.areaHa
+			estresHidrico: e.estresHidrico, kgMSHaEst: e.kgMSHaEst, ev30: e.ev30, areaHa: e.areaHa,
+			riesgoGerminacion: e.riesgoGerminacion, lluviaDesdeSembra: e.lluviaDesdeSembra
 		});
 	}
 	estados.sort((a, b) => (orden[a.estado] - orden[b.estado])
 		|| ((b.kgMSHaEst || 0) - (a.kgMSHaEst || 0))
 		|| ((a.diasFaltantes || 999) - (b.diasFaltantes || 999)));
-	res.json({ ok: true, data: { potreros: estados, forrajeTotalKgMS: forrajeTotal ? Math.round(forrajeTotal) : null } });
+	res.json({ ok: true, data: {
+		potreros: estados,
+		forrajeTotalKgMS: forrajeTotal ? Math.round(forrajeTotal) : null,
+		balance: forraje.balance(predio, forrajeTotal)
+	} });
 }));
 
 // ── Análisis: clima + rotación + ventana ────────────────────────────────────

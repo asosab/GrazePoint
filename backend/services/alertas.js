@@ -35,7 +35,9 @@ const TIPOS = [
 	['ndvi_cae', (e) => e.ndvi != null && e.ndviAnt != null && e.ndviAnt - e.ndvi >= NDVI_CAIDA_ANIO,
 		(T, p, predio) => T.aviso_ndvi_cae(p.nombre, predio)],
 	['saturado', (e) => e.smap != null && e.smap >= SMAP_ANEGADO,
-		(T, p, predio) => T.aviso_saturado(p.nombre, predio)]
+		(T, p, predio) => T.aviso_saturado(p.nombre, predio)],
+	['germinacion', (e) => !!e.riesgoGerminacion,
+		(T, p, predio) => T.aviso_germinacion(p.nombre, predio, e.lluviaDesdeSembra)]
 ];
 
 // Compat: el dedo viejo era avisoForraje.estado con el nombre del

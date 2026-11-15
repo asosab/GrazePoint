@@ -112,6 +112,12 @@ const predioSchema = new mongoose.Schema(
 		nombre: { type: String, required: true, trim: true, maxlength: 160 },
 		descripcion: { type: String, default: null, maxlength: 1000 },
 		centro: { type: puntoSchema, default: undefined },
+		// Hato que pastorea el lote: demanda del balance forrajero
+		// (kg MS/día = cabezas × pesoKg/450 × 10). Opcional.
+		hato: {
+			cabezas: { type: Number, default: null },
+			pesoKg: { type: Number, default: null }
+		},
 		parcelas: { type: [parcelaSchema], default: [] },
 		activo: { type: Boolean, default: true }
 	},
