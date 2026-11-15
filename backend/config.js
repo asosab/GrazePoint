@@ -33,6 +33,11 @@ module.exports = {
 		especiales: []
 	},
 
+	// Versión vigente de términos + privacidad. Se guarda en fsUser junto
+	// con la fecha de aceptación (prueba de consentimiento). Subir el
+	// número cuando cambie el texto legal del sitio (/terms, /privacy).
+	legalVersion: '2026-11-15',
+
 	// Orígenes permitidos para CORS (Bearer, sin cookies). El frontend
 	// productivo vive en GitHub Pages; localhost para desarrollo.
 	corsOrigins: String(

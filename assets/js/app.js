@@ -100,11 +100,18 @@
         '<label class="campo"><span>' + t('nombre') + '</span><input id="a-nombre" type="text" autocomplete="name"></label>' +
         '<label class="campo"><span>' + t('correo') + '</span><input id="a-email" type="email" autocomplete="email" inputmode="email"></label>' +
         campoClave('a-clave', t('clave_min'), 'new-password') +
+        '<label class="check legal-chk"><input type="checkbox" id="a-legal"><span>' +
+          t('legal_chk', {
+            t: '<a href="../terms/" target="_blank" rel="noopener">' + t('legal_terminos') + '</a>',
+            p: '<a href="../privacy/" target="_blank" rel="noopener">' + t('legal_privacidad') + '</a>'
+          }) +
+        '</span></label>' +
         '<button class="boton" id="a-crear">' + t('registrarme') + '</button>' +
         '<button class="enlace" id="a-login">' + t('ya_cuenta') + '</button>'
       );
       atarOjos();
       el('a-crear').onclick = async function () {
+        if (!el('a-legal').checked) return toast(t('legal_falta'));
         var r = await FS.auth.registro(valor('a-email'), valor('a-clave'), valor('a-nombre'));
         if (r.data && r.data.ok) { emailPendiente = valor('a-email'); hojaCodigo('verificar'); }
         else toast(traducirError(r.data && r.data.error));
@@ -165,9 +172,18 @@
           ' <button class="enlace" id="c-tg-off">' + t('tg_desvincular') + '</button></p>'
         : '<button class="boton secundario" id="c-tg">' + t('tg_vincular') + '</button>') +
       '<div id="c-tg-zona"></div>' +
-      '<button class="boton secundario" id="c-salir">' + t('cerrar_sesion') + '</button>'
+      '<button class="boton secundario" id="c-salir">' + t('cerrar_sesion') + '</button>' +
+      '<p class="aviso legal-links"><a href="../terms/" target="_blank" rel="noopener">' + t('legal_terminos') + '</a> · ' +
+        '<a href="../privacy/" target="_blank" rel="noopener">' + t('legal_privacidad') + '</a></p>' +
+      '<button class="enlace peligro" id="c-borrar">' + t('borrar_cta') + '</button>'
     );
     el('c-salir').onclick = function () { FS.auth.salir(); ocultarHoja(); toast(t('sesion_cerrada')); };
+    el('c-borrar').onclick = async function () {
+      if (!confirm(t('borrar_cta_confirma', { e: u.email }))) return;
+      var rb = await FS.api.del('/me', t('esp_borrar_cta'));
+      if (rb.data && rb.data.ok) { FS.auth.salir(); ocultarHoja(); toast(t('borrar_cta_ok')); }
+      else toast(traducirError(rb.data && rb.data.error));
+    };
     if (el('c-tg')) el('c-tg').onclick = async function () {
       var rc = await FS.api.post('/me/telegram/codigo', {}, t('esp_tg'));
       if (!(rc.data && rc.data.ok)) return toast(traducirError(rc.data && rc.data.error));

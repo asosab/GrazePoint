@@ -1,0 +1,57 @@
+---
+layout: default
+title: Datos, fuentes y licencias
+description: "De dónde salen los datos que ves en Field Shift y bajo qué licencia llegan."
+body_class: legal
+---
+
+<main class="landing-contenido legal-contenido">
+  {% include langswitch.html %}
+  <header class="legal-cab">
+    <a class="legal-volver" href="{{ '/es/' | relative_url }}">← Field Shift</a>
+    <h1>Datos, fuentes y licencias</h1>
+    <p class="fino">Actualizado el 15 de noviembre de 2026.</p>
+  </header>
+
+  <section class="tarjeta">
+    <h2>Lo que cargas tú</h2>
+    <p>Los polígonos, análisis de suelo (PRIAS), siembras, aforos, pastoreos y datos del hato son tuyos. Field Shift solo los guarda y los cruza con el clima para devolverte el análisis.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Clima</h2>
+    <ul>
+      <li><strong>NASA POWER</strong>: lluvia, temperatura y humedad de suelo de tu coordenada, serie diaria y climatología. Datos abiertos de la NASA.</li>
+      <li><strong>NASA GIBS</strong>: tiles de NDVI (MODIS), temperatura superficial (MODIS), humedad de raíz (SMAP L4), lluvia mensual (MERRA-2), focos de calor y color real. Imágenes abiertas de NASA EOSDIS.</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Suelo</h2>
+    <ul>
+      <li><strong>SoilGrids</strong>, de ISRIC – World Soil Information: pH, arcilla y carbono orgánico cuando el predio no tiene PRIAS cargado. Licencia <a href="https://creativecommons.org/licenses/by/4.0/deed.es">CC-BY 4.0</a>.</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Mapas base</h2>
+    <ul>
+      <li><strong>Esri World Imagery</strong> y capas de referencia de Esri: uso bajo los términos de Esri.</li>
+      <li><strong>OpenStreetMap</strong> (mapa de calles opcional): © colaboradores de OpenStreetMap, licencia ODbL.</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta">
+    <h2>El código</h2>
+    <p>Field Shift es software libre bajo licencia MIT. El repositorio completo está en <a href="https://github.com/asosab/fieldShift">github.com/asosab/fieldShift</a>.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Una advertencia honesta</h2>
+    <p>Los datos satelitales llegan con días de retraso y resolución de cientos de metros por píxel. Sirven para comparar zonas y fechas dentro de tu predio; no reemplazan una caminata por el lote ni una medición en campo.</p>
+  </section>
+
+  <footer class="landing-pie">
+    <p><a href="{{ '/es/terms/' | relative_url }}">Términos y condiciones</a> · <a href="{{ '/es/privacy/' | relative_url }}">Política de privacidad</a></p>
+  </footer>
+</main>

@@ -1,0 +1,57 @@
+---
+layout: default
+title: Data, sources and licenses
+description: "Where the data you see in Field Shift comes from and under which license it arrives."
+body_class: legal
+---
+
+<main class="landing-contenido legal-contenido">
+  {% include langswitch.html %}
+  <header class="legal-cab">
+    <a class="legal-volver" href="{{ '/' | relative_url }}">← Field Shift</a>
+    <h1>Data, sources and licenses</h1>
+    <p class="fino">Updated November 15, 2026.</p>
+  </header>
+
+  <section class="tarjeta">
+    <h2>What you upload</h2>
+    <p>The polygons, soil tests (PRIAS), plantings, forage estimates, grazing records and herd data are yours. Field Shift only stores them and crosses them with the climate to hand the analysis back to you.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Climate</h2>
+    <ul>
+      <li><strong>NASA POWER</strong>: rain, temperature and soil moisture at your coordinates, daily series and climatology. Open data from NASA.</li>
+      <li><strong>NASA GIBS</strong>: tiles for NDVI (MODIS), land surface temperature (MODIS), root-zone moisture (SMAP L4), monthly rain (MERRA-2), heat spots and true color. Open imagery from NASA EOSDIS.</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Soil</h2>
+    <ul>
+      <li><strong>SoilGrids</strong>, from ISRIC – World Soil Information: pH, clay and organic carbon when the farm has no PRIAS on record. <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a> license.</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Base maps</h2>
+    <ul>
+      <li><strong>Esri World Imagery</strong> and Esri reference layers: used under Esri's terms.</li>
+      <li><strong>OpenStreetMap</strong> (optional street map): © OpenStreetMap contributors, ODbL license.</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta">
+    <h2>The code</h2>
+    <p>Field Shift is free software under the MIT license. The full repository is at <a href="https://github.com/asosab/fieldShift">github.com/asosab/fieldShift</a>.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>An honest warning</h2>
+    <p>Satellite data arrives days late and at hundreds of meters per pixel. It works for comparing zones and dates inside your farm; it does not replace walking the paddock or measuring in the field.</p>
+  </section>
+
+  <footer class="landing-pie">
+    <p><a href="{{ '/terms/' | relative_url }}">Terms and conditions</a> · <a href="{{ '/privacy/' | relative_url }}">Privacy policy</a></p>
+  </footer>
+</main>

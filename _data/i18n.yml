@@ -5,6 +5,12 @@ en:
   lang_aria: "Language"
   home: "/"
   default_desc: "Digital PRIAS for your farm: soil records, NASA POWER climate, rotation picks and the forage planting window. Free and open source."
+  consent_txt: "Field Shift keeps a session key and your map preferences in this browser's local storage. No cookies, no ad trackers."
+  consent_ok: "Got it"
+  consent_priv: "Privacy policy"
+  pie_terms: "Terms"
+  pie_privacy: "Privacy"
+  pie_data: "Data"
 es:
   other: en
   og_locale: es_BO
@@ -12,3 +18,9 @@ es:
   lang_aria: "Idioma"
   home: "/es/"
   default_desc: "PRIAS digital de tu predio: suelo, clima de la NASA (POWER), rotación sugerida y ventana de siembra forrajera. Gratis y de código abierto."
+  consent_txt: "Field Shift guarda una clave de sesión y tus capas del mapa en el almacenamiento local de este navegador. Sin cookies ni rastreadores de publicidad."
+  consent_ok: "Entendido"
+  consent_priv: "Política de privacidad"
+  pie_terms: "Términos"
+  pie_privacy: "Privacidad"
+  pie_data: "Datos"

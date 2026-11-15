@@ -1,0 +1,96 @@
+---
+layout: default
+title: Privacy policy
+description: "What data Field Shift keeps, what for, who receives it and how to use your rights."
+body_class: legal
+---
+
+<main class="landing-contenido legal-contenido">
+  {% include langswitch.html %}
+  <header class="legal-cab">
+    <a class="legal-volver" href="{{ '/' | relative_url }}">← Field Shift</a>
+    <h1>Privacy policy</h1>
+    <p class="fino">In force since November 15, 2026.</p>
+  </header>
+
+  <section class="tarjeta">
+    <h2>Who we are</h2>
+    <p>Field Shift is an open source project born at the NASA Space Apps Challenge 2026 (Santa Cruz de la Sierra, Bolivia). The person responsible for the data is Alejandro Sosa Briceño; you can write to <a href="mailto:asosab@gmail.com">asosab@gmail.com</a>.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>What we store</h2>
+    <ul>
+      <li><strong>Account:</strong> your email, your name if you give it, the password kept as a scrypt hash (never in plain text) and the verification codes, also hashed.</li>
+      <li><strong>Your farm:</strong> plot polygons, plantings, soil tests, forage estimates, grazing and cutting records, and herd data if you load it.</li>
+      <li><strong>Telegram, only if you link it:</strong> your chat id and username, so the bot can send you field alerts.</li>
+      <li><strong>Legal record:</strong> the date and version of the terms you accepted when creating the account.</li>
+    </ul>
+    <p>There is no analytics, no advertising and no behavior profiling.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>What we use it for</h2>
+    <p>Only to run the service: sign you in, store your farms, cross them with the climate and send you access codes plus, if you turn them on, Telegram alerts. We do not sell or rent data to anyone.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Cookies and local storage</h2>
+    <p>Field Shift does not use cookies. The app keeps a few functional items in your browser's local storage:</p>
+    <ul>
+      <li><code>fs_token</code>: your session.</li>
+      <li><code>fs-lang</code>: the language you picked.</li>
+      <li><code>fs_capas</code>: your map layers and their opacity.</li>
+      <li><code>fs_api</code>: an alternative API URL, only if you change it yourself.</li>
+      <li><code>fs_consent</code>: the mark that you already saw the storage notice.</li>
+    </ul>
+    <p>The app does not work without <code>fs_token</code>; the rest are preferences. Signing out and clearing site data in your browser removes everything.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Who receives data</h2>
+    <ul>
+      <li><strong>NASA POWER and NASA GIBS:</strong> your plot's coordinates travel with every climate or imagery request. They carry no name and no email.</li>
+      <li><strong>SoilGrids (ISRIC) and Esri:</strong> same thing, coordinates only, to return the soil or the map.</li>
+      <li><strong>Gmail (Google):</strong> your email, to send you the verification codes.</li>
+      <li><strong>Contabo (Germany):</strong> the server and the MongoDB database live there.</li>
+      <li><strong>Telegram:</strong> only if you link the account; the @fieldshift_bot writes to you.</li>
+      <li><strong>WhatsApp:</strong> only if you tap "share"; you write the text and it goes from your phone.</li>
+      <li><strong>unpkg.com:</strong> serves the app's libraries and sees your IP, like any CDN.</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Your GPS location</h2>
+    <p>Only if you ask to "use my location" does the browser share your GPS to center the map. We do not store it.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Retention</h2>
+    <p>We process your data because the service needs it and because you consented when creating the account. We keep it while the account exists; deleting the account removes your farms and personal data. Email codes expire on their own after 30 minutes.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Your rights</h2>
+    <p>You can ask for access, correction, export or deletion of your data. The practical export is your farm's PDF report; deletion sits in your account sheet inside the app. If anything is missing, write to us.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Security</h2>
+    <p>Passwords with scrypt, hashed codes, JWT sessions and HTTPS in transit. No system is perfect: if an incident touches your data, we will tell you.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Minors</h2>
+    <p>Field Shift is for people who run farms. It is not aimed at minors.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Changes and contact</h2>
+    <p>If this policy changes we will say so on the site. Contact: <a href="mailto:asosab@gmail.com">asosab@gmail.com</a> or issues on <a href="https://github.com/asosab/fieldShift">GitHub</a>.</p>
+  </section>
+
+  <footer class="landing-pie">
+    <p><a href="{{ '/terms/' | relative_url }}">Terms and conditions</a> · <a href="{{ '/data/' | relative_url }}">Data and licenses</a></p>
+  </footer>
+</main>

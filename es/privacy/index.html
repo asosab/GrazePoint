@@ -1,0 +1,96 @@
+---
+layout: default
+title: Política de privacidad
+description: "Qué datos guarda Field Shift, para qué, quién los recibe y cómo ejercer tus derechos."
+body_class: legal
+---
+
+<main class="landing-contenido legal-contenido">
+  {% include langswitch.html %}
+  <header class="legal-cab">
+    <a class="legal-volver" href="{{ '/es/' | relative_url }}">← Field Shift</a>
+    <h1>Política de privacidad</h1>
+    <p class="fino">Vigente desde el 15 de noviembre de 2026.</p>
+  </header>
+
+  <section class="tarjeta">
+    <h2>Quiénes somos</h2>
+    <p>Field Shift es un proyecto de código abierto nacido en el NASA Space Apps Challenge 2026 (Santa Cruz de la Sierra, Bolivia). El responsable de los datos es Alejandro Sosa Briceño; puedes escribirle a <a href="mailto:asosab@gmail.com">asosab@gmail.com</a>.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Qué guardamos</h2>
+    <ul>
+      <li><strong>Cuenta:</strong> tu correo, tu nombre si lo das, la clave guardada como hash scrypt (nunca en texto plano) y los códigos de verificación, también hasheados.</li>
+      <li><strong>Tu predio:</strong> polígonos de parcelas, siembras, análisis de suelo, aforos, pastoreos y cortes, y los datos del hato si los cargas.</li>
+      <li><strong>Telegram, solo si lo vinculas:</strong> tu chat id y tu usuario, para mandarte avisos de campo.</li>
+      <li><strong>Registro legal:</strong> la fecha y la versión de los términos que aceptaste al crear la cuenta.</li>
+    </ul>
+    <p>No hay analítica, publicidad ni perfiles de comportamiento.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Para qué los usamos</h2>
+    <p>Solo para darte el servicio: identificarte, guardar tus predios, cruzarlos con el clima y mandarte códigos de acceso y, si los activas, avisos por Telegram. No vendemos ni alquilamos datos a nadie.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Cookies y almacenamiento local</h2>
+    <p>Field Shift no usa cookies. La app guarda en el almacenamiento local de tu navegador unas pocas cosas funcionales:</p>
+    <ul>
+      <li><code>fs_token</code>: tu sesión.</li>
+      <li><code>fs-lang</code>: el idioma que elegiste.</li>
+      <li><code>fs_capas</code>: tus capas del mapa y su opacidad.</li>
+      <li><code>fs_api</code>: una URL de API alternativa, solo si la cambias tú.</li>
+      <li><code>fs_consent</code>: la marca de que ya viste el aviso de almacenamiento.</li>
+    </ul>
+    <p>Sin <code>fs_token</code> la app no funciona; el resto son preferencias. Todo se borra cerrando sesión y limpiando los datos del sitio en tu navegador.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Quién recibe datos</h2>
+    <ul>
+      <li><strong>NASA POWER y NASA GIBS:</strong> las coordenadas de tu parcela viajan en cada consulta de clima o de imagen. No llevan tu nombre ni tu correo.</li>
+      <li><strong>SoilGrids (ISRIC) y Esri:</strong> lo mismo, solo coordenadas para devolver el suelo o el mapa.</li>
+      <li><strong>Gmail (Google):</strong> tu correo, para mandarte los códigos de verificación.</li>
+      <li><strong>Contabo (Alemania):</strong> ahí corre el servidor y vive la base de datos MongoDB.</li>
+      <li><strong>Telegram:</strong> solo si vinculas la cuenta; te escribe el bot @fieldshift_bot.</li>
+      <li><strong>WhatsApp:</strong> solo si tú tocas «compartir»; el texto lo armas tú y va por tu teléfono.</li>
+      <li><strong>unpkg.com:</strong> sirve las librerías de la app y ve tu IP, como cualquier CDN.</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Tu ubicación GPS</h2>
+    <p>Solo si pides «usar mi ubicación» el navegador comparte tu GPS para centrar el mapa. No la guardamos.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Retención</h2>
+    <p>Tratamos tus datos porque hacen falta para darte el servicio y porque diste el consentimiento al crear la cuenta. Los guardamos mientras la cuenta exista; al borrarla se eliminan tus predios y tus datos personales. Los códigos de correo vencen solos a los 30 minutos.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Tus derechos</h2>
+    <p>Puedes pedir acceso, corrección, exportación o borrado de tus datos. La exportación práctica es el informe PDF de tu predio; el borrado está en la ficha de tu cuenta dentro de la app. Si te falta algo, escríbenos.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Seguridad</h2>
+    <p>Claves con scrypt, códigos hasheados, sesiones con JWT y HTTPS en tránsito. Ningún sistema es perfecto: si hay un incidente que toque tus datos, te avisamos.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Menores</h2>
+    <p>Field Shift es para quienes manejan predios. No va dirigido a menores de edad.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Cambios y contacto</h2>
+    <p>Si esta política cambia lo avisamos en el sitio. Contacto: <a href="mailto:asosab@gmail.com">asosab@gmail.com</a> o issues en <a href="https://github.com/asosab/fieldShift">GitHub</a>.</p>
+  </section>
+
+  <footer class="landing-pie">
+    <p><a href="{{ '/es/terms/' | relative_url }}">Términos y condiciones</a> · <a href="{{ '/es/data/' | relative_url }}">Datos y licencias</a></p>
+  </footer>
+</main>

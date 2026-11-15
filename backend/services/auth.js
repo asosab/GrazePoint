@@ -55,11 +55,14 @@ async function _emitirCodigo(user, tipo, lang) {
 	return { ok: true };
 }
 
-// POST /auth/registro {email, clave, nombre, lang}
-async function registro({ email, clave, nombre, lang }) {
+// POST /auth/registro {email, clave, nombre, lang, legal}
+// legal:true es la aceptación de términos y privacidad (checkbox en la app);
+// queda fecha + versión como prueba de consentimiento.
+async function registro({ email, clave, nombre, lang, legal }) {
 	const e = normalizarEmail(email);
 	if (!emailValido(e)) return { ok: false, status: 400, error: 'email_invalido' };
 	if (!clave || String(clave).length < 8) return { ok: false, status: 400, error: 'clave_minima_8' };
+	if (legal !== true) return { ok: false, status: 400, error: 'legal_requerido' };
 
 	let user = await FsUser.findOne({ email: e });
 	if (user && user.verificado) return { ok: false, status: 409, error: 'email_ya_registrado' };
@@ -68,6 +71,8 @@ async function registro({ email, clave, nombre, lang }) {
 	}
 	user.nombre = nombre ? String(nombre).trim().slice(0, 120) : user.nombre;
 	user.claveHash = hashClave(clave);
+	user.legalAceptadoEn = new Date();
+	user.legalVersion = cnf.legalVersion;
 	user.rol = rolParaEmail(e);
 	user.verificado = false;
 	await user.save();

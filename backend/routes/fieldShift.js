@@ -112,6 +112,14 @@ router.get('/me', authenticate, (req, res) => {
 	res.json({ ok: true, usuario: authSrv.usuarioPublico(req.fsUser) });
 });
 
+// DELETE /me — derecho de supresión: borra la cuenta con todos sus
+// predios (parcelas, historiales, suelos, aforos van embebidos).
+router.delete('/me', authenticate, wrap(async (req, res) => {
+	await Predio.deleteMany({ owner: String(req.fsUser._id) });
+	await FsUser.deleteOne({ _id: req.fsUser._id });
+	res.json({ ok: true });
+}));
+
 // Vínculo web ↔ Telegram: el usuario pide un código, abre el
 // deep-link t.me/<bot>?start=FS-XXXXXX y el bot confirma que el chat
 // pertenece a la misma persona que tiene la sesión web.

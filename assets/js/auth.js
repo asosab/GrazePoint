@@ -33,7 +33,7 @@ window.FS = window.FS || {};
     alCambiar: alCambiar,
     listo: null,
 
-    registro: function (email, clave, nombre) { return FS.api.post('/auth/registro', { email: email, clave: clave, nombre: nombre, lang: FS.lang }, FS.t('esp_registro')); },
+    registro: function (email, clave, nombre) { return FS.api.post('/auth/registro', { email: email, clave: clave, nombre: nombre, lang: FS.lang, legal: true }, FS.t('esp_registro')); },
     verificar: async function (email, codigo) { return _guardar(await FS.api.post('/auth/verificar', { email: email, codigo: codigo }, FS.t('esp_verificando'))); },
     reenviar: function (email) { return FS.api.post('/auth/reenviar', { email: email, lang: FS.lang }, FS.t('esp_reenviando')); },
     login: async function (email, clave) {

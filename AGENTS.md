@@ -208,6 +208,21 @@ la raíz; el español vive bajo `es/`.
   idiomas en el mismo cambio** (páginas, cadenas de UI, correos, PDF,
   notas del catálogo — `notas`/`notas_en`).
 
+## Legales
+
+- Páginas `/terms`, `/privacy` y `/data` (EN raíz, ES en `es/`) con
+  el layout `default` y clase `legal`. Vigencia 2026-11-15.
+- Sin cookies: la app usa localStorage (`fs_token`, `fs-lang`,
+  `fs_capas`, `fs_api`, `fs_consent`). El aviso de almacenamiento
+  (`_includes/consent.html`) se muestra una vez en todas las páginas.
+- El registro exige checkbox «leí y acepto» y el backend valida
+  `legal:true` → `legal_requerido`; fsUser guarda `legalAceptadoEn` +
+  `legalVersion` (vigente en `config.legalVersion`: subirla cuando
+  cambie el texto legal).
+- `DELETE /me` borra la cuenta con todos sus predios (botón en la
+  ficha de cuenta). Cualquier página legal nueva va en los dos
+  idiomas en el mismo cambio.
+
 ## Textos: filtro humanamente obligatorio
 
 Toda prosa visible (sitio, UI, correos, PDF, mensajes) pasa por el

@@ -32,6 +32,12 @@ const fsUserSchema = new mongoose.Schema(
 		ultimoLogin: { type: Date, default: null },
 		activo: { type: Boolean, default: true },
 
+		// Aceptación de términos y política de privacidad al registrarse:
+		// fecha + versión del texto aceptado (prueba de consentimiento).
+		// La versión vigente vive en config.legalVersion.
+		legalAceptadoEn: { type: Date, default: null },
+		legalVersion: { type: String, default: null },
+
 		// Vínculo con el bot de Telegram (@fieldshift_bot): la app web
 		// emite un código FS-XXXXXX (se guarda hasheado, 10 min de vida)
 		// y el usuario lo manda al bot; el bot confirma y queda el
