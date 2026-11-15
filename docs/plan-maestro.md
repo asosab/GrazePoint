@@ -2,15 +2,15 @@
 type: plan
 status: activo
 created: 2026-11-14
-tags: [field-shift, plan, patino, prias, rotacion, ventana]
+tags: [graze-point, plan, patino, prias, rotacion, ventana]
 ---
 
-# Plan maestro — Field Shift
+# Plan maestro — GrazePoint
 
 ## De qué va
 
-Field Shift cubre los enfoques 1, 2 y 3 del [[top10-enfoques-patino]]
-(vault NSAC, `docs/field-shift/`):
+GrazePoint cubre los enfoques 1, 2 y 3 del [[top10-enfoques-patino]]
+(vault NSAC, `docs/graze-point/`):
 
 1. **Recomendador de rotación** — «qué sembrar después de X»: tres
    opciones rankeadas por aporte de nitrógeno, familia anterior, pH,
@@ -44,16 +44,16 @@ El [[respuestas-sueleen-pena|cuestionario]] ordena las prioridades:
 ## Arquitectura
 
 ```
-Jekyll (GitHub Pages, asosab.github.io/fieldShift)
+Jekyll (GitHub Pages, asosab.github.io/GrazePoint)
   └─ vanilla JS: mapa Esri World Imagery + dibujo de polígonos
         │
         ▼ Bearer JWT propio
-Express /api/fieldShift  ──── en dos despliegues:
-  ├─ nodeLab (api.statetty.com, producción) — servicios/fieldShift
+Express /api/grazepoint  ──── en dos despliegues:
+  ├─ nodeLab (api.statetty.com, producción) — servicios/grazepoint
   └─ backend/ standalone en este repo (código público espejo)
         │
         ▼
-MongoDB `fieldShift` — local (dev) y Contabo VPS (prod)
+MongoDB `GrazePoint` — local (dev) y Contabo VPS (prod)
         │
         └─ NASA POWER API (daily + climatology), pdfkit, nodemailer
 ```
@@ -63,14 +63,14 @@ Decisiones clave:
 - **Auth propio** (no Buddy): el backend tiene que ser público en un
   solo repo con el frontend. Registro con verificación de correo,
   recuperación de clave — todo vía cuenta de Google con clave de
-  aplicación (`FIELDSHIFT_SMTP_*`).
+  aplicación (`GRAZEPOINT_SMTP_*`).
 - **Tres niveles**: `registrado` (ve todo por ahora), `especial`
   (reservado), `admin` (asosab@gmail.com, lefehur@gmail.com — prescritos
   en `config.js`).
-- **BD propia `fieldShift`** en ambos ambientes; el módulo no comparte
+- **BD propia `GrazePoint`** en ambos ambientes; el módulo no comparte
   la conexión `test` de nodeLab.
-- **Mismo código en dos sitios**: `nodeLab/servicios/fieldShift/` es el
-  deploy de producción; `fieldShift/backend/` es la copia pública que
+- **Mismo código en dos sitios**: `nodeLab/servicios/grazepoint/` es el
+  deploy de producción; `GrazePoint/backend/` es la copia pública que
   presenta el hackathon (un repo, front + back).
 
 ## Recursos disponibles

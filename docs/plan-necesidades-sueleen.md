@@ -2,7 +2,7 @@
 type: plan
 status: activo
 created: 2026-11-15
-tags: [field-shift, plan, patino, sueleen, forraje]
+tags: [graze-point, plan, patino, sueleen, forraje]
 ---
 
 # Plan — necesidades de la entrevista Sueleen Peña

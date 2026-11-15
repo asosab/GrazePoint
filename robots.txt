@@ -3,4 +3,4 @@ Allow: /
 Disallow: /app/
 Disallow: /es/app/
 
-Sitemap: https://asosab.github.io/fieldShift/sitemap.xml
+Sitemap: https://asosab.github.io/GrazePoint/sitemap.xml

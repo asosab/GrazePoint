@@ -1,6 +1,6 @@
-title: "Field Shift"
+title: "GrazePoint"
 description: "Digital PRIAS: decide what to plant, when to rotate and in which window, with your farm's soil records and NASA Earth observation."
-baseurl: "/fieldShift"
+baseurl: "/GrazePoint"
 url: "https://asosab.github.io"
 lang: en
 langs: [en, es]

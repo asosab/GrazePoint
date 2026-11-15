@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  var KEY = "fs-lang";
+  var KEY = "gp-lang";
   var cur = document.documentElement.lang === "es" ? "es" : "en";
   var want;
   try { want = localStorage.getItem(KEY); } catch (e) { want = null; }

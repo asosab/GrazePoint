@@ -1,7 +1,7 @@
-// servicios/fieldShift/routes/fieldShift.js — API del proyecto.
+// servicios/grazepoint/routes/grazepoint.js — API del proyecto.
 //
-// Autoloader de nodeLab la monta en /api/fieldShift. En el backend
-// standalone (fieldShift/backend) se monta igual.
+// Autoloader de nodeLab la monta en /api/grazepoint. En el backend
+// standalone (GrazePoint/backend) se monta igual.
 //
 // Público:  POST /auth/{registro,verificar,login,recuperar,restablecer,reenviar}
 //           GET  /salud
@@ -17,7 +17,7 @@ const db = require('../db');
 const authSrv = require('../services/auth');
 const { authenticate, soloAdmin } = require('../middleware/auth');
 const Predio = require('../models/predioModel');
-const FsUser = require('../models/fsUserModel');
+const GpUser = require('../models/gpUserModel');
 const rotacion = require('../services/rotacion');
 const ventana = require('../services/ventana');
 const power = require('../services/power');
@@ -109,28 +109,28 @@ router.post('/auth/reenviar', wrap(async (req, res) => {
 // ── Sesión ──────────────────────────────────────────────────────────────────
 
 router.get('/me', authenticate, (req, res) => {
-	res.json({ ok: true, usuario: authSrv.usuarioPublico(req.fsUser) });
+	res.json({ ok: true, usuario: authSrv.usuarioPublico(req.gpUser) });
 });
 
 // DELETE /me — derecho de supresión: borra la cuenta con todos sus
 // predios (parcelas, historiales, suelos, aforos van embebidos).
 router.delete('/me', authenticate, wrap(async (req, res) => {
-	await Predio.deleteMany({ owner: String(req.fsUser._id) });
-	await FsUser.deleteOne({ _id: req.fsUser._id });
+	await Predio.deleteMany({ owner: String(req.gpUser._id) });
+	await GpUser.deleteOne({ _id: req.gpUser._id });
 	res.json({ ok: true });
 }));
 
 // Vínculo web ↔ Telegram: el usuario pide un código, abre el
-// deep-link t.me/<bot>?start=FS-XXXXXX y el bot confirma que el chat
+// deep-link t.me/<bot>?start=GP-XXXXXX y el bot confirma que el chat
 // pertenece a la misma persona que tiene la sesión web.
 router.post('/me/telegram/codigo', authenticate, wrap(async (req, res) => {
-	const r = await telegram.crearCodigo(req.fsUser);
+	const r = await telegram.crearCodigo(req.gpUser);
 	if (!r.ok) return res.status(429).json({ ok: false, error: r.error });
 	res.json({ ok: true, codigo: r.codigo, url: r.url, expiraMin: 10 });
 }));
 
 router.delete('/me/telegram', authenticate, wrap(async (req, res) => {
-	await telegram.desvincular(req.fsUser);
+	await telegram.desvincular(req.gpUser);
 	res.json({ ok: true });
 }));
 
@@ -141,15 +141,15 @@ router.get('/catalogo', authenticate, wrap(async (req, res) => {
 // ── Predios ─────────────────────────────────────────────────────────────────
 
 function _predioPropio(req) {
-	return { owner: String(req.fsUser._id), activo: true };
+	return { owner: String(req.gpUser._id), activo: true };
 }
 
 function _puedeVer(req, predio) {
-	return req.fsUser.rol === 'admin' || String(predio.owner) === String(req.fsUser._id);
+	return req.gpUser.rol === 'admin' || String(predio.owner) === String(req.gpUser._id);
 }
 
 router.get('/predios', authenticate, wrap(async (req, res) => {
-	const filtro = (req.fsUser.rol === 'admin' && req.query.todos === '1') ? { activo: true } : _predioPropio(req);
+	const filtro = (req.gpUser.rol === 'admin' && req.query.todos === '1') ? { activo: true } : _predioPropio(req);
 	const docs = await Predio.find(filtro).select('-parcelas.historial -parcelas.suelos -parcelas.aforos').lean();
 	res.json({ ok: true, data: docs });
 }));
@@ -158,7 +158,7 @@ router.post('/predios', authenticate, wrap(async (req, res) => {
 	const b = req.body || {};
 	if (!b.nombre) return res.status(400).json({ ok: false, error: 'nombre_requerido' });
 	const doc = await Predio.create({
-		owner: String(req.fsUser._id),
+		owner: String(req.gpUser._id),
 		nombre: String(b.nombre).slice(0, 160),
 		descripcion: b.descripcion ? String(b.descripcion).slice(0, 1000) : null,
 		centro: b.centro && Array.isArray(b.centro) ? { type: 'Point', coordinates: [Number(b.centro[0]), Number(b.centro[1])] } : undefined,
@@ -443,23 +443,23 @@ router.get('/predios/:id/informe.pdf', authenticate, wrap(async (req, res) => {
 	const predio = await _cargarPredio(req, res);
 	if (!predio) return;
 	const parcela = req.query.parcela ? predio.parcelas.id(req.query.parcela) : null;
-	const pdf = await informe.generar({ predio, parcela, solicitadoPor: req.fsUser.nombre || req.fsUser.email, lang: langDe(req) });
+	const pdf = await informe.generar({ predio, parcela, solicitadoPor: req.gpUser.nombre || req.gpUser.email, lang: langDe(req) });
 	res.setHeader('Content-Type', 'application/pdf');
-	res.setHeader('Content-Disposition', 'inline; filename="fieldshift-' + predio._id + '.pdf"');
+	res.setHeader('Content-Disposition', 'inline; filename="grazepoint-' + predio._id + '.pdf"');
 	res.send(pdf);
 }));
 
 // ── Admin ───────────────────────────────────────────────────────────────────
 
 router.get('/admin/usuarios', authenticate, soloAdmin, wrap(async (req, res) => {
-	const docs = await FsUser.find({}, { claveHash: 0, codigoHash: 0 }).lean();
+	const docs = await GpUser.find({}, { claveHash: 0, codigoHash: 0 }).lean();
 	res.json({ ok: true, data: docs });
 }));
 
 router.put('/admin/usuarios/:uid/rol', authenticate, soloAdmin, wrap(async (req, res) => {
 	const rol = req.body && req.body.rol;
 	if (!['admin', 'especial', 'registrado'].includes(rol)) return res.status(400).json({ ok: false, error: 'rol_invalido' });
-	const u = await FsUser.findByIdAndUpdate(req.params.uid, { rol }, { new: true });
+	const u = await GpUser.findByIdAndUpdate(req.params.uid, { rol }, { new: true });
 	if (!u) return res.status(404).json({ ok: false, error: 'usuario_inexistente' });
 	res.json({ ok: true, data: authSrv.usuarioPublico(u) });
 }));

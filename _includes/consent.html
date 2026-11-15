@@ -2,18 +2,18 @@
 {%- assign c_t = site.data.i18n[c_lang] -%}
 {%- if c_lang == "es" -%}{%- assign c_priv = "/es/privacy/" -%}{%- else -%}{%- assign c_priv = "/privacy/" -%}{%- endif -%}
 <!-- Aviso de almacenamiento local (no hay cookies; se muestra una vez) -->
-<div id="fs-consent" class="consent" role="dialog" aria-live="polite" hidden>
+<div id="gp-consent" class="consent" role="dialog" aria-live="polite" hidden>
   <p>{{ c_t.consent_txt }} <a href="{{ c_priv | relative_url }}">{{ c_t.consent_priv }}</a></p>
-  <button id="fs-consent-ok" class="consent-ok" type="button">{{ c_t.consent_ok }}</button>
+  <button id="gp-consent-ok" class="consent-ok" type="button">{{ c_t.consent_ok }}</button>
 </div>
 <script>
 (function () {
-  var d = document.getElementById('fs-consent');
+  var d = document.getElementById('gp-consent');
   if (!d) return;
-  try { if (localStorage.getItem('fs_consent')) return; } catch (e) {}
+  try { if (localStorage.getItem('gp_consent')) return; } catch (e) {}
   d.hidden = false;
-  document.getElementById('fs-consent-ok').onclick = function () {
-    try { localStorage.setItem('fs_consent', '1'); } catch (e) {}
+  document.getElementById('gp-consent-ok').onclick = function () {
+    try { localStorage.setItem('gp_consent', '1'); } catch (e) {}
     d.hidden = true;
   };
 })();

@@ -5,7 +5,7 @@
  * Todo se normaliza a { nombre, geometry: Polygon lon/lat WGS84 }.
  * Las librerías pesadas (jszip, shp.js, pdf.js, proj4) se cargan por CDN
  * solo cuando el archivo lo pide. */
-window.FS = window.FS || {};
+window.GP = window.GP || {};
 
 (function () {
   var LIBS = {
@@ -98,9 +98,9 @@ window.FS = window.FS || {};
   }
 
   // ── reproyección (proj4, solo si hace falta) ────────────
-  var _defsListos = false;
+  var _degpListos = false;
   function _registrarDefs() {
-    if (_defsListos || typeof proj4 === 'undefined') return;
+    if (_degpListos || typeof proj4 === 'undefined') return;
     for (var z = 1; z <= 60; z++) {
       var zz = (z < 10 ? '0' : '') + z;
       proj4.defs('EPSG:326' + zz, '+proj=utm +zone=' + z + ' +datum=WGS84 +units=m +no_defs');
@@ -114,7 +114,7 @@ window.FS = window.FS || {};
         proj4.defs('EPSG:291' + zz, '+proj=utm +zone=' + z + ' +ellps=intl +towgs84=-288,175,-376,0,0,0,0 +units=m +no_defs');
       }
     }
-    _defsListos = true;
+    _degpListos = true;
   }
 
   function _epsgDeCrs(crs) {
@@ -151,7 +151,7 @@ window.FS = window.FS || {};
     sucios.forEach(function (c) {
       try { _reproyectarGeom(c.geometry, epsg); } catch (e) { c.mal = true; console.warn('[importar] reproyección falló', e); }
     });
-    return asumido ? FS.t('imp_crs_asumido') : null;
+    return asumido ? GP.t('imp_crs_asumido') : null;
   }
 
   // ── GeoJSON ─────────────────────────────────────────────
@@ -191,12 +191,12 @@ window.FS = window.FS || {};
     var out = [], i;
     var crs = obj && obj.crs;
     function feat(f, k) {
-      var nombre = _nombreProps(f.properties, k) || FS.t('parcela_n', { n: out.length + 1 });
+      var nombre = _nombreProps(f.properties, k) || GP.t('parcela_n', { n: out.length + 1 });
       _deGeometria(f.geometry, nombre, out);
     }
     if (obj.type === 'FeatureCollection') (obj.features || []).forEach(feat);
     else if (obj.type === 'Feature') feat(obj, 0);
-    else if (obj && obj.type) _deGeometria(obj, FS.t('parcela_generico'), out);
+    else if (obj && obj.type) _deGeometria(obj, GP.t('parcela_generico'), out);
     else if (Array.isArray(obj)) obj.forEach(feat); // shp.combine devuelve array de features
     cands_crs = cands_crs || crs;
     return out;
@@ -241,7 +241,7 @@ window.FS = window.FS || {};
       var parte = 0;
       function nom() {
         parte++;
-        var base = nombre || FS.t('parcela_n', { n: out.length + 1 });
+        var base = nombre || GP.t('parcela_n', { n: out.length + 1 });
         return parte > 1 ? base + ' (' + parte + ')' : base;
       }
       _hijos(pm, 'Polygon').forEach(function (poly) {
@@ -281,21 +281,21 @@ window.FS = window.FS || {};
         pts.push([parseFloat(p.getAttribute('lon')), parseFloat(p.getAttribute('lat'))]);
       });
       var anillo = cerrarAnillo(pts);
-      if (anillo) out.push({ nombre: nombreDe(trk, FS.t('parcela_n', { n: i + 1 })), geometry: { type: 'Polygon', coordinates: [anillo] } });
+      if (anillo) out.push({ nombre: nombreDe(trk, GP.t('parcela_n', { n: i + 1 })), geometry: { type: 'Polygon', coordinates: [anillo] } });
     });
     _hijos(doc, 'rte').forEach(function (rte) {
       var pts = _hijos(rte, 'rtept').map(function (p) {
         return [parseFloat(p.getAttribute('lon')), parseFloat(p.getAttribute('lat'))];
       });
       var anillo = cerrarAnillo(pts);
-      if (anillo) out.push({ nombre: nombreDe(rte, FS.t('parcela_n', { n: out.length + 1 })), geometry: { type: 'Polygon', coordinates: [anillo] } });
+      if (anillo) out.push({ nombre: nombreDe(rte, GP.t('parcela_n', { n: out.length + 1 })), geometry: { type: 'Polygon', coordinates: [anillo] } });
     });
     var wpts = _hijos(doc, 'wpt').map(function (p) {
       return [parseFloat(p.getAttribute('lon')), parseFloat(p.getAttribute('lat'))];
     }).filter(function (c) { return isFinite(c[0]) && isFinite(c[1]); });
     if (wpts.length >= 3) {
       var hull = cascoConvexo(wpts);
-      if (hull) out.push({ nombre: FS.t('imp_waypoints', { n: wpts.length }), geometry: { type: 'Polygon', coordinates: [cerrarAnillo(hull)] }, dePuntos: true });
+      if (hull) out.push({ nombre: GP.t('imp_waypoints', { n: wpts.length }), geometry: { type: 'Polygon', coordinates: [cerrarAnillo(hull)] }, dePuntos: true });
     }
     return out;
   }
@@ -338,7 +338,7 @@ window.FS = window.FS || {};
       var pts = grupos[g];
       var anillo = cerrarAnillo(pts);
       if (!anillo) return null;
-      return { nombre: g || FS.t('parcela_n', { n: i + 1 }), geometry: { type: 'Polygon', coordinates: [anillo] } };
+      return { nombre: g || GP.t('parcela_n', { n: i + 1 }), geometry: { type: 'Polygon', coordinates: [anillo] } };
     }).filter(Boolean);
   }
 
@@ -627,19 +627,19 @@ window.FS = window.FS || {};
           var r = await dePDF(await f.arrayBuffer(), base);
           cands = cands.concat(r.cands);
           if (r.plano) plano = r.plano;
-          if (!r.georref) notas.push(FS.t('imp_sin_georef'));
+          if (!r.georref) notas.push(GP.t('imp_sin_georef'));
         } else {
-          notas.push(FS.t('imp_no_entendi', { f: f.name }));
+          notas.push(GP.t('imp_no_entendi', { f: f.name }));
         }
       } catch (e) {
         console.warn('[importar]', f.name, e);
-        notas.push(FS.t('imp_no_entendi', { f: f.name }));
+        notas.push(GP.t('imp_no_entendi', { f: f.name }));
       }
     }
 
     if (shpGrupo['shp']) {
       try { cands = cands.concat(await _shpSuelto(shpGrupo)); }
-      catch (e) { console.warn('[importar]', shpGrupo['shp'].name, e); notas.push(FS.t('imp_no_entendi', { f: shpGrupo['shp'].name })); }
+      catch (e) { console.warn('[importar]', shpGrupo['shp'].name, e); notas.push(GP.t('imp_no_entendi', { f: shpGrupo['shp'].name })); }
     }
 
     // Proyección + saneamiento.
@@ -652,13 +652,13 @@ window.FS = window.FS || {};
     });
     // Nombre por defecto donde falte.
     cands.forEach(function (c, i) {
-      if (!c.nombre) c.nombre = FS.t('parcela_n', { n: i + 1 });
+      if (!c.nombre) c.nombre = GP.t('parcela_n', { n: i + 1 });
       c.ha = Math.round(areaHa(c.geometry) * 10) / 10;
     });
     var dePuntos = cands.filter(function (c) { return c.dePuntos; }).length;
-    if (dePuntos) notas.push(FS.t('imp_de_puntos', { n: dePuntos }));
+    if (dePuntos) notas.push(GP.t('imp_de_puntos', { n: dePuntos }));
     return { cands: cands, notas: notas, plano: plano };
   }
 
-  FS.importar = { leerArchivos: leerArchivos, utmPunto: utmPunto, candidato: candidato };
+  GP.importar = { leerArchivos: leerArchivos, utmPunto: utmPunto, candidato: candidato };
 })();

@@ -1,16 +1,16 @@
-# AGENTS.md — fieldShift
+# AGENTS.md — GrazePoint
 
 App web abierta para decidir qué sembrar y cuándo, cruzando el suelo
 medido del predio con observación de la Tierra de la NASA (POWER).
 Nacida en el NASA Space Apps Challenge 2026. Sitio Jekyll en GitHub
-Pages: **https://asosab.github.io/fieldShift/**
+Pages: **https://asosab.github.io/GrazePoint/**
 
 ## Stack
 
 - Frontend: Jekyll sin build, JS vanilla (`assets/js/*.js`), Leaflet por
   CDN (Esri World Imagery). Sin Gemfile ni CI.
 - Backend: `backend/` Express + MongoDB standalone, espejo del módulo
-  `servicios/fieldShift` de nodeLab (api.statetty.com). **Todo cambio al
+  `servicios/grazepoint` de nodeLab (api.statetty.com). **Todo cambio al
   backend hay que espejarlo en nodeLab.**
 - El análisis cruza NASA POWER con el suelo de la parcela: primero el
   PRIAS medido a mano (pH, MO, textura) y, si falta, **SoilGrids**
@@ -29,24 +29,24 @@ Pages: **https://asosab.github.io/fieldShift/**
   N bajo (+fijaN), CIC baja (−alta extracción), suelo denso (+raíz
   gruesa). La respuesta de `/analisis` trae `terreno` (ndvi, ndviAnt,
   smap + fechas de tile) y `tiempo` (meses, pctVsAnio, mesesSecos).
-- Bot propio **@fieldshift_bot** (`services/telegram.js`, poller
+- Bot propio **@grazepoint_bot** (`services/telegram.js`, poller
   `getUpdates` propio sin webhook): vínculo cuenta web ↔ chat con
-  código `FS-XXXXXX` de un solo uso (10 min, hasheado). Flujo:
-  `POST /me/telegram/codigo` → deep-link `t.me/fieldshift_bot?start=`
+  código `GP-XXXXXX` de un solo uso (10 min, hasheado). Flujo:
+  `POST /me/telegram/codigo` → deep-link `t.me/grazepoint_bot?start=`
   → `/start` o `/vincular <código>` en el chat → `GET /me` trae
   `telegram.vinculado`. `DELETE /me/telegram` desvincula.
   `/resumen` (`/summary`) devuelve el estado forrajero de todos los
   potreros del usuario como texto plano + cobertura del hato si hay
   `predio.hato` cargado. Env:
-  `FIELDSHIFT_TG_TOKEN`, `FIELDSHIFT_TG_BOT`, `FIELDSHIFT_TG_ADMIN`
+  `GRAZEPOINT_TG_TOKEN`, `GRAZEPOINT_TG_BOT`, `GRAZEPOINT_TG_ADMIN`
   (chat id del admin: comandos de control como `/estado`). Sin token
   el poller no arranca y el resto del servicio funciona igual.
-- El frontend apunta a `https://api.statetty.com/api/fieldShift`; con
-  `?api=<url>` o `fs_api` en localStorage usa otro backend.
+- El frontend apunta a `https://api.statetty.com/api/grazepoint`; con
+  `?api=<url>` o `gp_api` en localStorage usa otro backend.
 
 ## Importar parcelas desde archivo
 
-`assets/js/importar.js` (`FS.importar.leerArchivos(files)`) convierte
+`assets/js/importar.js` (`GP.importar.leerArchivos(files)`) convierte
 archivos de mapa en candidatos `{nombre, geometry: Polygon WGS84}` sin
 tocar el backend: el alta sigue siendo `POST /predios/:id/parcelas` por
 cada polígono marcado.
@@ -67,14 +67,14 @@ cada polígono marcado.
   subir archivo (`#imp-archivo`), **soltar archivos directo sobre el
   mapa** (drop en `#mapa`, clase `.soltando`) o **pegar coordenadas
   UTM** (Este/Norte por línea, zona 19–21 S →
-  `FS.importar.utmPunto` + `FS.importar.candidato`). Los candidatos
+  `GP.importar.utmPunto` + `GP.importar.candidato`). Los candidatos
   se pintan punteados en `mapa.js` (`pintarCandidatos`) y se importan
   desde la sábana (`hojaImportar`). El plano se quita con
   `#capa-quitar`.
 
 ## Capas de análisis + paso de tiempo
 
-`assets/js/capas.js` (`FS.capas`) gestiona capas raster sobre el mapa —
+`assets/js/capas.js` (`GP.capas`) gestiona capas raster sobre el mapa —
 todo directo desde el navegador, sin backend ni API key:
 
 - **NASA GIBS** (`gibs.earthdata.nasa.gov/wmts/epsg3857/best/`): NDVI
@@ -83,15 +83,15 @@ todo directo desde el navegador, sin backend ni API key:
 - **SoilGrids WMS** (`maps.isric.org`): pH, arcilla y carbono 0–5 cm.
 - **Esri referencia**: nombres de lugar y límites.
 - Base: satélite Esri u OSM (`mapa.js` registra su capa base vía
-  `FS.capas.registriereBasis`).
+  `GP.capas.registriereBasis`).
 - La sábana de capas abre con `fab-capas` (⧉): checkbox + slider de
   opacidad por capa — se combinan libremente. Selección y base quedan
-  en `localStorage fs_capas`.
+  en `localStorage gp_capas`.
 - `res: 'tag'|'monat'|'fix'` + `retraso` (días) en la registry: la
   fecha del tile se kapa en `hoy − retraso`, así no se piden tiles que
   NASA aún no publica (p. ej. MERRA-2 mensual, lag ~80 d).
 
-`assets/js/tiempo.js` (`FS.tiempo`) es el paso de tiempo: 13 pasos
+`assets/js/tiempo.js` (`GP.tiempo`) es el paso de tiempo: 13 pasos
 (−6 … 0 … +6 meses); `fab-tiempo` (◷) abre `#tiempo-barra` con slider,
 flechas, play y pills de lluvia/temp/humedad.
 
@@ -100,8 +100,8 @@ flechas, play y pills de lluvia/temp/humedad.
 - Futuro («proyección»): mismo mes del año anterior como tile + POWER
   climatology como números — los ciclos previos.
 - Solo las capas `temporal` (GIBS no-fix) siguen la fecha; el resto no
-  se toca. Al cerrar, `FS.capas.setPaso(null)` vuelve a «actual».
-- **Enfoque de parcela** (`FS.mapa.enfocar`): con al menos una capa
+  se toca. Al cerrar, `GP.capas.setPaso(null)` vuelve a «actual».
+- **Enfoque de parcela** (`GP.mapa.enfocar`): con al menos una capa
   de análisis activa y una parcela seleccionada, `app.js`
   (`actualizarEnfoque`) pinta una máscara mundo-con-hueco que oscurece
   lo que queda fuera del polígono — refuerza que el análisis es del
@@ -193,11 +193,11 @@ la raíz; el español vive bajo `es/`.
 - `_config.yml`: `langs: [en, es]` + defaults por scope (`es/` → `lang: es`).
 - Cadenas de layout: `_data/i18n.yml` (`default_desc`, `og_locale`, etc.).
 - Suiche: `_includes/langswitch.html` en la landing y en `barra-top` de
-  la app. Memoria: `assets/js/lang.js` guarda `fs-lang` en localStorage
+  la app. Memoria: `assets/js/lang.js` guarda `gp-lang` en localStorage
   y redirige vía `link[hreflang]` si el idioma guardado difiere.
 - Layout emite `hreflang` en/es/x-default y `og:locale` + alternate.
 - Cadenas de la app: `assets/js/i18n.js`, diccionario por
-  `document.documentElement.lang` con `FS.t(clave, {vars})`. Nada de
+  `document.documentElement.lang` con `GP.t(clave, {vars})`. Nada de
   texto visible hardcodeado en `app.js`/`mapa.js`: siempre por `t()`.
 - Backend: `services/i18n.js` con los diccionarios (meses, razones,
   riesgos, PDF, correos). El frontend manda `lang` en el body de
@@ -212,11 +212,11 @@ la raíz; el español vive bajo `es/`.
 
 - Páginas `/terms`, `/privacy` y `/data` (EN raíz, ES en `es/`) con
   el layout `default` y clase `legal`. Vigencia 2026-11-15.
-- Sin cookies: la app usa localStorage (`fs_token`, `fs-lang`,
-  `fs_capas`, `fs_api`, `fs_consent`). El aviso de almacenamiento
+- Sin cookies: la app usa localStorage (`gp_token`, `gp-lang`,
+  `gp_capas`, `gp_api`, `gp_consent`). El aviso de almacenamiento
   (`_includes/consent.html`) se muestra una vez en todas las páginas.
 - El registro exige checkbox «leí y acepto» y el backend valida
-  `legal:true` → `legal_requerido`; fsUser guarda `legalAceptadoEn` +
+  `legal:true` → `legal_requerido`; gpUser guarda `legalAceptadoEn` +
   `legalVersion` (vigente en `config.legalVersion`: subirla cuando
   cambie el texto legal).
 - `DELETE /me` borra la cuenta con todos sus predios (botón en la
@@ -259,5 +259,5 @@ de entregarse: en castellano con `humanamente`, en inglés con
   Verificar en caliente en GitHub Pages o con un Jekyll disponible.
 - JS: `node --check` sobre cada archivo. Backend: correr
   `backend/` con `npm start` (`:8080`) y probar la API con
-  `?api=http://localhost:8080/api/fieldShift`.
+  `?api=http://localhost:8080/api/grazepoint`.
 - El log de sesión va en `docs/log/YYYY-MM-DD.md`.

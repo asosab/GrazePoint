@@ -1,7 +1,7 @@
 /* mapa.js — mapa satelital (Esri World Imagery) + dibujo de polígonos.
  * Dibujo táctil: cada toque agrega un vértice; "listo" cierra el anillo.
  * Devuelve GeoJSON {type:'Polygon', coordinates:[[[lon,lat],...]]}. */
-window.FS = window.FS || {};
+window.GP = window.GP || {};
 
 (function () {
   var mapa = null;
@@ -18,7 +18,7 @@ window.FS = window.FS || {};
     var lyrBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19, attribution: 'Esri, Maxar, Earthstar Geographics'
     }).addTo(mapa);
-    if (FS.capas && FS.capas.registriereBasis) FS.capas.registriereBasis(lyrBase);
+    if (GP.capas && GP.capas.registriereBasis) GP.capas.registriereBasis(lyrBase);
     capaParcelas = L.layerGroup().addTo(mapa);
     capaImportados = L.featureGroup().addTo(mapa); // featureGroup: encuadrarCandidatos usa getBounds
     mapa.setView([-17.72, -63.10], 13); // Lomas de Arena, Santa Cruz
@@ -40,7 +40,7 @@ window.FS = window.FS || {};
       if (!p.geometry || !p.geometry.coordinates) return;
       var latlngs = p.geometry.coordinates[0].map(function (c) { return [c[1], c[0]]; });
       var poly = L.polygon(latlngs, _estilo(p));
-      poly.bindTooltip(p.nombre || (FS.t ? FS.t('parcela_generico') : 'plot'), { sticky: true });
+      poly.bindTooltip(p.nombre || (GP.t ? GP.t('parcela_generico') : 'plot'), { sticky: true });
       if (alTocar) poly.on('click', function (e) { if (!dibujo) { L.DomEvent.stop(e); alTocar(p, poly); } });
       poly.addTo(capaParcelas);
       p._capa = poly;
@@ -208,7 +208,7 @@ window.FS = window.FS || {};
     }, function () {}, { enableHighAccuracy: true, timeout: 8000 });
   }
 
-  FS.mapa = {
+  GP.mapa = {
     iniciar: iniciar,
     pintarParcelas: pintarParcelas,
     encuadrarParcelas: encuadrarParcelas,

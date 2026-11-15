@@ -1,4 +1,4 @@
-// servicios/fieldShift/models/fsUserModel.js — usuarios del proyecto.
+// servicios/grazepoint/models/gpUserModel.js — usuarios del proyecto.
 //
 // Auth propio (sin Buddy): email + clave con hash scrypt, verificación de
 // correo por código de 6 dígitos, recuperación de clave por código.
@@ -14,7 +14,7 @@ const crypto = require('crypto');
 const { conn } = require('../db');
 const cnf = require('../config');
 
-const fsUserSchema = new mongoose.Schema(
+const gpUserSchema = new mongoose.Schema(
 	{
 		email: { type: String, required: true, unique: true, lowercase: true, trim: true },
 		nombre: { type: String, default: null, trim: true, maxlength: 120 },
@@ -38,8 +38,8 @@ const fsUserSchema = new mongoose.Schema(
 		legalAceptadoEn: { type: Date, default: null },
 		legalVersion: { type: String, default: null },
 
-		// Vínculo con el bot de Telegram (@fieldshift_bot): la app web
-		// emite un código FS-XXXXXX (se guarda hasheado, 10 min de vida)
+		// Vínculo con el bot de Telegram (@grazepoint_bot): la app web
+		// emite un código GP-XXXXXX (se guarda hasheado, 10 min de vida)
 		// y el usuario lo manda al bot; el bot confirma y queda el
 		// chatId para avisos. telegramCodigo* no pisa codigo* porque es
 		// para otro propósito (vincular, no auth).
@@ -79,11 +79,11 @@ function nuevoCodigo() {
 	return String(crypto.randomInt(0, 1000000)).padStart(6, '0');
 }
 
-// Código de vínculo Telegram: FS- + 6 chars sin ambiguos (nada de
-// 0/O/1/I/L). Va en el deep-link t.me/<bot>?start=FS-XXXXXX.
+// Código de vínculo Telegram: GP- + 6 chars sin ambiguos (nada de
+// 0/O/1/I/L). Va en el deep-link t.me/<bot>?start=GP-XXXXXX.
 function nuevoCodigoTelegram() {
 	const ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-	let c = 'FS-';
+	let c = 'GP-';
 	for (let i = 0; i < 6; i++) c += ABC[crypto.randomInt(0, ABC.length)];
 	return c;
 }
@@ -100,7 +100,7 @@ function rolParaEmail(email) {
 	return 'registrado';
 }
 
-module.exports = conn.model('FsUser', fsUserSchema);
+module.exports = conn.model('GpUser', gpUserSchema);
 module.exports.hashClave = hashClave;
 module.exports.verificarClave = verificarClave;
 module.exports.nuevoCodigo = nuevoCodigo;

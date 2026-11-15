@@ -33,14 +33,14 @@ node provision-cuenta.js --email fieldshiftscz@gmail.com --clave 'FieldShift*202
 ```
 
 Opciones: `--nombre`, `--api`, `--env` (otro .env con credenciales
-SMTP), `--asunto` (filtro IMAP, def. `Field Shift`), `--out`, `--lang`.
+SMTP), `--asunto` (filtro IMAP, def. `GrazePoint`), `--out`, `--lang`.
 
 ## Tour completo con subtítulos (grabar-tour.js)
 
 ```bash
 # inglés (raíz) y español (/es/): se graba una pasada por idioma
 node grabar-tour.js --creds ../../../.tmp/creds.json --archivo ../../../.tmp/test.kmz
-node grabar-tour.js --url https://asosab.github.io/fieldShift/es/app/ \
+node grabar-tour.js --url https://asosab.github.io/GrazePoint/es/app/ \
   --creds ../../../.tmp/creds.json --archivo ../../../.tmp/test.kmz \
   --predio "Estancia Demo"
 ```
@@ -116,9 +116,9 @@ node grabar.js --creds ../../../.tmp/creds.json --archivo "D:/Download/PROP_ERIC
 Sin `--archivo` dibuja un polígono de cuatro toques alrededor del centro
 y responde el `prompt()` del nombre. Flags útiles:
 
-- `--url https://asosab.github.io/fieldShift/es/app/` para grabar en
+- `--url https://asosab.github.io/GrazePoint/es/app/` para grabar en
   español; los selectores son ids y sirven igual en ambos idiomas.
-- `--api http://localhost:8080/api/fieldShift` para apuntar al backend
+- `--api http://localhost:8080/api/grazepoint` para apuntar al backend
   standalone local (va como `?api=`).
 - `--predio`, `--desc`, `--parcela` para los textos que se tipean.
 - `--especie` + `--siembra-fecha YYYY-MM-DD` (cultivo actual);

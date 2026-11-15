@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/sueloWeb.js — tipo de suelo por punto.
+// servicios/grazepoint/services/sueloWeb.js — tipo de suelo por punto.
 //
 // Fuente: SoilGrids (ISRIC). La REST v2.0 (rest.isric.org) está
 // degradada y devuelve nulls; el WMS público sí responde: con

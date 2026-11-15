@@ -8,7 +8,7 @@
 //   node grabar.js --creds ../../.tmp/creds.json --archivo "D:/Download/PROP_ERICKA.kmz"
 //
 // Flags:
-//   --url           app a grabar (def: https://asosab.github.io/fieldShift/app/; usar .../es/app/ para ES)
+//   --url           app a grabar (def: https://asosab.github.io/GrazePoint/app/; usar .../es/app/ para ES)
 //   --api           backend alterno → se pasa como ?api=
 //   --archivo       kmz/kml/shp-zip/geojson/gpx/csv/wkt/pdf a importar; sin él dibuja un polígono
 //   --predio        nombre del predio (def: 'Demo Farm')     --desc  descripción
@@ -20,7 +20,7 @@
 //   --creds         JSON {email, clave} — o --email + --clave
 //   --device        descriptor Playwright (def: 'Pixel 7'); --width/--height lo sobrescriben
 //   --out           carpeta de salida (def: <repo>/.tmp/videos/<timestamp>)
-//   --salida        nombre base del video+pdf (def: fieldshift-demo-<timestamp>)
+//   --salida        nombre base del video+pdf (def: grazepoint-demo-<timestamp>)
 //   --ritmo         multiplicador de pausas (def: 1; 0.7 acelera, 1.4 respira más)
 //   --timeout       espera máx del análisis en ms (def: 90000; NASA POWER demora)
 //   --no-mp4        no convierte el .webm a .mp4 (requiere ffmpeg en PATH)
@@ -35,12 +35,12 @@ const REPO = path.resolve(__dirname, '..', '..', '..');
 function args() {
   const ts = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
   const o = {
-    url: 'https://asosab.github.io/fieldShift/app/',
+    url: 'https://asosab.github.io/GrazePoint/app/',
     predio: 'Demo Farm', desc: '', parcela: 'Plot 1',
     especie: 'Soybean', 'siembra-fecha': '',
     device: 'Pixel 7', ritmo: '1', timeout: '90000',
     out: path.join(REPO, '.tmp', 'videos', ts),
-    salida: 'fieldshift-demo-' + ts
+    salida: 'grazepoint-demo-' + ts
   };
   const a = process.argv.slice(2);
   for (let i = 0; i < a.length; i++) {
@@ -140,7 +140,7 @@ function hayFfmpeg() {
 
   // ── 4. tocar la parcela en el mapa → ficha ─────────────
   const pt = await page.evaluate(() => {
-    const map = FS.mapa.leaflet();
+    const map = GP.mapa.leaflet();
     let poly = null;
     map.eachLayer(l => { if (!poly && l instanceof L.Polygon) poly = l; });
     if (!poly) return null;

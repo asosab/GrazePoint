@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/power.js — NASA POWER API.
+// servicios/grazepoint/services/power.js — NASA POWER API.
 //
 // Sin auth ni login. Dos consultas:
 //   daily       → serie diaria reciente (lluvia, temperatura, humedad de

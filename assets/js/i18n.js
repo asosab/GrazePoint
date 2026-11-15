@@ -1,8 +1,8 @@
 /* i18n.js — diccionario de cadenas de la app.
  * El idioma sale de <html lang>: 'es' si es español, 'en' en cualquier
  * otro caso (el inglés es el idioma por defecto del sitio).
- * Uso: FS.t('clave') · FS.t('clave', { n: 3 }) reemplaza {n}. */
-window.FS = window.FS || {};
+ * Uso: GP.t('clave') · GP.t('clave', { n: 3 }) reemplaza {n}. */
+window.GP = window.GP || {};
 
 (function () {
   var lang = document.documentElement.lang === 'es' ? 'es' : 'en';
@@ -41,7 +41,7 @@ window.FS = window.FS || {};
       tg_vinculado: 'Telegram vinculado: {u}',
       tg_desvincular: 'desvincular',
       tg_instruccion: 'Mándale este código al bot, o abre el link directo (dura {m} min):',
-      tg_abrir: 'Abrir @fieldshift_bot',
+      tg_abrir: 'Abrir @grazepoint_bot',
       tg_check: 'ya lo mandé, verificar',
       tg_off_ok: 'Telegram desvinculado.',
       esp_tg: 'Hablando con Telegram…',
@@ -384,7 +384,7 @@ window.FS = window.FS || {};
       tg_vinculado: 'Telegram linked: {u}',
       tg_desvincular: 'unlink',
       tg_instruccion: 'Send this code to the bot, or open the direct link (it lasts {m} min):',
-      tg_abrir: 'Open @fieldshift_bot',
+      tg_abrir: 'Open @grazepoint_bot',
       tg_check: 'I sent it, check',
       tg_off_ok: 'Telegram unlinked.',
       esp_tg: 'Talking to Telegram…',
@@ -696,9 +696,9 @@ window.FS = window.FS || {};
     }
   };
 
-  FS.lang = lang;
-  FS.dateLocale = lang === 'es' ? 'es-BO' : 'en-US';
-  FS.t = function (k, vars) {
+  GP.lang = lang;
+  GP.dateLocale = lang === 'es' ? 'es-BO' : 'en-US';
+  GP.t = function (k, vars) {
     var v = D[lang] && D[lang][k] != null ? D[lang][k] : k;
     if (vars) for (var p in vars) v = v.split('{' + p + '}').join(vars[p]);
     return v;

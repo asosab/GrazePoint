@@ -1,5 +1,5 @@
 {
-  "descripcion": "Guion del video tour de fieldShift. Cada escena lleva un id que grabar-tour.js emite como marca en marcas.json; subtitulos.js empalma texto y tiempos. Los textos ya pasaron por humanamente (ES) y humanamente-en (EN): frases cortas, sin rayas, sin fórmulas de IA. Ritmo de lectura: pausado, ~13 caracteres por segundo.",
+  "descripcion": "Guion del video tour de GrazePoint. Cada escena lleva un id que grabar-tour.js emite como marca en marcas.json; subtitulos.js empalma texto y tiempos. Los textos ya pasaron por humanamente (ES) y humanamente-en (EN): frases cortas, sin rayas, sin fórmulas de IA. Ritmo de lectura: pausado, ~13 caracteres por segundo.",
   "estilo": {
     "lead": 0.35,
     "gap": 0.3,
@@ -10,9 +10,9 @@
   "escenas": [
     {
       "id": "landing",
-      "en": ["Field Shift helps you decide what to plant and when.",
+      "en": ["GrazePoint helps you decide what to plant and when.",
              "It crosses the soil on your plot with NASA satellite data."],
-      "es": ["Field Shift te ayuda a decidir qué sembrar y cuándo.",
+      "es": ["GrazePoint te ayuda a decidir qué sembrar y cuándo.",
              "Cruza el suelo de tu parcela con datos de la NASA."]
     },
     {
@@ -119,8 +119,8 @@
     },
     {
       "id": "cierre",
-      "en": ["Field Shift. Open data; the planting call stays yours."],
-      "es": ["Field Shift. Datos abiertos; la decisión de siembra es tuya."]
+      "en": ["GrazePoint. Open data; the planting call stays yours."],
+      "es": ["GrazePoint. Datos abiertos; la decisión de siembra es tuya."]
     }
   ]
 }

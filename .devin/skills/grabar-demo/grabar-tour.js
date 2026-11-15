@@ -13,7 +13,7 @@
 //
 // Uso:
 //   node grabar-tour.js --creds ../../../.tmp/creds.json --archivo "D:/x.kmz"
-//   node grabar-tour.js --url https://asosab.github.io/fieldShift/es/app/ ...
+//   node grabar-tour.js --url https://asosab.github.io/GrazePoint/es/app/ ...
 //
 // Flags (además de los de grabar.js: --api --predio --desc --parcela
 // --creds --email --clave --device --width --height --out --salida
@@ -43,7 +43,7 @@ const REPO = path.resolve(__dirname, '..', '..', '..');
 function args() {
   const ts = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
   const o = {
-    url: 'https://asosab.github.io/fieldShift/app/',
+    url: 'https://asosab.github.io/GrazePoint/app/',
     predio: 'Demo Farm', desc: '', parcela: 'Plot 1',
     especie: 'Brachiaria brizantha', 'siembra-dias': '40',
     especie2: 'Sorgo forrajero', 'siembra2-dias': '55',
@@ -55,7 +55,7 @@ function args() {
     capas: 'ndvi,humedad',
     device: 'Pixel 7', ritmo: '1', timeout: '150000',
     out: path.join(REPO, '.tmp', 'videos', ts),
-    salida: 'fieldshift-tour-' + ts
+    salida: 'grazepoint-tour-' + ts
   };
   const a = process.argv.slice(2);
   for (let i = 0; i < a.length; i++) {
@@ -97,7 +97,7 @@ function ym(mesesAtras) {
 // va con interactive:false — ese flag la excluye.
 function puntosParcelas(page) {
   return page.evaluate(() => {
-    const map = FS.mapa.leaflet();
+    const map = GP.mapa.leaflet();
     const pts = [];
     map.eachLayer(l => {
       if (l instanceof L.Polygon && l.options.interactive !== false) {
@@ -268,7 +268,7 @@ async function scrollHoja(page, pxPorTick, tickMs, durMs) {
     await page.waitForSelector('#hoja.oculto', { state: 'attached', timeout: 40000 });
     await page.waitForFunction(() => {
       let n = 0;
-      FS.mapa.leaflet().eachLayer(l => { if (l instanceof L.Polygon && l.options.interactive !== false) n++; });
+      GP.mapa.leaflet().eachLayer(l => { if (l instanceof L.Polygon && l.options.interactive !== false) n++; });
       return n > 0;
     }, null, { timeout: 20000 });
     await pausa(page, 3000);
@@ -362,7 +362,7 @@ async function scrollHoja(page, pxPorTick, tickMs, durMs) {
         await page.click('#dibujo-listo');
         await page.waitForFunction(() => {
           let n = 0;
-          FS.mapa.leaflet().eachLayer(l => { if (l instanceof L.Polygon && l.options.interactive !== false) n++; });
+          GP.mapa.leaflet().eachLayer(l => { if (l instanceof L.Polygon && l.options.interactive !== false) n++; });
           return n >= 2;
         }, null, { timeout: 25000 });
         await pausa(page, 1500);
@@ -548,7 +548,7 @@ async function scrollHoja(page, pxPorTick, tickMs, durMs) {
     // ── cierre: mapa con todas las parcelas ──────────────
     marcar('cierre');
     await page.evaluate(() => {
-      const map = FS.mapa.leaflet();
+      const map = GP.mapa.leaflet();
       const polys = [];
       map.eachLayer(l => { if (l instanceof L.Polygon && l.options.interactive !== false) polys.push(l); });
       if (polys.length) {

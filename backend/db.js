@@ -1,11 +1,11 @@
-// servicios/fieldShift/db.js — conexión propia del proyecto a MongoDB.
+// servicios/grazepoint/db.js — conexión propia del proyecto a MongoDB.
 //
-// Field Shift NO usa la conexión por defecto de nodeLab (BD `test` de
-// Contabo): tiene su propia base `fieldShift`, local en desarrollo y en
+// GrazePoint NO usa la conexión por defecto de nodeLab (BD `test` de
+// Contabo): tiene su propia base `GrazePoint`, local en desarrollo y en
 // el mismo servidor Contabo en producción. Se conecta con
 // mongoose.createConnection y reintenta con backoff, mismo espíritu que
 // config/mongo.js pero aislado: si la BD principal se cae, el servicio
-// sigue sirviendo (los usuarios viven en fsUser, dentro de esa BD).
+// sigue sirviendo (los usuarios viven en gpUser, dentro de esa BD).
 
 const mongoose = require('mongoose');
 const cnf = require('./config');

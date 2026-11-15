@@ -1,4 +1,4 @@
-/* Field Shift — mobile-first. Paleta: carbón + salvia sobre satélite. */
+/* GrazePoint — mobile-first. Paleta: carbón + salvia sobre satélite. */
 :root {
   --carbon: #101510;
   --carbon-2: rgba(16, 21, 16, .88);
@@ -209,9 +209,9 @@ button { font: inherit; cursor: pointer; }
 .espera .spin {
   flex: none; width: 14px; height: 14px; border-radius: 50%;
   border: 2px solid rgba(198,212,197,.25); border-top-color: var(--acento);
-  animation: fs-girar .8s linear infinite;
+  animation: gp-girar .8s linear infinite;
 }
-@keyframes fs-girar { to { transform: rotate(360deg); } }
+@keyframes gp-girar { to { transform: rotate(360deg); } }
 
 /* Capas de análisis (Ebenen-Sábana) */
 .capa-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }

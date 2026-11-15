@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/catalogo.js — catálogo agronómico.
+// servicios/grazepoint/services/catalogo.js — catálogo agronómico.
 //
 // Fallback embebido con las polifíticas y cultivos de servicio validados
 // por la Hacienda Patiño (informes 2023–2025) más granos de referencia.

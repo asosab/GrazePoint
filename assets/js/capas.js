@@ -1,9 +1,9 @@
 /* capas.js — Analyse-Ebenen über dem Terrain.
  * Quellen: NASA GIBS (zeitfähige Raster), SoilGrids-WMS (ISRIC),
  * Esri-Referenz-Overlay. Alles ohne API-Key, direkt vom Browser.
- * FS.capas.liste() liefert den Stand für die Ebenen-Sábana;
- * FS.capas.setPaso(fecha) schiebt die zeitfähigen Layer im Stepper. */
-window.FS = window.FS || {};
+ * GP.capas.liste() liefert den Stand für die Ebenen-Sábana;
+ * GP.capas.setPaso(fecha) schiebt die zeitfähigen Layer im Stepper. */
+window.GP = window.GP || {};
 
 (function () {
   var aktive = {};   // id -> L.Layer
@@ -36,7 +36,7 @@ window.FS = window.FS || {};
     osm: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', maxZoom: 19, attr: '© OpenStreetMap' }
   };
 
-  function _map() { return FS.mapa && FS.mapa.leaflet ? FS.mapa.leaflet() : null; }
+  function _map() { return GP.mapa && GP.mapa.leaflet ? GP.mapa.leaflet() : null; }
   function _reg(id) { return REG.find(function (r) { return r.id === id; }); }
 
   // ── Layer bauen ─────────────────────────────────────────
@@ -123,7 +123,7 @@ window.FS = window.FS || {};
   // ── Persistenz ──────────────────────────────────────────
   function _speichern() {
     try {
-      localStorage.setItem('fs_capas', JSON.stringify({ basis: basis, opa: opa, an: Object.keys(aktive) }));
+      localStorage.setItem('gp_capas', JSON.stringify({ basis: basis, opa: opa, an: Object.keys(aktive) }));
     } catch (e) {}
   }
 
@@ -131,7 +131,7 @@ window.FS = window.FS || {};
     var m = _map();
     if (!m) return;
     try {
-      var s = JSON.parse(localStorage.getItem('fs_capas') || 'null');
+      var s = JSON.parse(localStorage.getItem('gp_capas') || 'null');
       if (!s) return;
       if (s.opa) opa = s.opa;
       if (s.basis && BASES[s.basis]) setBasis(s.basis);
@@ -144,7 +144,7 @@ window.FS = window.FS || {};
   function _ersteBasisLayer() { return basisLayer; }
   function registriereBasis(l) { basisLayer = l; }
 
-  FS.capas = {
+  GP.capas = {
     liste: liste,
     umschalten: umschalten,
     setOpa: setOpa,

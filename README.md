@@ -1,4 +1,4 @@
-# Field Shift
+# GrazePoint
 
 **Digital PRIAS + rotation advisor + forage planting window.**
 
@@ -8,8 +8,8 @@ Space Apps Challenge 2026, built with Hacienda Patiño (Fundación
 Simón I. Patiño, Santa Cruz, Bolivia): sandy soils, regenerative
 ranching and forage multispecies mixes.
 
-Live site: [asosab.github.io/fieldShift](https://asosab.github.io/fieldShift/)
-(Español: [/es/](https://asosab.github.io/fieldShift/es/))
+Live site: [asosab.github.io/GrazePoint](https://asosab.github.io/GrazePoint/)
+(Español: [/es/](https://asosab.github.io/GrazePoint/es/))
 
 > **[Leer este README en español](README.es.md)**
 
@@ -55,7 +55,7 @@ use instead. Forage measurements calibrate a local kgDM/ha-per-NDVI
 regression, and the herd you stock (`predio.hato`) is balanced against
 the estimated standing forage to give days of coverage. Daily Telegram
 alerts fire when a plot enters a condition, through the project's own
-bot, [@fieldshift_bot](https://t.me/fieldshift_bot).
+bot, [@grazepoint_bot](https://t.me/grazepoint_bot).
 
 ## Import plots from files
 
@@ -72,7 +72,7 @@ paste UTM coordinates or drop files straight onto the map.
 | `/` | Jekyll frontend for GitHub Pages, mobile-first, satellite basemap. English at the root, Spanish under `es/` |
 | `app/` | The app: farms, plots on the satellite image, analysis and PDF |
 | `assets/` | Vanilla JS/CSS, no build: `app.js`, `mapa.js`, `capas.js`, `tiempo.js`, `importar.js`, `i18n.js` |
-| `backend/` | Standalone Express + MongoDB service (mirror of `servicios/fieldShift` in nodeLab, api.statetty.com) |
+| `backend/` | Standalone Express + MongoDB service (mirror of `servicios/grazepoint` in nodeLab, api.statetty.com) |
 | `docs/` | Project Obsidian vault (master plan, decisions, session log) |
 
 ## Development
@@ -88,8 +88,8 @@ cp .env.example .env      # Mongo + JWT + Gmail app password
 npm install && npm start  # :8080
 ```
 
-The frontend points to `https://api.statetty.com/api/fieldShift` by
-default. Use `?api=http://localhost:8080/api/fieldShift` (or `fs_api`
+The frontend points to `https://api.statetty.com/api/grazepoint` by
+default. Use `?api=http://localhost:8080/api/grazepoint` (or `gp_api`
 in localStorage) to hit a local backend.
 
 ## Data sources

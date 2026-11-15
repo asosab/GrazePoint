@@ -11,8 +11,8 @@
 //
 // Uso:
 //   node provision-cuenta.js --email a@b.com --clave 'Secret*1' \
-//     [--nombre 'Nombre'] [--api https://api.statetty.com/api/fieldShift] \
-//     [--env backend/.env] [--asunto 'Field Shift'] [--out .tmp/creds.json]
+//     [--nombre 'Nombre'] [--api https://api.statetty.com/api/grazepoint] \
+//     [--env backend/.env] [--asunto 'GrazePoint'] [--out .tmp/creds.json]
 const fs = require('fs');
 const path = require('path');
 
@@ -22,10 +22,10 @@ function args() {
   const o = {
     email: 'fieldshiftscz@gmail.com',
     clave: 'FieldShift*2026',
-    nombre: 'FieldShift Demo',
-    api: 'https://api.statetty.com/api/fieldShift',
+    nombre: 'GrazePoint Demo',
+    api: 'https://api.statetty.com/api/grazepoint',
     env: path.join(REPO, 'backend', '.env'),
-    asunto: 'Field Shift',
+    asunto: 'GrazePoint',
     lang: 'en',
     out: path.join(REPO, '.tmp', 'creds.json')
   };
@@ -102,8 +102,8 @@ function guardarCreds() {
 
 (async () => {
   const e = leerEnv(CFG.env);
-  const user = e.FIELDSHIFT_SMTP_USER;
-  const pass = (e.FIELDSHIFT_SMTP_PASS || '').replace(/\s+/g, '');
+  const user = e.GRAZEPOINT_SMTP_USER;
+  const pass = (e.GRAZEPOINT_SMTP_PASS || '').replace(/\s+/g, '');
 
   console.log('1) login ' + CFG.email + ' …');
   let r = await post('/auth/login', { email: CFG.email, clave: CFG.clave, lang: CFG.lang });

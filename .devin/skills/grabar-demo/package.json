@@ -2,7 +2,7 @@
   "name": "grabar-demo",
   "version": "1.0.0",
   "private": true,
-  "description": "Graba videos demo de la app fieldShift en formato celular (Playwright recordVideo).",
+  "description": "Graba videos demo de la app GrazePoint en formato celular (Playwright recordVideo).",
   "scripts": {
     "tour": "node grabar-tour.js",
     "subs": "node subtitulos.js"

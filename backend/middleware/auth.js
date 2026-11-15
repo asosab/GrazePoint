@@ -1,20 +1,20 @@
-// servicios/fieldShift/middleware/auth.js — autenticación propia.
+// servicios/grazepoint/middleware/auth.js — autenticación propia.
 //
-// JWT propio (FIELDSHIFT_JWT_SECRET), payload { sub: fsUser._id }.
-// authenticate resuelve el usuario fresco desde la BD de fieldShift y
+// JWT propio (GRAZEPOINT_JWT_SECRET), payload { sub: gpUser._id }.
+// authenticate resuelve el usuario fresco desde la BD de GrazePoint y
 // recalcula el rol por si el correo entró a config.roles después del
 // registro. soloAdmin exige rol 'admin'.
 
 const jwt = require('jsonwebtoken');
 const cnf = require('../config');
-const FsUser = require('../models/fsUserModel');
-const { rolParaEmail } = require('../models/fsUserModel');
+const GpUser = require('../models/gpUserModel');
+const { rolParaEmail } = require('../models/gpUserModel');
 
-const JWT_SECRET = process.env.FIELDSHIFT_JWT_SECRET || 'fieldshift_dev_secret_CAMBIAR';
-const JWT_EXPIRES = process.env.FIELDSHIFT_JWT_EXPIRES || '30d';
+const JWT_SECRET = process.env.GRAZEPOINT_JWT_SECRET || 'grazepoint_dev_secret_CAMBIAR';
+const JWT_EXPIRES = process.env.GRAZEPOINT_JWT_EXPIRES || '30d';
 
-function firmarToken(fsUserId) {
-	return jwt.sign({ sub: String(fsUserId) }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+function firmarToken(gpUserId) {
+	return jwt.sign({ sub: String(gpUserId) }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 }
 
 function _extractBearer(req) {
@@ -38,11 +38,11 @@ async function authenticate(req, res, next) {
 	if (!uid) return res.status(401).json({ ok: false, error: 'token_sin_sub' });
 
 	try {
-		const user = await FsUser.findOne({ _id: uid, activo: true });
+		const user = await GpUser.findOne({ _id: uid, activo: true });
 		if (!user) return res.status(401).json({ ok: false, error: 'usuario_inexistente' });
 		const rol = rolParaEmail(user.email);
 		if (rol !== user.rol) { user.rol = rol; user.save().catch(() => {}); }
-		req.fsUser = user;
+		req.gpUser = user;
 		next();
 	} catch (err) {
 		console.log(cnf.tag + ' [error] authenticate: ' + (err && err.message ? err.message : err));
@@ -51,7 +51,7 @@ async function authenticate(req, res, next) {
 }
 
 function soloAdmin(req, res, next) {
-	if (!req.fsUser || req.fsUser.rol !== 'admin') {
+	if (!req.gpUser || req.gpUser.rol !== 'admin') {
 		return res.status(403).json({ ok: false, error: 'solo_admin' });
 	}
 	next();

@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/i18n.js — cadenas visibles del backend.
+// servicios/grazepoint/services/i18n.js — cadenas visibles del backend.
 //
 // El idioma llega por parámetro `lang` en cada llamada (body o query):
 // 'es' activa el español; cualquier otro valor cae al inglés, que es el
@@ -80,7 +80,7 @@ const VENTANA = {
 // Informe PDF.
 const INFORME = {
 	es: {
-		titulo: 'Field Shift — informe de predio',
+		titulo: 'GrazePoint — informe de predio',
 		generado: 'Generado el ',
 		para: ' para ',
 		nota_clima: 'Datos climáticos: NASA POWER (serie diaria y climatología multianual). Recomendaciones orientadas a pasturas y cultivos de servicio.',
@@ -113,7 +113,7 @@ const INFORME = {
 		ventana_item: (a, b, min, max) => '• Ventana: ' + a + ' a ' + b + ' (' + min + '–' + max + ' mm/mes)',
 		sin_ventana: (u) => 'Sin meses por encima de ' + u + ' mm/mes en la climatología del punto.',
 		riesgos_h: 'Riesgos',
-		pie: 'Field Shift · PRIAS digital · Recomendaciones de apoyo a la decisión: contrastar siempre con el técnico de campo.',
+		pie: 'GrazePoint · PRIAS digital · Recomendaciones de apoyo a la decisión: contrastar siempre con el técnico de campo.',
 		parcelas_n: (n) => n + ' parcela(s)',
 		sin_coords: 'Sin coordenadas: agrega el polígono de al menos una parcela para incluir clima y análisis.',
 		area_total: 'Área total',
@@ -208,7 +208,7 @@ const INFORME = {
 		metodo_muestras: (n) => 'Píxeles muestreados por parcela: hasta ' + n + '.'
 	},
 	en: {
-		titulo: 'Field Shift: farm report',
+		titulo: 'GrazePoint: farm report',
 		generado: 'Generated on ',
 		para: ' for ',
 		nota_clima: 'Climate data: NASA POWER (daily series and multi-year climatology). Recommendations focus on pastures and cover crops.',
@@ -241,7 +241,7 @@ const INFORME = {
 		ventana_item: (a, b, min, max) => '• Window: ' + a + ' to ' + b + ' (' + min + '–' + max + ' mm/month)',
 		sin_ventana: (u) => 'No months above ' + u + ' mm/month in this location\'s climatology.',
 		riesgos_h: 'Risks',
-		pie: 'Field Shift · digital PRIAS · Decision aid only: always check with your field technician.',
+		pie: 'GrazePoint · digital PRIAS · Decision aid only: always check with your field technician.',
 		parcelas_n: (n) => n + ' plot(s)',
 		sin_coords: 'No coordinates: draw at least one plot polygon to include climate and analysis.',
 		area_total: 'Total area',
@@ -341,21 +341,21 @@ const INFORME = {
 const MAIL = {
 	es: {
 		saludo: (n) => (n ? 'Hola ' + n + ',' : 'Hola,'),
-		firma: '— Equipo Field Shift',
-		verif_asunto: (c) => 'Tu código de Field Shift: ' + c,
-		verif_texto: (c) => 'Tu código de verificación es ' + c + '. Vale por 30 minutos.\n\nSi no pediste registrarte en Field Shift, ignora este correo.',
-		verif_html: (c) => '<p>Tu código de verificación es <b style="font-size:1.4em;letter-spacing:2px">' + c + '</b>. Vale por 30 minutos.</p><p>Si no pediste registrarte en Field Shift, ignora este correo.</p>',
-		reset_asunto: 'Restablecer tu clave de Field Shift',
+		firma: '— Equipo GrazePoint',
+		verif_asunto: (c) => 'Tu código de GrazePoint: ' + c,
+		verif_texto: (c) => 'Tu código de verificación es ' + c + '. Vale por 30 minutos.\n\nSi no pediste registrarte en GrazePoint, ignora este correo.',
+		verif_html: (c) => '<p>Tu código de verificación es <b style="font-size:1.4em;letter-spacing:2px">' + c + '</b>. Vale por 30 minutos.</p><p>Si no pediste registrarte en GrazePoint, ignora este correo.</p>',
+		reset_asunto: 'Restablecer tu clave de GrazePoint',
 		reset_texto: (c) => 'Pediste restablecer tu clave. Tu código es ' + c + '. Vale por 30 minutos.\n\nSi no fuiste tú, ignora este correo: tu clave sigue igual.',
 		reset_html: (c) => '<p>Pediste restablecer tu clave. Tu código es <b style="font-size:1.4em;letter-spacing:2px">' + c + '</b>. Vale por 30 minutos.</p><p>Si no fuiste tú, ignora este correo: tu clave sigue igual.</p>'
 	},
 	en: {
 		saludo: (n) => (n ? 'Hi ' + n + ',' : 'Hi,'),
-		firma: 'The Field Shift team',
-		verif_asunto: (c) => 'Your Field Shift code: ' + c,
-		verif_texto: (c) => 'Your verification code is ' + c + '. It expires in 30 minutes.\n\nIf you did not sign up for Field Shift, ignore this email.',
-		verif_html: (c) => '<p>Your verification code is <b style="font-size:1.4em;letter-spacing:2px">' + c + '</b>. It expires in 30 minutes.</p><p>If you did not sign up for Field Shift, ignore this email.</p>',
-		reset_asunto: 'Reset your Field Shift password',
+		firma: 'The GrazePoint team',
+		verif_asunto: (c) => 'Your GrazePoint code: ' + c,
+		verif_texto: (c) => 'Your verification code is ' + c + '. It expires in 30 minutes.\n\nIf you did not sign up for GrazePoint, ignore this email.',
+		verif_html: (c) => '<p>Your verification code is <b style="font-size:1.4em;letter-spacing:2px">' + c + '</b>. It expires in 30 minutes.</p><p>If you did not sign up for GrazePoint, ignore this email.</p>',
+		reset_asunto: 'Reset your GrazePoint password',
 		reset_texto: (c) => 'You asked to reset your password. Your code is ' + c + '. It expires in 30 minutes.\n\nIf it was not you, ignore this email: your password stays the same.',
 		reset_html: (c) => '<p>You asked to reset your password. Your code is <b style="font-size:1.4em;letter-spacing:2px">' + c + '</b>. It expires in 30 minutes.</p><p>If it was not you, ignore this email: your password stays the same.</p>'
 	}
@@ -365,7 +365,7 @@ const MAIL = {
 // language_code del usuario de Telegram, no del JWT).
 const TG = {
 	es: {
-		bienvenida: 'Hola, soy el bot de Field Shift. Para vincular tu cuenta abre la app, entra a tu perfil y toca «Vincular Telegram»: te va a dar un código como FS-ABC123 para mandarme acá.',
+		bienvenida: 'Hola, soy el bot de GrazePoint. Para vincular tu cuenta abre la app, entra a tu perfil y toca «Vincular Telegram»: te va a dar un código como GP-ABC123 para mandarme acá.',
 		vinculado_ok: (n, e) => 'Listo' + (n ? ', ' + n : '') + ': este Telegram quedó vinculado a la cuenta ' + e + '. Por acá te van a llegar los avisos de tu predio.',
 		vinculado_re: (e) => 'Este Telegram estaba vinculado a otra cuenta: ahora quedó con ' + e + '.',
 		codigo_malo: 'Ese código no sirve o ya venció. Genera uno nuevo en la app, en tu perfil: dura 10 minutos.',
@@ -378,7 +378,7 @@ const TG = {
 		ayuda: 'Comandos: /vincular <código> para vincular tu cuenta · /estado para ver tu vínculo · /resumen para el estado de tus potreros.'
 	},
 	en: {
-		bienvenida: 'Hi, I am the Field Shift bot. To link your account, open the app, go to your profile and tap "Link Telegram": it will give you a code like FS-ABC123 to send me here.',
+		bienvenida: 'Hi, I am the GrazePoint bot. To link your account, open the app, go to your profile and tap "Link Telegram": it will give you a code like GP-ABC123 to send me here.',
 		vinculado_ok: (n, e) => 'Done' + (n ? ', ' + n : '') + ': this Telegram is now linked to the account ' + e + '. Your farm alerts will arrive here.',
 		vinculado_re: (e) => 'This Telegram was linked to a different account: it now belongs to ' + e + '.',
 		codigo_malo: 'That code is invalid or already expired. Generate a new one in the app, in your profile: it lasts 10 minutes.',

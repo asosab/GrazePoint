@@ -1,18 +1,18 @@
-/* api.js — cliente HTTP de Field Shift.
- * Base: api.statetty.com en producción; ?api=<url> o localStorage fs_api
- * para apuntar a un backend standalone (fieldShift/backend). */
-window.FS = window.FS || {};
+/* api.js — cliente HTTP de GrazePoint.
+ * Base: api.statetty.com en producción; ?api=<url> o localStorage gp_api
+ * para apuntar a un backend standalone (GrazePoint/backend). */
+window.GP = window.GP || {};
 
 (function () {
   var q = new URLSearchParams(location.search);
   var API = q.get('api')
-    || localStorage.getItem('fs_api')
-    || 'https://api.statetty.com/api/fieldShift';
-  if (q.get('api')) localStorage.setItem('fs_api', q.get('api'));
+    || localStorage.getItem('gp_api')
+    || 'https://api.statetty.com/api/grazepoint';
+  if (q.get('api')) localStorage.setItem('gp_api', q.get('api'));
   console.info('[api] base:', API);
 
-  function token() { return localStorage.getItem('fs_token') || ''; }
-  function setToken(t) { t ? localStorage.setItem('fs_token', t) : localStorage.removeItem('fs_token'); }
+  function token() { return localStorage.getItem('gp_token') || ''; }
+  function setToken(t) { t ? localStorage.setItem('gp_token', t) : localStorage.removeItem('gp_token'); }
 
   // ── indicador de espera ─────────────────────────────────
   // Píldora flotante con spinner; la crea api.js bajo demanda
@@ -35,7 +35,7 @@ window.FS = window.FS || {};
     pendientes++;
     var n = _nodoEspera();
     if (!n) return;
-    n.querySelector('.txt').textContent = msg || (FS.t ? FS.t('esp_generico') : '…');
+    n.querySelector('.txt').textContent = msg || (GP.t ? GP.t('esp_generico') : '…');
     n.classList.remove('oculto');
   }
 
@@ -68,7 +68,7 @@ window.FS = window.FS || {};
     return { status: res.status, data: data };
   }
 
-  FS.api = {
+  GP.api = {
     base: API,
     token: token,
     setToken: setToken,
@@ -79,7 +79,7 @@ window.FS = window.FS || {};
     put: function (r, b, m) { return req('PUT', r, b || {}, m); },
     del: function (r, m) { return req('DELETE', r, null, m); },
     informeUrl: function (predioId, parcelaId) {
-      var q = 'lang=' + (FS.lang || 'en');
+      var q = 'lang=' + (GP.lang || 'en');
       return API + '/predios/' + predioId + '/informe.pdf?' + q + (parcelaId ? '&parcela=' + parcelaId : '');
     }
   };

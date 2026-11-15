@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/rotacion.js — recomendador de rotación.
+// servicios/grazepoint/services/rotacion.js — recomendador de rotación.
 //
 // Enfoque 1 del top-10: «qué sembrar después de X» con 3 opciones
 // rankeadas. El puntaje cruza:

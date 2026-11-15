@@ -1,9 +1,9 @@
-// servicios/fieldShift/models/cultivoModel.js — catálogo de especies.
+// servicios/grazepoint/models/cultivoModel.js — catálogo de especies.
 //
 // Catálogo agronómico usado por el recomendador de rotación y la ventana
 // de siembra: requerimientos edafoclimáticos por especie, ciclo, aporte
 // al suelo y datos de la Hacienda Patiño (polifíticas validadas por ellos).
-// Se siembra en BD con scripts/fieldshift-seed.js; si la colección está
+// Se siembra en BD con scripts/grazepoint-seed.js; si la colección está
 // vacía, el recomendador usa el catálogo embebido de
 // services/catalogo.js como fallback.
 

@@ -1,13 +1,13 @@
-// servicios/fieldShift/services/telegram.js — bot propio
-// (@fieldshift_bot) y vínculo de cuenta web ↔ chat.
+// servicios/grazepoint/services/telegram.js — bot propio
+// (@grazepoint_bot) y vínculo de cuenta web ↔ chat.
 //
 // Flujo de vinculación (prueba de que el usuario web es el mismo que
 // está del otro lado del chat):
 //   1. Web autenticada pide POST /me/telegram/codigo → se emite un
-//      código FS-XXXXXX (solo se guarda el sha-256, 10 min de vida) y
-//      un deep-link t.me/<bot>?start=FS-XXXXXX.
-//   2. El usuario abre el link: Telegram entrega /start FS-XXXXXX al
-//      bot (o el usuario escribe /vincular FS-XXXXXX a mano).
+//      código GP-XXXXXX (solo se guarda el sha-256, 10 min de vida) y
+//      un deep-link t.me/<bot>?start=GP-XXXXXX.
+//   2. El usuario abre el link: Telegram entrega /start GP-XXXXXX al
+//      bot (o el usuario escribe /vincular GP-XXXXXX a mano).
 //   3. El poller recibe el update, busca al dueño del código, guarda
 //      chatId + username y confirma. El código es de un solo uso.
 //
@@ -22,8 +22,8 @@
 // administración.
 
 const cnf = require('../config');
-const FsUser = require('../models/fsUserModel');
-const { nuevoCodigoTelegram, hashCodigo } = require('../models/fsUserModel');
+const GpUser = require('../models/gpUserModel');
+const { nuevoCodigoTelegram, hashCodigo } = require('../models/gpUserModel');
 const { TG } = require('./i18n');
 
 const TTL_MS = 10 * 60 * 1000;      // el código de vínculo dura 10 min
@@ -36,7 +36,7 @@ let _corriendo = false;
 
 const _api = (m) => 'https://api.telegram.org/bot' + cnf.telegram.token + '/' + m;
 const _langDe = (msg) => (String(msg && msg.from && msg.from.language_code || '').toLowerCase().startsWith('es') ? 'es' : 'en');
-const _normCodigo = (c) => String(c || '').trim().toUpperCase().replace(/^FS-?/, 'FS-');
+const _normCodigo = (c) => String(c || '').trim().toUpperCase().replace(/^GP-?/, 'GP-');
 
 async function _call(metodo, body) {
 	try {
@@ -75,7 +75,7 @@ async function crearCodigo(user) {
 // devuelve el texto de respuesta para el bot.
 async function vincular(codigo, msg, T) {
 	const hash = hashCodigo(_normCodigo(codigo));
-	const user = await FsUser.findOne({
+	const user = await GpUser.findOne({
 		telegramCodigoHash: hash,
 		telegramCodigoExpira: { $gt: new Date() }
 	});
@@ -83,7 +83,7 @@ async function vincular(codigo, msg, T) {
 
 	// Si este chat ya estaba en otra cuenta, se reasigna (quien generó
 	// el código tiene la sesión web viva).
-	const otro = await FsUser.findOne({ telegramChatId: msg.chat.id, _id: { $ne: user._id } });
+	const otro = await GpUser.findOne({ telegramChatId: msg.chat.id, _id: { $ne: user._id } });
 	const reasignado = !!otro;
 	if (otro) {
 		otro.telegramChatId = null; otro.telegramUsername = null; otro.telegramVinculadoEn = null;
@@ -106,7 +106,7 @@ async function vincular(codigo, msg, T) {
 // como texto plano. Requires perezosos: el poller arranca antes de
 // que mongo esté lista y estos modelos esperan la conexión.
 async function _resumen(msg, T, lang) {
-	const yo = await FsUser.findOne({ telegramChatId: msg.chat.id });
+	const yo = await GpUser.findOne({ telegramChatId: msg.chat.id });
 	if (!yo) return T.estado_no;
 	const Predio = require('../models/predioModel');
 	const forraje = require('./forraje');
@@ -150,10 +150,10 @@ async function _procesar(upd) {
 	if (cmd === '/resumen' || cmd === '/summary') return enviar(msg.chat.id, await _resumen(msg, T, lang));
 	if (cmd === '/estado' || cmd === '/status') {
 		if (cnf.telegram.adminId && msg.chat.id === cnf.telegram.adminId) {
-			const n = await FsUser.countDocuments({ telegramChatId: { $ne: null } });
+			const n = await GpUser.countDocuments({ telegramChatId: { $ne: null } });
 			return enviar(msg.chat.id, T.estado_admin(n));
 		}
-		const yo = await FsUser.findOne({ telegramChatId: msg.chat.id });
+		const yo = await GpUser.findOne({ telegramChatId: msg.chat.id });
 		return enviar(msg.chat.id, yo ? T.estado_si(yo.email) : T.estado_no);
 	}
 	return enviar(msg.chat.id, T.ayuda);
@@ -178,7 +178,7 @@ async function _ciclo() {
 async function iniciar() {
 	if (_corriendo) return;
 	if (!cnf.telegram.token) {
-		console.log(cnf.tag + ' [log] telegram.iniciar: sin FIELDSHIFT_TG_TOKEN, bot apagado');
+		console.log(cnf.tag + ' [log] telegram.iniciar: sin GRAZEPOINT_TG_TOKEN, bot apagado');
 		return;
 	}
 	_corriendo = true;

@@ -1,9 +1,9 @@
 /* app.js — orquestación de la vista: mapa satelital + sábana inferior.
  * Flujo: entrar → crear predio → dibujar parcela → análisis → PDF.
- * Las cadenas visibles salen de FS.t (assets/js/i18n.js). */
+ * Las cadenas visibles salen de GP.t (assets/js/i18n.js). */
 (function () {
   var el = function (id) { return document.getElementById(id); };
-  var t = FS.t;
+  var t = GP.t;
   var hoja = el('hoja'), cuerpo = el('hoja-cuerpo');
   var predios = [], predioActual = null, parcelaActual = null;
   var modoDibujo = null; // {uso:'nueva'|'editar'}
@@ -39,7 +39,7 @@
     var v = t(k);
     return v !== k ? v : (g || '');
   }
-  function fecha(d) { return new Date(d).toLocaleDateString(FS.dateLocale); }
+  function fecha(d) { return new Date(d).toLocaleDateString(GP.dateLocale); }
 
   el('hoja-asa').addEventListener('click', ocultarHoja);
 
@@ -86,7 +86,7 @@
       );
       atarOjos();
       el('a-entrar').onclick = async function () {
-        var r = await FS.auth.login(valor('a-email'), valor('a-clave'));
+        var r = await GP.auth.login(valor('a-email'), valor('a-clave'));
         if (!r.data) return toast(t('sin_conexion'));
         if (r.data.ok) { ocultarHoja(); toast(t('hola')); return; }
         if (r.data.requiereVerificacion) { emailPendiente = valor('a-email'); return hojaCodigo('verificar'); }
@@ -112,7 +112,7 @@
       atarOjos();
       el('a-crear').onclick = async function () {
         if (!el('a-legal').checked) return toast(t('legal_falta'));
-        var r = await FS.auth.registro(valor('a-email'), valor('a-clave'), valor('a-nombre'));
+        var r = await GP.auth.registro(valor('a-email'), valor('a-clave'), valor('a-nombre'));
         if (r.data && r.data.ok) { emailPendiente = valor('a-email'); hojaCodigo('verificar'); }
         else toast(traducirError(r.data && r.data.error));
       };
@@ -132,14 +132,14 @@
     atarOjos();
     el('a-ok').onclick = async function () {
       var ok;
-      if (tipo === 'reset') ok = await FS.auth.restablecer(emailPendiente, valor('a-codigo'), valor('a-clave2'));
-      else ok = await FS.auth.verificar(emailPendiente, valor('a-codigo'));
+      if (tipo === 'reset') ok = await GP.auth.restablecer(emailPendiente, valor('a-codigo'), valor('a-clave2'));
+      else ok = await GP.auth.verificar(emailPendiente, valor('a-codigo'));
       if (ok) { ocultarHoja(); toast(t('listo_dentro')); }
       else toast(t('codigo_malo'));
     };
     el('a-reenviar').onclick = async function () {
-      if (tipo === 'reset') await FS.auth.recuperar(emailPendiente);
-      else await FS.auth.reenviar(emailPendiente);
+      if (tipo === 'reset') await GP.auth.recuperar(emailPendiente);
+      else await GP.auth.reenviar(emailPendiente);
       toast(t('codigo_reenviado'));
     };
   }
@@ -153,7 +153,7 @@
     );
     el('a-mandar').onclick = async function () {
       emailPendiente = valor('a-email');
-      await FS.auth.recuperar(emailPendiente);
+      await GP.auth.recuperar(emailPendiente);
       hojaCodigo('reset');
     };
     el('a-login').onclick = function () { hojaEntrar('login'); };
@@ -161,8 +161,8 @@
 
   // ── cuenta ──────────────────────────────────────────────
   async function hojaCuenta() {
-    var r = await FS.api.get('/me', t('esp_sesion'));
-    var u = (r.data && r.data.ok) ? r.data.usuario : FS.auth.get();
+    var r = await GP.api.get('/me', t('esp_sesion'));
+    var u = (r.data && r.data.ok) ? r.data.usuario : GP.auth.get();
     var tg = u.telegram || {};
     mostrarHoja(
       '<h2>' + esc(u.nombre || u.email) + '</h2>' +
@@ -177,15 +177,15 @@
         '<a href="../privacy/" target="_blank" rel="noopener">' + t('legal_privacidad') + '</a></p>' +
       '<button class="enlace peligro" id="c-borrar">' + t('borrar_cta') + '</button>'
     );
-    el('c-salir').onclick = function () { FS.auth.salir(); ocultarHoja(); toast(t('sesion_cerrada')); };
+    el('c-salir').onclick = function () { GP.auth.salir(); ocultarHoja(); toast(t('sesion_cerrada')); };
     el('c-borrar').onclick = async function () {
       if (!confirm(t('borrar_cta_confirma', { e: u.email }))) return;
-      var rb = await FS.api.del('/me', t('esp_borrar_cta'));
-      if (rb.data && rb.data.ok) { FS.auth.salir(); ocultarHoja(); toast(t('borrar_cta_ok')); }
+      var rb = await GP.api.del('/me', t('esp_borrar_cta'));
+      if (rb.data && rb.data.ok) { GP.auth.salir(); ocultarHoja(); toast(t('borrar_cta_ok')); }
       else toast(traducirError(rb.data && rb.data.error));
     };
     if (el('c-tg')) el('c-tg').onclick = async function () {
-      var rc = await FS.api.post('/me/telegram/codigo', {}, t('esp_tg'));
+      var rc = await GP.api.post('/me/telegram/codigo', {}, t('esp_tg'));
       if (!(rc.data && rc.data.ok)) return toast(traducirError(rc.data && rc.data.error));
       el('c-tg-zona').innerHTML =
         '<p class="aviso">' + t('tg_instruccion', { m: rc.data.expiraMin }) + '</p>' +
@@ -194,25 +194,25 @@
       el('c-tg-check').onclick = hojaCuenta;
     };
     if (el('c-tg-off')) el('c-tg-off').onclick = async function () {
-      var rd = await FS.api.del('/me/telegram', t('esp_tg'));
+      var rd = await GP.api.del('/me/telegram', t('esp_tg'));
       if (rd.data && rd.data.ok) { toast(t('tg_off_ok')); hojaCuenta(); }
       else toast(traducirError(rd.data && rd.data.error));
     };
   }
 
   el('btn-cuenta').onclick = function () {
-    FS.auth.get() ? hojaCuenta() : hojaEntrar('login');
+    GP.auth.get() ? hojaCuenta() : hojaEntrar('login');
   };
 
-  FS.auth.alCambiar(function (u) {
+  GP.auth.alCambiar(function (u) {
     el('btn-cuenta').textContent = u ? (u.nombre || u.email).split(' ')[0] : t('entrar');
     if (u) cargarPredios();
-    else { predios = []; predioActual = null; FS.mapa.pintarParcelas([]); FS.mapa.enfocar(null); ocultarHoja(); }
+    else { predios = []; predioActual = null; GP.mapa.pintarParcelas([]); GP.mapa.enfocar(null); ocultarHoja(); }
   });
 
   // ── predios ─────────────────────────────────────────────
   async function cargarPredios() {
-    var r = await FS.api.get('/predios', t('esp_predios'));
+    var r = await GP.api.get('/predios', t('esp_predios'));
     predios = (r.data && r.data.ok) ? r.data.data : [];
     if (!predioActual && predios.length) seleccionarPredio(predios[0]._id);
     if (predioActual) {
@@ -243,7 +243,7 @@
   // ── estado de potreros: por dónde rotar el lote ─────────
   async function hojaForraje() {
     mostrarHoja('<h2>' + t('potreros_h') + '</h2><p class="aviso">' + t('consultando') + '</p>');
-    var r = await FS.api.get('/predios/' + predioActual._id + '/forraje?lang=' + FS.lang, t('esp_analisis'));
+    var r = await GP.api.get('/predios/' + predioActual._id + '/forraje?lang=' + GP.lang, t('esp_analisis'));
     if (!(r.data && r.data.ok)) return mostrarHoja('<h2>' + t('potreros_h') + '</h2><p class="aviso">' + t('no_cargar') + '</p>');
     var d = r.data.data;
     var cls = { punto_optimo: 'favorable_ahora', punto_ensilaje: 'favorable_ahora', rebrote: 'esperar', creciendo: 'esperar', pasado: 'ventana_pero_seco', pasado_ensilaje: 'ventana_pero_seco' };
@@ -282,7 +282,7 @@
     };
     el('fo-wa').onclick = function () { window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank'); };
     el('fo-hato').onclick = async function () {
-      var r = await FS.api.put('/predios/' + predioActual._id, {
+      var r = await GP.api.put('/predios/' + predioActual._id, {
         hato: { cabezas: valor('fo-cabezas') ? Number(valor('fo-cabezas')) : null, pesoKg: valor('fo-peso') ? Number(valor('fo-peso')) : null }
       }, t('esp_guardando'));
       if (r.data && r.data.ok) { predioActual.hato = r.data.data.hato; toast(t('guardado_ok')); hojaForraje(); }
@@ -298,10 +298,10 @@
       '<button class="boton" id="np-ok">' + t('crear_predio') + '</button>' +
       '<button class="enlace" id="np-ubicar">' + t('usar_ubicacion') + '</button>'
     );
-    el('np-ubicar').onclick = function () { FS.mapa.centrarEnUsuario(); toast(t('centrando')); };
+    el('np-ubicar').onclick = function () { GP.mapa.centrarEnUsuario(); toast(t('centrando')); };
     el('np-ok').onclick = async function () {
       if (!valor('np-nombre')) return toast(t('ponle_nombre'));
-      var r = await FS.api.post('/predios', { nombre: valor('np-nombre'), descripcion: valor('np-desc') || null }, t('esp_creando'));
+      var r = await GP.api.post('/predios', { nombre: valor('np-nombre'), descripcion: valor('np-desc') || null }, t('esp_creando'));
       if (r.data && r.data.ok) {
         predioActual = r.data.data;
         await cargarPredios();
@@ -315,23 +315,23 @@
   }
 
   async function seleccionarPredio(id) {
-    var r = await FS.api.get('/predios/' + id, t('esp_abriendo'));
+    var r = await GP.api.get('/predios/' + id, t('esp_abriendo'));
     if (!(r.data && r.data.ok)) return toast(t('no_cargar_predio'));
     predioActual = r.data.data;
     parcelaActual = null;
-    FS.mapa.enfocar(null);
+    GP.mapa.enfocar(null);
     refrescarParcelas();
-    FS.mapa.encuadrarParcelas(predioActual.parcelas);
+    GP.mapa.encuadrarParcelas(predioActual.parcelas);
     el('fab-dibujar').classList.remove('oculto');
     el('fab-importar').classList.remove('oculto');
     if (!predioActual.parcelas.length) toast(t('sin_parcelas'));
   }
 
   function refrescarParcelas() {
-    if (!predioActual) return FS.mapa.pintarParcelas([]);
-    FS.mapa.pintarParcelas(predioActual.parcelas, function (p) {
+    if (!predioActual) return GP.mapa.pintarParcelas([]);
+    GP.mapa.pintarParcelas(predioActual.parcelas, function (p) {
       parcelaActual = p;
-      FS.mapa.seleccionar(p);
+      GP.mapa.seleccionar(p);
       actualizarEnfoque();
       hojaParcela();
     });
@@ -340,18 +340,18 @@
   // La máscara de enfoque solo tiene sentido cuando hay una parcela
   // elegida y al menos una capa de análisis prendida.
   function actualizarEnfoque() {
-    var hayCapas = FS.capas.liste().some(function (x) { return x.aktiv; });
-    FS.mapa.enfocar(hayCapas ? parcelaActual : null);
+    var hayCapas = GP.capas.liste().some(function (x) { return x.aktiv; });
+    GP.mapa.enfocar(hayCapas ? parcelaActual : null);
   }
 
   // ── dibujo de parcela ───────────────────────────────────
   function empezarDibujoParcela() {
     if (!predioActual) return toast(t('elige_predio'));
     modoDibujo = { uso: 'nueva' };
-    FS.mapa.empezarDibujo(async function (geo) {
+    GP.mapa.empezarDibujo(async function (geo) {
       var nombre = prompt(t('prompt_parcela'), t('parcela_n', { n: (predioActual.parcelas.length || 0) + 1 }));
       if (!nombre) { toast(t('dibujo_descartado')); return; }
-      var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas', {
+      var r = await GP.api.post('/predios/' + predioActual._id + '/parcelas', {
         nombre: nombre, tipo: 'potrero', geometry: geo
       }, t('esp_parcela'));
       if (r.data && r.data.ok) { toast(t('parcela_guardada')); seleccionarPredio(predioActual._id); }
@@ -367,13 +367,13 @@
 
   el('fab-dibujar').onclick = empezarDibujoParcela;
   el('fab-predios').onclick = function () {
-    FS.auth.get() ? hojaPredios() : hojaEntrar('login');
+    GP.auth.get() ? hojaPredios() : hojaEntrar('login');
   };
-  el('dibujo-deshacer').onclick = function () { FS.mapa.deshacerVertice(); };
-  el('dibujo-cerrar').onclick = function () { FS.mapa.cancelarDibujo(); terminarDibujoUI(); };
+  el('dibujo-deshacer').onclick = function () { GP.mapa.deshacerVertice(); };
+  el('dibujo-cerrar').onclick = function () { GP.mapa.cancelarDibujo(); terminarDibujoUI(); };
   el('dibujo-listo').onclick = function () {
-    if (FS.mapa.vertices() < 3) return toast(t('min_vertices'));
-    FS.mapa.cerrarDibujo();
+    if (GP.mapa.vertices() < 3) return toast(t('min_vertices'));
+    GP.mapa.cerrarDibujo();
     terminarDibujoUI();
   };
 
@@ -382,9 +382,9 @@
 
   function hojaImportar(res) {
     importados = res.cands;
-    FS.mapa.pintarCandidatos(importados);
-    if (importados.length) FS.mapa.encuadrarCandidatos();
-    else if (res.plano) FS.mapa.leaflet().fitBounds(res.plano.bounds, { padding: [30, 30], maxZoom: 17 });
+    GP.mapa.pintarCandidatos(importados);
+    if (importados.length) GP.mapa.encuadrarCandidatos();
+    else if (res.plano) GP.mapa.leaflet().fitBounds(res.plano.bounds, { padding: [30, 30], maxZoom: 17 });
 
     var html = '<h2>' + t('imp_h') + '</h2>' +
       '<p class="aviso">' + t('imp_formatos') + '</p>';
@@ -407,8 +407,8 @@
     }
     if (res.plano) {
       var aplicarPlano = function () {
-        if (el('imp-plano').checked) { FS.mapa.ponerPlano(res.plano.dataUrl, res.plano.bounds); el('capa-quitar').classList.remove('oculto'); }
-        else { FS.mapa.quitarPlano(); el('capa-quitar').classList.add('oculto'); }
+        if (el('imp-plano').checked) { GP.mapa.ponerPlano(res.plano.dataUrl, res.plano.bounds); el('capa-quitar').classList.remove('oculto'); }
+        else { GP.mapa.quitarPlano(); el('capa-quitar').classList.add('oculto'); }
       };
       el('imp-plano').onchange = aplicarPlano;
       aplicarPlano();
@@ -416,7 +416,7 @@
     document.querySelectorAll('.imp-item').forEach(function (row) {
       row.addEventListener('click', function () {
         var c = importados[+row.dataset.i];
-        if (c && c._capa) FS.mapa.leaflet().fitBounds(c._capa.getBounds(), { padding: [40, 40], maxZoom: 17 });
+        if (c && c._capa) GP.mapa.leaflet().fitBounds(c._capa.getBounds(), { padding: [40, 40], maxZoom: 17 });
       });
     });
     document.querySelectorAll('.imp-chk').forEach(function (c) { c.onchange = refrescarBoton; });
@@ -428,13 +428,13 @@
         if (!sel.length) return toast(t('imp_marcar_alguna'));
         var okN = 0, malN = 0;
         for (var i = 0; i < sel.length; i++) {
-          var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas', {
+          var r = await GP.api.post('/predios/' + predioActual._id + '/parcelas', {
             nombre: sel[i].nombre, tipo: 'parcela', geometry: sel[i].geometry
           }, t('esp_importando', { i: i + 1, n: sel.length }));
           if (r.data && r.data.ok) okN++;
           else { malN++; console.warn('[importar] alta falló:', sel[i].nombre, '→', r.status, r.data); }
         }
-        FS.mapa.limpiarCandidatos();
+        GP.mapa.limpiarCandidatos();
         importados = [];
         ocultarHoja();
         toast(malN ? t('imp_parcial', { ok: okN, mal: malN }) : t('imp_ok', { n: okN }));
@@ -442,7 +442,7 @@
       };
     }
     el('imp-cancel').onclick = function () {
-      FS.mapa.limpiarCandidatos();
+      GP.mapa.limpiarCandidatos();
       importados = [];
       ocultarHoja();
     };
@@ -453,7 +453,7 @@
     toast(t('imp_leyendo'));
     var res;
     try {
-      res = await FS.importar.leerArchivos(files);
+      res = await GP.importar.leerArchivos(files);
       console.log('[importar]', res.cands.length, 'candidato(s) · notas:', res.notas);
     } catch (err) {
       console.error('[importar] leerArchivos lanzó', err);
@@ -493,8 +493,8 @@
       try {
         var zona = +valor('utm-zona');
         var anillo = [];
-        for (var i = 0; i < pares.length; i++) anillo.push(await FS.importar.utmPunto(pares[i][0], pares[i][1], zona));
-        var c = FS.importar.candidato(valor('utm-nombre') || t('parcela_n', { n: (predioActual.parcelas.length || 0) + 1 }), anillo);
+        for (var i = 0; i < pares.length; i++) anillo.push(await GP.importar.utmPunto(pares[i][0], pares[i][1], zona));
+        var c = GP.importar.candidato(valor('utm-nombre') || t('parcela_n', { n: (predioActual.parcelas.length || 0) + 1 }), anillo);
         ocultarHoja();
         hojaImportar({ cands: [c], notas: [], plano: null });
       } catch (err) {
@@ -506,7 +506,7 @@
 
   el('fab-importar').onclick = function () {
     if (!predioActual) return toast(t('elige_predio'));
-    FS.mapa.cancelarDibujo();
+    GP.mapa.cancelarDibujo();
     terminarDibujoUI();
     hojaImportarInicio();
   };
@@ -534,7 +534,7 @@
   });
 
   el('capa-quitar').onclick = function () {
-    FS.mapa.quitarPlano();
+    GP.mapa.quitarPlano();
     el('capa-quitar').classList.add('oculto');
   };
 
@@ -636,7 +636,7 @@
     mostrarHoja(html);
 
     el('pa-guardar').onclick = async function () {
-      var r = await FS.api.put('/predios/' + predioActual._id + '/parcelas/' + p._id, {
+      var r = await GP.api.put('/predios/' + predioActual._id + '/parcelas/' + p._id, {
         especieActual: valor('pa-especie') || null,
         fechaSiembraActual: valor('pa-fecha') || null
       }, t('esp_siembra'));
@@ -652,7 +652,7 @@
       if (c) c.checked = true;
     });
     el('te-guardar').onclick = async function () {
-      var r = await FS.api.put('/predios/' + predioActual._id + '/parcelas/' + p._id, {
+      var r = await GP.api.put('/predios/' + predioActual._id + '/parcelas/' + p._id, {
         riego: valor('te-riego') || null,
         fuenteAgua: valor('te-agua') || null,
         pendiente: valor('te-pend') || null,
@@ -671,7 +671,7 @@
     });
     el('ca-guardar').onclick = async function () {
       if (!valor('ca-especie')) return toast(t('campania_especie'));
-      var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/siembras', {
+      var r = await GP.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/siembras', {
         especie: valor('ca-especie'),
         variedad: valor('ca-variedad') || null,
         campania: valor('ca-campania') || null,
@@ -689,21 +689,21 @@
       if (r.data && r.data.ok) { toast(t('campania_guardada')); seleccionarPredio(predioActual._id); }
     };
     el('pa-suelo').onclick = async function () {
-      var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/suelos', {
+      var r = await GP.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/suelos', {
         fecha: new Date().toISOString(), ph: num('pa-ph'), materiaOrganica: num('pa-mo'),
         nitrogeno: num('pa-n'), textura: valor('pa-tex') || null, fuente: 'laboratorio'
       }, t('esp_suelo'));
       if (r.data && r.data.ok) { toast(t('analisis_guardado')); seleccionarPredio(predioActual._id); }
     };
     el('pa-aforo-ok').onclick = async function () {
-      var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/aforos', {
+      var r = await GP.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/aforos', {
         fecha: new Date().toISOString(), kgMSHa: num('pa-aforo'), metodo: valor('pa-metodo') || null
       }, t('esp_aforo'));
       if (r.data && r.data.ok) { toast(t('aforo_guardado')); seleccionarPredio(predioActual._id); }
     };
     el('pa-corte-ok').onclick = async function () {
       var f = valor('pa-fecha-corte');
-      var r = await FS.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/cortes', {
+      var r = await GP.api.post('/predios/' + predioActual._id + '/parcelas/' + p._id + '/cortes', {
         fecha: f ? new Date(f + 'T12:00:00').toISOString() : new Date().toISOString(),
         tipo: valor('pa-tipo-corte') || 'pastoreo'
       }, t('esp_corte'));
@@ -713,7 +713,7 @@
     el('pa-pdf').onclick = function () { descargarPdf(p._id); };
     el('pa-borrar').onclick = async function () {
       if (!confirm(t('confirma_borrar', { n: p.nombre }))) return;
-      await FS.api.del('/predios/' + predioActual._id + '/parcelas/' + p._id, t('esp_borrando'));
+      await GP.api.del('/predios/' + predioActual._id + '/parcelas/' + p._id, t('esp_borrando'));
       parcelaActual = null; ocultarHoja(); seleccionarPredio(predioActual._id);
     };
   }
@@ -760,7 +760,7 @@
   // ── análisis ────────────────────────────────────────────
   async function hojaAnalisis(p) {
     mostrarHoja('<h2>' + t('analizando', { n: esc(p.nombre) }) + '</h2><p class="aviso">' + t('consultando') + '</p>');
-    var r = await FS.api.get('/predios/' + predioActual._id + '/analisis?parcela=' + p._id + '&lang=' + FS.lang, t('esp_analisis'));
+    var r = await GP.api.get('/predios/' + predioActual._id + '/analisis?parcela=' + p._id + '&lang=' + GP.lang, t('esp_analisis'));
     if (!(r.data && r.data.ok)) return mostrarHoja('<h2>' + t('sin_analisis') + '</h2><p class="aviso">' + esc(traducirError(r.data && r.data.error)) + '</p>');
     var d = r.data.data;
     var html = '<h2>' + esc(t('analisis_de', { n: p.nombre })) + '</h2>';
@@ -836,18 +836,18 @@
 
   // ── PDF ─────────────────────────────────────────────────
   async function descargarPdf(parcelaId) {
-    FS.api.esperar(t('generando_pdf'));
+    GP.api.esperar(t('generando_pdf'));
     try {
-      var res = await fetch(FS.api.informeUrl(predioActual._id, parcelaId), { headers: { Authorization: 'Bearer ' + FS.api.token() } });
+      var res = await fetch(GP.api.informeUrl(predioActual._id, parcelaId), { headers: { Authorization: 'Bearer ' + GP.api.token() } });
       if (!res.ok) { toast(t('no_pdf')); return; }
       var blob = await res.blob();
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
-      a.href = url; a.download = 'fieldshift-' + predioActual.nombre.replace(/\W+/g, '-').toLowerCase() + '.pdf';
+      a.href = url; a.download = 'grazepoint-' + predioActual.nombre.replace(/\W+/g, '-').toLowerCase() + '.pdf';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
     } catch (e) { toast(t('no_pdf')); }
-    finally { FS.api.listo(); }
+    finally { GP.api.listo(); }
   }
 
   // ── capas: herramienta de capas de análisis ─────────────
@@ -856,11 +856,11 @@
       '<p class="aviso">' + t('capas_aviso') + '</p>' +
       '<h3>' + t('capas_base') + '</h3>' +
       '<div class="checks">' +
-      '<label class="check"><input type="radio" name="capa-base" value="sat"' + (FS.capas.basisAktuell() === 'sat' ? ' checked' : '') + '>' + t('capa_base_sat') + '</label>' +
-      '<label class="check"><input type="radio" name="capa-base" value="osm"' + (FS.capas.basisAktuell() === 'osm' ? ' checked' : '') + '>' + t('capa_base_osm') + '</label>' +
+      '<label class="check"><input type="radio" name="capa-base" value="sat"' + (GP.capas.basisAktuell() === 'sat' ? ' checked' : '') + '>' + t('capa_base_sat') + '</label>' +
+      '<label class="check"><input type="radio" name="capa-base" value="osm"' + (GP.capas.basisAktuell() === 'osm' ? ' checked' : '') + '>' + t('capa_base_osm') + '</label>' +
       '</div>' +
       '<h3>' + t('capas_analisis') + '</h3>';
-    FS.capas.liste().forEach(function (c) {
+    GP.capas.liste().forEach(function (c) {
       html += '<div class="capa-row">' +
         '<label class="check capa-chk"><input type="checkbox" class="capa-an" data-c="' + c.id + '"' + (c.aktiv ? ' checked' : '') + '>' + esc(t(c.t)) + '</label>' +
         (c.temporal ? '<span class="chip chip-tiempo">◷</span>' : '') +
@@ -871,18 +871,18 @@
     mostrarHoja(html);
     document.querySelectorAll('.capa-an').forEach(function (c) {
       c.onchange = function () {
-        FS.capas.umschalten(c.dataset.c, c.checked);
+        GP.capas.umschalten(c.dataset.c, c.checked);
         var op = document.querySelector('.capa-opa[data-c="' + c.dataset.c + '"]');
         if (op) op.disabled = !c.checked;
-        el('fab-capas').classList.toggle('activo', FS.capas.liste().some(function (x) { return x.aktiv; }));
+        el('fab-capas').classList.toggle('activo', GP.capas.liste().some(function (x) { return x.aktiv; }));
         actualizarEnfoque();
       };
     });
     document.querySelectorAll('.capa-opa').forEach(function (s) {
-      s.oninput = function () { FS.capas.setOpa(s.dataset.c, s.value / 100); };
+      s.oninput = function () { GP.capas.setOpa(s.dataset.c, s.value / 100); };
     });
     document.querySelectorAll('[name="capa-base"]').forEach(function (b) {
-      b.onchange = function () { FS.capas.setBasis(b.value); };
+      b.onchange = function () { GP.capas.setBasis(b.value); };
     });
   }
 
@@ -893,7 +893,7 @@
 
   function _tiempoUI(info) {
     el('tiempo-slider').value = info.paso + 6;
-    var mesNombre = info.mes.toLocaleDateString(FS.dateLocale, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    var mesNombre = info.mes.toLocaleDateString(GP.dateLocale, { month: 'long', year: 'numeric', timeZone: 'UTC' });
     el('tiempo-label').innerHTML = esc(mesNombre) + (info.proyeccion ? ' <span class="tiempo-proy">' + esc(t('tiempo_proy')) + '</span>' : '');
     var v = info.valores || {};
     var s = [];
@@ -903,7 +903,7 @@
     el('tiempo-stats').textContent = s.join('  ·  ');
   }
 
-  async function _tiempoPaso(p) { _tiempoUI(await FS.tiempo.setPaso(p)); }
+  async function _tiempoPaso(p) { _tiempoUI(await GP.tiempo.setPaso(p)); }
 
   function pararTiempo() {
     if (tiempoTimer) { clearInterval(tiempoTimer); tiempoTimer = null; el('tiempo-play').textContent = '▶'; }
@@ -912,27 +912,27 @@
   function abrirTiempo() {
     el('tiempo-barra').classList.remove('oculto');
     el('fab-tiempo').classList.add('activo');
-    _tiempoPaso(FS.tiempo.pasoAktuell());
+    _tiempoPaso(GP.tiempo.pasoAktuell());
   }
 
   function cerrarTiempo() {
     pararTiempo();
     el('tiempo-barra').classList.add('oculto');
     el('fab-tiempo').classList.remove('activo');
-    FS.capas.setPaso(null); // de vuelta a "actual"
+    GP.capas.setPaso(null); // de vuelta a "actual"
   }
 
   el('fab-tiempo').onclick = function () {
     el('tiempo-barra').classList.contains('oculto') ? abrirTiempo() : cerrarTiempo();
   };
-  el('tiempo-prev').onclick = function () { _tiempoPaso(FS.tiempo.pasoAktuell() - 1); };
-  el('tiempo-next').onclick = function () { _tiempoPaso(FS.tiempo.pasoAktuell() + 1); };
+  el('tiempo-prev').onclick = function () { _tiempoPaso(GP.tiempo.pasoAktuell() - 1); };
+  el('tiempo-next').onclick = function () { _tiempoPaso(GP.tiempo.pasoAktuell() + 1); };
   el('tiempo-close').onclick = cerrarTiempo;
   el('tiempo-play').onclick = function () {
     if (tiempoTimer) return pararTiempo();
     el('tiempo-play').textContent = '⏸';
     tiempoTimer = setInterval(function () {
-      var p = FS.tiempo.pasoAktuell() + 1;
+      var p = GP.tiempo.pasoAktuell() + 1;
       if (p > 6) return pararTiempo();
       _tiempoPaso(p);
     }, 1600);
@@ -941,11 +941,11 @@
 
   // ── arranque ────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', async function () {
-    FS.mapa.iniciar('mapa');
-    FS.capas.restaurieren();
-    el('fab-capas').classList.toggle('activo', FS.capas.liste().some(function (x) { return x.aktiv; }));
-    await FS.auth.listo;
-    if (FS.auth.get()) cargarPredios();
+    GP.mapa.iniciar('mapa');
+    GP.capas.restaurieren();
+    el('fab-capas').classList.toggle('activo', GP.capas.liste().some(function (x) { return x.aktiv; }));
+    await GP.auth.listo;
+    if (GP.auth.get()) cargarPredios();
     else hojaEntrar('login');
   });
 })();

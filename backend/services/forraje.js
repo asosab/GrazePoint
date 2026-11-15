@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/forraje.js — punto óptimo de
+// servicios/grazepoint/services/forraje.js — punto óptimo de
 // pastoreo / corte / ensilaje por potrero.
 //
 // La idea: el ganado no espera al satélite, espera a que el pasto

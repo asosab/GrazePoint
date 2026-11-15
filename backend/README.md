@@ -1,7 +1,7 @@
-# fieldShift — backend
+# GrazePoint — backend
 
-Servicio standalone del backend de Field Shift. Es el mismo código que el
-módulo `servicios/fieldShift` de nodeLab (api.statetty.com), empaquetado
+Servicio standalone del backend de GrazePoint. Es el mismo código que el
+módulo `servicios/grazepoint` de nodeLab (api.statetty.com), empaquetado
 para correr en cualquier host.
 
 ## Arranque
@@ -12,7 +12,7 @@ npm install
 npm start              # :8080 por defecto
 ```
 
-Salud: `GET /api/fieldShift/salud` → `{ ok, servicio, bd, hora }`.
+Salud: `GET /api/grazepoint/salud` → `{ ok, servicio, bd, hora }`.
 
 ## API
 
@@ -45,9 +45,9 @@ Los administradores se prescriben por correo en `config.js`
 
 ## Base de datos
 
-MongoDB propio llamado `fieldShift` (colecciones `fsusers`, `predios`,
+MongoDB propio llamado `GrazePoint` (colecciones `fsusers`, `predios`,
 `cultivos`). El seed de índices y catálogo corre desde el workspace de
-desarrollo con `scripts/fieldshift/seed.js`; para sembrar aquí basta
+desarrollo con `scripts/grazepoint/seed.js`; para sembrar aquí basta
 insertar el catálogo de `services/catalogo.js` en la colección `cultivos`
 (el recomendador también funciona con el catálogo embebido si la
 colección está vacía).

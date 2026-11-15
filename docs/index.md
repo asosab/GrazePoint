@@ -5,7 +5,7 @@ created: 2026-11-14
 tags: [indice]
 ---
 
-# Field Shift — vault
+# GrazePoint — vault
 
 Vault propio del proyecto. La app vive en la raíz del repo (Jekyll +
 `backend/`); `docs/` no se publica (está en `exclude` del `_config.yml`).

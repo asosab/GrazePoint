@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/informe.js — informe PDF por predio.
+// servicios/grazepoint/services/informe.js — informe PDF por predio.
 //
 // Estructura inspirada en los diagnósticos de pastura que el técnico
 // reenvía por WhatsApp: diagnóstico general del predio (ficha, clima,
@@ -392,7 +392,7 @@ async function generar({ predio, parcela, solicitadoPor, lang }) {
 		else if (e.fe.ndvi != null) clasesHa[_claseNdvi(e.fe.ndvi)] += ha;
 	});
 
-	const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 50, left: 50, right: 50 }, info: { Title: T.titulo + ' · ' + predio.nombre, Author: 'Field Shift' } });
+	const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 50, left: 50, right: 50 }, info: { Title: T.titulo + ' · ' + predio.nombre, Author: 'GrazePoint' } });
 	const chunks = [];
 	doc.on('data', (c) => chunks.push(c));
 	const fin = new Promise((resolve) => doc.on('end', () => resolve(Buffer.concat(chunks))));

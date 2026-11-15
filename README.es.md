@@ -1,4 +1,4 @@
-# Field Shift
+# GrazePoint
 
 **PRIAS digital + recomendador de rotación + ventana de siembra
 forrajera.**
@@ -9,8 +9,8 @@ el NASA Space Apps Challenge 2026 junto a la Hacienda Patiño
 (Fundación Simón I. Patiño, Santa Cruz, Bolivia): suelos arenosos,
 ganadería regenerativa y polifíticas forrajeras.
 
-Sitio: [asosab.github.io/fieldShift/es](https://asosab.github.io/fieldShift/es/)
-(Inglés: [asosab.github.io/fieldShift](https://asosab.github.io/fieldShift/))
+Sitio: [asosab.github.io/GrazePoint/es](https://asosab.github.io/GrazePoint/es/)
+(Inglés: [asosab.github.io/GrazePoint](https://asosab.github.io/GrazePoint/))
 
 > **[Read this README in English](README.md)**
 
@@ -56,7 +56,7 @@ NDVI marca el último uso. Los aforos calibran una regresión local de
 kgMS/ha según NDVI, y el hato cargado (`predio.hato`) se cruza con el
 forraje estimado para dar los días de cobertura. Las alertas diarias
 de Telegram avisan cuando un potrero entra en una condición, desde el
-bot propio [@fieldshift_bot](https://t.me/fieldshift_bot).
+bot propio [@grazepoint_bot](https://t.me/grazepoint_bot).
 
 ## Importar parcelas desde archivo
 
@@ -73,7 +73,7 @@ pueden pegar coordenadas UTM o soltar archivos directo sobre el mapa.
 | `/` | Frontend Jekyll para GitHub Pages, mobile-first, mapa satelital. Inglés en la raíz, español bajo `es/` |
 | `app/` | La aplicación: predios, parcelas sobre el satélite, análisis y PDF |
 | `assets/` | JS/CSS vanilla sin build: `app.js`, `mapa.js`, `capas.js`, `tiempo.js`, `importar.js`, `i18n.js` |
-| `backend/` | Servicio Express + MongoDB standalone (espejo de `servicios/fieldShift` de nodeLab, api.statetty.com) |
+| `backend/` | Servicio Express + MongoDB standalone (espejo de `servicios/grazepoint` de nodeLab, api.statetty.com) |
 | `docs/` | Vault Obsidian del proyecto (plan maestro, decisiones, log de sesiones) |
 
 ## Desarrollo
@@ -90,8 +90,8 @@ npm install && npm start  # :8080
 ```
 
 El frontend apunta por defecto a
-`https://api.statetty.com/api/fieldShift`. Con
-`?api=http://localhost:8080/api/fieldShift` (o `fs_api` en
+`https://api.statetty.com/api/grazepoint`. Con
+`?api=http://localhost:8080/api/grazepoint` (o `gp_api` en
 localStorage) se usa un backend local.
 
 ## Datos

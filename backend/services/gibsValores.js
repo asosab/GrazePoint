@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/gibsValores.js — valor real por punto
+// servicios/grazepoint/services/gibsValores.js — valor real por punto
 // desde tiles de NASA GIBS.
 //
 // GIBS no expone valores por punto; pero el tile PNG donde cae el

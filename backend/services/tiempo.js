@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/tiempo.js — tendencia temporal del punto.
+// servicios/grazepoint/services/tiempo.js — tendencia temporal del punto.
 //
 // Agrega la serie diaria de POWER en meses calendario y compara:
 //   - lluvia de los últimos 6 meses vs los mismos 6 meses del año

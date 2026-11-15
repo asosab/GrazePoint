@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/alertas.js — avisos de potreros por
+// servicios/grazepoint/services/alertas.js — avisos de potreros por
 // Telegram.
 //
 // Una vez al día recorre las parcelas de los usuarios con Telegram
@@ -53,10 +53,10 @@ function _dedo(p) {
 }
 
 async function _barrido() {
-	const FsUser = require('../models/fsUserModel');
+	const GpUser = require('../models/gpUserModel');
 	const Predio = require('../models/predioModel');
 	if (!db.lista()) return;
-	const usuarios = await FsUser.find({ telegramChatId: { $ne: null } }).select('_id nombre telegramChatId').lean();
+	const usuarios = await GpUser.find({ telegramChatId: { $ne: null } }).select('_id nombre telegramChatId').lean();
 	if (!usuarios.length) return;
 	const catalogo = await rotacion.catalogo();
 	for (const u of usuarios) {

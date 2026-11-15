@@ -1,12 +1,12 @@
-// servicios/fieldShift/services/mail.js — correos al usuario vía Gmail.
+// servicios/grazepoint/services/mail.js — correos al usuario vía Gmail.
 //
 // Cuenta de Google con clave de aplicación (SMTP gmail). Las credenciales
 // viven SOLO en el .env, nunca en el repo público:
-//   FIELDSHIFT_SMTP_HOST (default smtp.gmail.com)
-//   FIELDSHIFT_SMTP_PORT (default 465)
-//   FIELDSHIFT_SMTP_USER (cuenta gmail)
-//   FIELDSHIFT_SMTP_PASS (clave de aplicación de 16 letras)
-//   FIELDSHIFT_MAIL_FROM (default "Field Shift <user>")
+//   GRAZEPOINT_SMTP_HOST (default smtp.gmail.com)
+//   GRAZEPOINT_SMTP_PORT (default 465)
+//   GRAZEPOINT_SMTP_USER (cuenta gmail)
+//   GRAZEPOINT_SMTP_PASS (clave de aplicación de 16 letras)
+//   GRAZEPOINT_MAIL_FROM (default "GrazePoint <user>")
 // Sin credenciales el servicio no revienta: loguea el código en consola
 // (modo dev) y devuelve false.
 
@@ -18,20 +18,20 @@ let transporter = null;
 
 function _transport() {
 	if (transporter) return transporter;
-	const user = process.env.FIELDSHIFT_SMTP_USER;
-	const pass = process.env.FIELDSHIFT_SMTP_PASS;
+	const user = process.env.GRAZEPOINT_SMTP_USER;
+	const pass = process.env.GRAZEPOINT_SMTP_PASS;
 	if (!user || !pass) return null;
 	transporter = nodemailer.createTransport({
-		host: process.env.FIELDSHIFT_SMTP_HOST || 'smtp.gmail.com',
-		port: Number(process.env.FIELDSHIFT_SMTP_PORT || 465),
-		secure: Number(process.env.FIELDSHIFT_SMTP_PORT || 465) === 465,
+		host: process.env.GRAZEPOINT_SMTP_HOST || 'smtp.gmail.com',
+		port: Number(process.env.GRAZEPOINT_SMTP_PORT || 465),
+		secure: Number(process.env.GRAZEPOINT_SMTP_PORT || 465) === 465,
 		auth: { user, pass }
 	});
 	return transporter;
 }
 
 function _from() {
-	return process.env.FIELDSHIFT_MAIL_FROM || ('Field Shift <' + (process.env.FIELDSHIFT_SMTP_USER || 'noreply@fieldshift.app') + '>');
+	return process.env.GRAZEPOINT_MAIL_FROM || ('GrazePoint <' + (process.env.GRAZEPOINT_SMTP_USER || 'noreply@grazepoint.app') + '>');
 }
 
 async function enviar({ para, asunto, texto, html }) {

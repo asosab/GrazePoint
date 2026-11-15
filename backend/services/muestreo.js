@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/muestreo.js — puntos dentro del
+// servicios/grazepoint/services/muestreo.js — puntos dentro del
 // polígono para muestrear capas raster.
 //
 // El análisis es del área de la parcela, no de todo el mapa ni del

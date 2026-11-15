@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/auth.js — flujo de registro y sesión.
+// servicios/grazepoint/services/auth.js — flujo de registro y sesión.
 //
 // Registro con email + clave → código de 6 dígitos por correo (Gmail SMTP
 // con clave de aplicación). Login con clave. Recuperación por código.
@@ -6,8 +6,8 @@
 // 15 min si se abusa. Flujo self-contained, sin dependencias externas de auth.
 
 const cnf = require('../config');
-const FsUser = require('../models/fsUserModel');
-const { hashClave, verificarClave, nuevoCodigo, hashCodigo, rolParaEmail } = require('../models/fsUserModel');
+const GpUser = require('../models/gpUserModel');
+const { hashClave, verificarClave, nuevoCodigo, hashCodigo, rolParaEmail } = require('../models/gpUserModel');
 const mail = require('./mail');
 const { firmarToken } = require('../middleware/auth');
 
@@ -64,10 +64,10 @@ async function registro({ email, clave, nombre, lang, legal }) {
 	if (!clave || String(clave).length < 8) return { ok: false, status: 400, error: 'clave_minima_8' };
 	if (legal !== true) return { ok: false, status: 400, error: 'legal_requerido' };
 
-	let user = await FsUser.findOne({ email: e });
+	let user = await GpUser.findOne({ email: e });
 	if (user && user.verificado) return { ok: false, status: 409, error: 'email_ya_registrado' };
 	if (!user) {
-		user = new FsUser({ email: e });
+		user = new GpUser({ email: e });
 	}
 	user.nombre = nombre ? String(nombre).trim().slice(0, 120) : user.nombre;
 	user.claveHash = hashClave(clave);
@@ -84,7 +84,7 @@ async function registro({ email, clave, nombre, lang, legal }) {
 // POST /auth/verificar {email, codigo} → token
 async function verificar({ email, codigo }) {
 	const e = normalizarEmail(email);
-	const user = await FsUser.findOne({ email: e });
+	const user = await GpUser.findOne({ email: e });
 	if (!user) return { ok: false, status: 404, error: 'usuario_inexistente' };
 	if (user.bloqueadoHasta && user.bloqueadoHasta > new Date()) return { ok: false, status: 429, error: 'bloqueado_temporal' };
 	if (!user.codigoHash || user.codigoTipo !== 'verificacion' || !user.codigoExpira || user.codigoExpira < new Date()) {
@@ -106,7 +106,7 @@ async function verificar({ email, codigo }) {
 // POST /auth/login {email, clave, lang} → token
 async function login({ email, clave, lang }) {
 	const e = normalizarEmail(email);
-	const user = await FsUser.findOne({ email: e, activo: true });
+	const user = await GpUser.findOne({ email: e, activo: true });
 	if (!user || !verificarClave(clave, user.claveHash)) {
 		return { ok: false, status: 401, error: 'credenciales_invalidas' };
 	}
@@ -123,7 +123,7 @@ async function login({ email, clave, lang }) {
 // POST /auth/recuperar {email, lang} → siempre 202 (no revelar si existe)
 async function recuperar({ email, lang }) {
 	const e = normalizarEmail(email);
-	const user = await FsUser.findOne({ email: e, activo: true });
+	const user = await GpUser.findOne({ email: e, activo: true });
 	if (user) await _emitirCodigo(user, 'reset', lang).catch(() => {});
 	return { ok: true, status: 202 };
 }
@@ -132,7 +132,7 @@ async function recuperar({ email, lang }) {
 async function restablecer({ email, codigo, clave }) {
 	const e = normalizarEmail(email);
 	if (!clave || String(clave).length < 8) return { ok: false, status: 400, error: 'clave_minima_8' };
-	const user = await FsUser.findOne({ email: e, activo: true });
+	const user = await GpUser.findOne({ email: e, activo: true });
 	if (!user) return { ok: false, status: 404, error: 'usuario_inexistente' };
 	if (user.bloqueadoHasta && user.bloqueadoHasta > new Date()) return { ok: false, status: 429, error: 'bloqueado_temporal' };
 	if (!user.codigoHash || user.codigoTipo !== 'reset' || !user.codigoExpira || user.codigoExpira < new Date()) {
@@ -155,7 +155,7 @@ async function restablecer({ email, codigo, clave }) {
 // POST /auth/reenviar {email, lang} — reenvío de código de verificación
 async function reenviar({ email, lang }) {
 	const e = normalizarEmail(email);
-	const user = await FsUser.findOne({ email: e, activo: true });
+	const user = await GpUser.findOne({ email: e, activo: true });
 	if (!user || user.verificado) return { ok: true, status: 202 };
 	const envio = await _emitirCodigo(user, 'verificacion', lang);
 	if (!envio.ok) return { ok: false, status: 429, error: envio.error };

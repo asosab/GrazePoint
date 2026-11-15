@@ -2,10 +2,10 @@
 type: decision
 status: propuesta
 created: 2026-11-12
-tags: [reto, field-shift, patino, enfoques]
+tags: [reto, graze-point, patino, enfoques]
 ---
 
-# Top 10 enfoques Field Shift para Fundación Patiño
+# Top 10 enfoques GrazePoint para Fundación Patiño
 
 Cruce de [[fundacion-patino]] (datos duros de sus informes 2022–2025)
 con [[arquitectura-datos]] y las fuentes verificadas de [[00-plan]].

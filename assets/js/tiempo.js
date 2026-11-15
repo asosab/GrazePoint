@@ -4,7 +4,7 @@
  * Zukunft ("Proyección"): gleicher Monat des Vorjahres als Tile +
  * POWER-Klimatologie als Zahlen — die "Zyklen" der Vorjahre.
  * POWER liefert CORS offen: Abruf direkt, Cache pro Koordinate. */
-window.FS = window.FS || {};
+window.GP = window.GP || {};
 
 (function () {
   var paso = 0;              // -6..+6
@@ -32,7 +32,7 @@ window.FS = window.FS || {};
 
   // ── POWER: Serie + Klimatologie ─────────────────────────
   function _coordKey() {
-    var m = FS.mapa && FS.mapa.leaflet ? FS.mapa.leaflet() : null;
+    var m = GP.mapa && GP.mapa.leaflet ? GP.mapa.leaflet() : null;
     if (!m) return null;
     var c = m.getCenter();
     return c.lat.toFixed(2) + ',' + c.lng.toFixed(2);
@@ -103,7 +103,7 @@ window.FS = window.FS || {};
   async function setPaso(p) {
     paso = Math.max(-6, Math.min(6, p));
     var fecha = datumFuer(paso);
-    if (FS.capas && FS.capas.setPaso) FS.capas.setPaso(fecha);
+    if (GP.capas && GP.capas.setPaso) GP.capas.setPaso(fecha);
     var serie = await _cargarSerie();
     var info = {
       paso: paso,
@@ -119,7 +119,7 @@ window.FS = window.FS || {};
   function pasoAktuell() { return paso; }
   function onCambiar(cb) { alCambiar = cb; }
 
-  FS.tiempo = {
+  GP.tiempo = {
     setPaso: setPaso,
     pasoAktuell: pasoAktuell,
     onCambiar: onCambiar,

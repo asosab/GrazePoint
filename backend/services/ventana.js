@@ -1,4 +1,4 @@
-// servicios/fieldShift/services/ventana.js — ventana de siembra forrajera.
+// servicios/grazepoint/services/ventana.js — ventana de siembra forrajera.
 //
 // Enfoque 3 del top-10: cuándo sembrar pasturas/cultivos de servicio.
 // Cruza la climatología mensual de POWER (lluvia media por mes) con el
