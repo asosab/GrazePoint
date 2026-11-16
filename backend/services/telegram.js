@@ -56,6 +56,18 @@ async function enviar(chatId, texto) {
 	return _call('sendMessage', { chat_id: chatId, text: texto });
 }
 
+async function enviarReporte(chatId, texto, captura) {
+	const base = { chat_id: chatId };
+	if (!captura) return enviar(chatId, texto);
+	const url = /^data:image\/(png|jpeg|webp);base64,/i.exec(captura);
+	if (url) {
+		const fields = { ...base, caption: texto, parse_mode: 'HTML' };
+		fields.photo = captura;
+		return _call('sendPhoto', fields);
+	}
+	return null;
+}
+
 // POST /me/telegram/codigo — emite código + deep-link para el usuario
 // web autenticado. Devuelve {codigo, url} o {error}.
 async function crearCodigo(user) {
@@ -200,4 +212,4 @@ async function desvincular(user) {
 	return { ok: true };
 }
 
-module.exports = { iniciar, crearCodigo, vincular, desvincular, enviar };
+module.exports = { iniciar, crearCodigo, vincular, desvincular, enviar, enviarReporte };

@@ -144,6 +144,29 @@ router.delete('/me/telegram', authenticate, wrap(async (req, res) => {
 	res.json({ ok: true });
 }));
 
+// ── Reportes de uso ────────────────────────────────────────────────────────
+
+const reporte = require('../services/reporte');
+
+router.post('/reportes', authenticate, wrap(async (req, res) => {
+	const comentario = req.body && req.body.comentario;
+	const url = req.body && req.body.url;
+	const captura = req.body && req.body.captura;
+	const idioma = langDe(req);
+	if (comentario == null || typeof comentario !== 'string' || !comentario.trim()) {
+		return res.status(400).json({ ok: false, error: 'comentario_requerido' });
+	}
+	if (comentario.length > 4000 || (captura && captura.length > 900 * 1024)) {
+		return res.status(400).json({ ok: false, error: 'reporte_demasiado_grande' });
+	}
+	if (captura && !/^data:image\/(png|jpeg|webp);base64,/.test(captura)) {
+		return res.status(400).json({ ok: false, error: 'captura_invalida' });
+	}
+	const r = await reporte.enviar(req.gpUser, comentario, url, captura, idioma);
+	if (!r.ok) return res.status(503).json({ ok: false, error: r.error });
+	res.json({ ok: true });
+}));
+
 router.get('/catalogo', authenticate, wrap(async (req, res) => {
 	res.json({ ok: true, data: await rotacion.catalogo() });
 }));

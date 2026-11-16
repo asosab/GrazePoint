@@ -219,6 +219,116 @@
     else { predios = []; predioActual = null; GP.mapa.pintarParcelas([]); GP.mapa.enfocar(null); ocultarHoja(); }
   });
 
+  // ── reporte al administrador ─────────────────────────────
+  var reportePanel = null, reporteBoton = null, reporteCaptura = null, reporteUrl = null;
+
+  function _reporteNode() {
+    if (reportePanel) return;
+    reporteBoton = document.createElement('button');
+    reporteBoton.id = 'reporte-abrir';
+    reporteBoton.className = 'fab reporte-abrir';
+    reporteBoton.textContent = '!';
+    reporteBoton.setAttribute('aria-label', t('reporte_titulo'));
+    reporteBoton.setAttribute('title', t('reporte_titulo'));
+    document.body.appendChild(reporteBoton);
+    reportePanel = document.createElement('section');
+    reportePanel.id = 'reporte-panel';
+    reportePanel.className = 'reporte-panel oculto';
+    reportePanel.setAttribute('aria-label', t('reporte_titulo'));
+    reportePanel.innerHTML =
+      '<div class="reporte-cab"><h2>' + esc(t('reporte_titulo')) + '</h2><button id="reporte-cerrar" class="btn-mini" aria-label="✕">✕</button></div>' +
+      '<img id="reporte-preview" class="reporte-preview oculto" alt="">' +
+      '<p id="reporte-captura-estado" class="reporte-estado">' + esc(t('reporte_capturando')) + '</p>' +
+      '<label class="campo"><span>' + esc(t('reporte_comentario')) + '</span><textarea id="reporte-comentario" maxlength="4000" rows="4"></textarea></label>' +
+      '<div class="reporte-acciones"><button id="reporte-recargar" class="btn-mini" type="button">' + esc(t('reporte_recapturar')) + '</button>' +
+      '<button id="reporte-enviar" class="boton" type="button">' + esc(t('reporte_enviar')) + '</button></div>';
+    document.body.appendChild(reportePanel);
+    reporteBoton.onclick = abrirReporte;
+    el('reporte-cerrar').onclick = cerrarReporte;
+    el('reporte-recargar').onclick = function () { tomarReporte(); };
+    el('reporte-enviar').onclick = enviarReporte;
+  }
+
+  async function tomarReporte() {
+    reporteCaptura = null;
+    reporteUrl = null;
+    var imagen = el('reporte-preview'), estado = el('reporte-captura-estado');
+    if (imagen && reporteUrl) URL.revokeObjectURL(reporteUrl);
+    imagen.classList.add('oculto');
+    estado.textContent = t('reporte_capturando');
+    reportePanel.classList.remove('capturando');
+    if (typeof html2canvas !== 'function') {
+      estado.textContent = t('reporte_captura_error');
+      return;
+    }
+    reportePanel.classList.add('capturando');
+    try {
+      var lienzo = await html2canvas(document.documentElement, {
+        backgroundColor: '#101510',
+        scale: Math.min(window.devicePixelRatio || 1, 2),
+        useCORS: true,
+        logging: false,
+        ignoreElements: function (n) { return n.id === 'reporte-panel' || n.id === 'reporte-abrir'; }
+      });
+      reporteUrl = lienzo.toDataURL('image/png');
+      if (reporteUrl.length > 700 * 1024) {
+        var ancho = lienzo.width, alto = lienzo.height;
+        var escalado = document.createElement('canvas');
+        escalado.width = ancho; escalado.height = alto;
+        var ctx = escalado.getContext('2d');
+        ctx.fillStyle = '#101510'; ctx.fillRect(0, 0, ancho, alto);
+        ctx.drawImage(lienzo, 0, 0);
+        reporteUrl = escalado.toDataURL('image/jpeg', 0.78);
+      }
+      reporteCaptura = reporteUrl;
+      imagen.src = reporteUrl;
+      imagen.classList.remove('oculto');
+      estado.textContent = t('reporte_captura');
+    } catch (e) {
+      console.error('[reporte] captura:', e);
+      estado.textContent = t('reporte_captura_error');
+    } finally {
+      reportePanel.classList.remove('capturando');
+    }
+  }
+
+  function abrirReporte() {
+    _reporteNode();
+    reportePanel.classList.remove('oculto');
+    reporteBoton.classList.add('activo');
+    tomarReporte();
+  }
+
+  function cerrarReporte() {
+    if (!reportePanel) return;
+    reportePanel.classList.add('oculto');
+    reporteBoton.classList.remove('activo');
+  }
+
+  async function enviarReporte() {
+    var comentario = valor('reporte-comentario');
+    if (!comentario) return toast(t('reporte_falta'));
+    var boton = el('reporte-enviar');
+    boton.disabled = true;
+    boton.textContent = t('reporte_enviando');
+    var r = await GP.api.post('/reportes', {
+      comentario: comentario,
+      url: location.href,
+      captura: reporteCaptura,
+      lang: GP.lang
+    }, t('reporte_enviando'));
+    GP.api.listo();
+    boton.disabled = false;
+    boton.textContent = t('reporte_enviar');
+    if (r.data && r.data.ok) {
+      el('reporte-comentario').value = '';
+      cerrarReporte();
+      toast(t('reporte_ok'));
+    } else {
+      toast(traducirError(r.data && r.data.error) || t('reporte_error'));
+    }
+  }
+
   // ── predios ─────────────────────────────────────────────
   async function cargarPredios() {
     var r = await GP.api.get('/predios', t('esp_predios'));
@@ -989,6 +1099,7 @@
   // ── arranque ────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', async function () {
     GP.mapa.iniciar('mapa');
+    _reporteNode();
     GP.capas.restaurieren();
     el('fab-capas').classList.toggle('activo', GP.capas.liste().some(function (x) { return x.aktiv; }));
     await GP.auth.listo;
