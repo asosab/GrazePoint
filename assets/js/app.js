@@ -227,7 +227,7 @@
     reporteBoton = document.createElement('button');
     reporteBoton.id = 'reporte-abrir';
     reporteBoton.className = 'fab reporte-abrir';
-    reporteBoton.textContent = '!';
+    reporteBoton.textContent = '📸';
     reporteBoton.setAttribute('aria-label', t('reporte_titulo'));
     reporteBoton.setAttribute('title', t('reporte_titulo'));
     document.body.appendChild(reporteBoton);
