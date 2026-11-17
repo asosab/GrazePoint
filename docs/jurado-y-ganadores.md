@@ -62,6 +62,12 @@ Sudamérica gana seguido (Argentina, Perú, Paraguay, Brasil).
 Desde 2018 Bolivia llega hasta Global Nominee (CodeDinamina SCZ 2024,
 CloudCatchers/WIRA Cbba 2025, varios LP 2025).
 
+**Actualización 2026-11-15:** GrazePoint ganó **Local Impact** en el
+encuentro de Santa Cruz (premio local de la sede). Es el primer premio
+de ese tipo para el proyecto y el mejor resultado boliviano desde
+RoboScope: la sede ya validó el impacto local; falta que la mesa
+global repita la lectura con los 11.500 proyectos del mundo.
+
 ## Criterios oficiales (los mismos en local y global)
 
 1. **Impact** — ¿resuelve un problema grande? ¿ayuda a muchos?

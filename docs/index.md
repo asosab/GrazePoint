@@ -21,6 +21,8 @@ Vault propio del proyecto. La app vive en la raíz del repo (Jekyll +
 - [[criterios-jurado]] — scorecard propio contra los 5 criterios
   oficiales y los sub-premios (Local Impact, Best Use of Data,
   Most Inspirational)
+- [[proyeccion-global]] — chances honestas de premio global tras
+  ganar Local Impact en el encuentro de Santa Cruz
 - [[respuestas-sueleen-pena]] — cuestionario de la directora de la
   Hacienda *(copia de la nota del vault NSAC)*
 - [[plan-necesidades-sueleen]] — pendientes de la entrevista en orden
