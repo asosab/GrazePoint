@@ -16,6 +16,11 @@ Vault propio del proyecto. La app vive en la raíz del repo (Jekyll +
   y camino con la Hacienda Patiño como primer usuario
 - [[jurado-y-ganadores]] — cómo se elige al ganador del Space Apps y qué
   debe cubrir el proyecto *(copia de la nota del vault NSAC)*
+- [[ganadores-comparativa]] — ganadores anteriores (Waterwise,
+  NVS-knot, QUEÑARIS, etc.) comparados rasgo a rasgo con GrazePoint
+- [[criterios-jurado]] — scorecard propio contra los 5 criterios
+  oficiales y los sub-premios (Local Impact, Best Use of Data,
+  Most Inspirational)
 - [[respuestas-sueleen-pena]] — cuestionario de la directora de la
   Hacienda *(copia de la nota del vault NSAC)*
 - [[plan-necesidades-sueleen]] — pendientes de la entrevista en orden
